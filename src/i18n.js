@@ -60,7 +60,8 @@ const resources = {
                 "list_desc": "List of all connected WhatsApp instances.",
                 "search_placeholder": "Filter instances...",
                 "refresh": "Refresh",
-                "delete_instance": "Delete Instance"
+                "delete_instance": "Delete Instance",
+                "phone_number": "Phone Number"
             },
             "chats_page": {
                 "title": "Chats",
@@ -268,7 +269,8 @@ const resources = {
                 "list_desc": "רשימת כל מופעי ה-WhatsApp המחוברים.",
                 "search_placeholder": "סנן מופעים...",
                 "refresh": "רענן",
-                "delete_instance": "מחק מופע"
+                "delete_instance": "מחק מופע",
+                "phone_number": "מספר טלפון"
             },
             "chats_page": {
                 "title": "צ'אטים",

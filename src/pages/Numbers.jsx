@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Search, Plus, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, RefreshCw, X } from 'lucide-react';
 
 // Simple Badge component since we don't have it in UI lib yet
 function StatusBadge({ status, t }) {
@@ -33,6 +33,14 @@ export default function Numbers() {
     const [searchTerm, setSearchTerm] = useState('');
     const [numbers, setNumbers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [formData, setFormData] = useState({
+        phone_number: '',
+        instance_id: '',
+        api_token: '',
+        status: 'active'
+    });
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         fetchNumbers();
@@ -73,6 +81,35 @@ export default function Numbers() {
         return `${diffDays}d ${t('ago')}`;
     };
 
+    const handleAddNumber = async (e) => {
+        e.preventDefault();
+        if (!user) return;
+
+        try {
+            setSaving(true);
+            const { error } = await supabase
+                .from('numbers')
+                .insert({
+                    user_id: user.id,
+                    phone_number: formData.phone_number,
+                    instance_id: formData.instance_id,
+                    api_token: formData.api_token,
+                    status: formData.status
+                });
+
+            if (error) throw error;
+            
+            setShowModal(false);
+            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
+            fetchNumbers();
+        } catch (error) {
+            console.error('Error adding number:', error);
+            alert(error.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const filteredNumbers = numbers.filter(num =>
         num.phone_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         num.instance_id?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -85,7 +122,7 @@ export default function Numbers() {
                     <h2 className="text-3xl font-bold tracking-tight">{t('numbers_page.title')}</h2>
                     <p className="text-muted-foreground">{t('numbers_page.subtitle')}</p>
                 </div>
-                <Button onClick={() => {/* TODO: Open add number modal */}}>
+                <Button onClick={() => setShowModal(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     {t('add_number')}
                 </Button>

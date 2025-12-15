@@ -15,7 +15,8 @@ export default function Dashboard() {
         totalNumbers: 0,
         activeNumbers: 0,
         recentErrors: 0,
-        apiUsage: 0
+        apiUsage: 0,
+        recentActivity: []
     });
 
     useEffect(() => {
@@ -49,11 +50,19 @@ export default function Dashboard() {
                 .eq('level', 'error')
                 .gte('created_at', yesterday.toISOString());
 
+            // Fetch recent activity (last 10 logs)
+            const { data: recentLogs } = await supabase
+                .from('logs')
+                .select('*, numbers(phone_number, instance_id)')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
             setStats({
                 totalNumbers,
                 activeNumbers,
                 recentErrors: errorCount || 0,
-                apiUsage: 0 // TODO: Calculate from actual API usage data
+                apiUsage: 0, // TODO: Calculate from actual API usage data
+                recentActivity: recentLogs || []
             });
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -160,8 +169,32 @@ export default function Dashboard() {
                         <div className="space-y-4">
                             {loading ? (
                                 <div className="text-center py-4 text-muted-foreground">{t('common.loading')}</div>
-                            ) : (
+                            ) : stats.recentActivity.length === 0 ? (
                                 <div className="text-center py-4 text-muted-foreground">{t('common.no_data')}</div>
+                            ) : (
+                                stats.recentActivity.slice(0, 5).map((log, i) => (
+                                    <div key={log.id || i} className="flex items-center justify-between">
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium leading-none">
+                                                {log.numbers ? (
+                                                    `${t('instance_synced')} ${log.numbers.phone_number || log.numbers.instance_id || ''}`
+                                                ) : (
+                                                    log.message || t('instance_synced')
+                                                )}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {log.level === 'error' ? '⚠️ ' : '✓ '}
+                                                {log.message || t('synced_successfully')}
+                                            </p>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {new Date(log.created_at).toLocaleTimeString([], { 
+                                                hour: '2-digit', 
+                                                minute: '2-digit' 
+                                            })}
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
                     </CardContent>
