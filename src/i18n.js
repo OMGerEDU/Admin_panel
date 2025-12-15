@@ -291,7 +291,9 @@ const resources = {
                 "close": "סגור",
                 "confirm": "אישור",
                 "loading": "טוען...",
-                "no_data": "אין נתונים זמינים"
+                "no_data": "אין נתונים זמינים",
+                "refresh": "רענן",
+                "confirm_delete": "האם אתה בטוח שברצונך למחוק פריט זה?"
             },
             "numbers_page": {
                 "title": "מספרים",
