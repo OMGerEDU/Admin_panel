@@ -48,11 +48,29 @@ export function AuthProvider({ children }) {
         };
     }, []);
 
+    const signIn = async (credentials) => {
+        return await supabase.auth.signInWithPassword(credentials);
+    };
+
+    const signUp = async (credentials) => {
+        return await supabase.auth.signUp(credentials);
+    };
+
+    const signOut = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (!error) {
+            setSession(null);
+            setUser(null);
+        }
+        return { error };
+    };
+
     const value = {
         session,
         user,
-        signIn: (data) => supabase.auth.signInWithPassword(data),
-        signOut: () => supabase.auth.signOut(),
+        signIn,
+        signUp,
+        signOut,
     };
 
     return (
