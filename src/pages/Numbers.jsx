@@ -202,6 +202,87 @@ export default function Numbers() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Add Number Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <Card className="w-full max-w-md">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>{t('add_number')}</CardTitle>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        setShowModal(false);
+                                        setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
+                                    }}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={handleAddNumber} className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-medium">{t('numbers_page.phone_number')}</label>
+                                    <Input
+                                        value={formData.phone_number}
+                                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                        placeholder="+1234567890"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">{t('common.instance_id')}</label>
+                                    <Input
+                                        value={formData.instance_id}
+                                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
+                                        placeholder="Instance ID from Green-API"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">API Token</label>
+                                    <Input
+                                        type="password"
+                                        value={formData.api_token}
+                                        onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
+                                        placeholder="Green-API token"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">{t('status')}</label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                                    >
+                                        <option value="active">{t('connected')}</option>
+                                        <option value="inactive">{t('disconnected')}</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button type="submit" className="flex-1" disabled={saving}>
+                                        {saving ? t('common.loading') : t('common.add')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setShowModal(false);
+                                            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
+                                        }}
+                                    >
+                                        {t('common.cancel')}
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }
