@@ -89,9 +89,8 @@ export default function LandingPage() {
                         />
                     </div>
                 </section>
-            </section>
 
-            {/* Pricing Section */}
+                {/* Pricing Section */}
             <section className="container space-y-6 py-8 md:py-12 lg:py-24">
                 <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
                     <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
@@ -152,15 +151,15 @@ export default function LandingPage() {
             </section>
         </main>
 
-            {/* Footer */ }
-    <footer className="py-6 md:px-8 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-            <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                Built by Builders. The source code is available on GitHub.
-            </p>
+        {/* Footer */}
+        <footer className="py-6 md:px-8 md:py-0">
+            <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+                <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                    Built by Builders. The source code is available on GitHub.
+                </p>
+            </div>
+        </footer>
         </div>
-    </footer>
-        </div >
     );
 }
 
