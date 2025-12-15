@@ -62,9 +62,9 @@ export default function Signup() {
         <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
+                    <CardTitle className="text-2xl font-bold tracking-tight">{t('signup.title')}</CardTitle>
                     <CardDescription>
-                        Enter your information below to create your account
+                        {t('signup.subtitle')}
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSignup}>
@@ -76,12 +76,12 @@ export default function Signup() {
                         )}
                         {success && (
                             <div className="p-3 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400 rounded-md">
-                                Account created! Please check your email to confirm your account.
+                                {t('signup.account_created')}
                             </div>
                         )}
                         <div className="space-y-2">
                             <label htmlFor="name" className="text-sm font-medium leading-none">
-                                Full Name
+                                {t('signup.full_name')}
                             </label>
                             <Input 
                                 id="name" 
@@ -93,7 +93,7 @@ export default function Signup() {
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="email" className="text-sm font-medium leading-none">
-                                {t('login.email')}
+                                {t('signup.email')}
                             </label>
                             <Input 
                                 id="email" 
@@ -106,7 +106,7 @@ export default function Signup() {
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="password" className="text-sm font-medium leading-none">
-                                {t('login.password')}
+                                {t('signup.password')}
                             </label>
                             <Input 
                                 id="password" 
@@ -116,16 +116,16 @@ export default function Signup() {
                                 minLength={6}
                                 required 
                             />
-                            <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
+                            <p className="text-xs text-muted-foreground">{t('signup.password_hint')}</p>
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
                         <Button className="w-full" disabled={loading || success}>
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {loading ? "Creating account..." : success ? "Check your email" : "Create Account"}
+                            {loading ? t('signup.creating') : success ? t('signup.check_email') : t('signup.create_account')}
                         </Button>
                         <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
+                            {t('signup.already_have_account')}{' '}
                             <Link to="/login" className="underline underline-offset-4 hover:text-primary">
                                 {t('login.submit')}
                             </Link>

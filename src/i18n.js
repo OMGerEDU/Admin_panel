@@ -6,6 +6,7 @@ const resources = {
         "translation": {
             "dashboard": "Dashboard",
             "numbers": "Numbers",
+            "chats": "Chats",
             "settings": "Settings",
             "logout": "Log Out",
             "welcome": "Welcome back",
@@ -17,6 +18,22 @@ const resources = {
             "logs": "Logs",
             "automation": "Automation",
             "extension": "Extension",
+            "total_numbers": "Total Numbers",
+            "active": "Active",
+            "system_status": "System Status",
+            "healthy": "Healthy",
+            "all_systems_operational": "All systems operational",
+            "recent_errors": "Recent Errors",
+            "last_24_hours": "Last 24 hours",
+            "api_usage": "API Usage",
+            "requests_today": "Requests today",
+            "overview": "Overview",
+            "recent_activity": "Recent Activity",
+            "latest_actions": "Latest actions performed.",
+            "instance_synced": "Instance synced",
+            "synced_successfully": "synced successfully",
+            "ago": "ago",
+            "chart_placeholder": "Chart Placeholder",
             "common": {
                 "name": "Name",
                 "actions": "Actions",
@@ -24,21 +41,60 @@ const resources = {
                 "instance_id": "Instance ID",
                 "last_seen": "Last Seen",
                 "type": "Type",
-                "date": "Date"
+                "date": "Date",
+                "search": "Search",
+                "save": "Save",
+                "cancel": "Cancel",
+                "delete": "Delete",
+                "edit": "Edit",
+                "add": "Add",
+                "close": "Close",
+                "confirm": "Confirm",
+                "loading": "Loading...",
+                "no_data": "No data available"
             },
             "numbers_page": {
                 "title": "Numbers",
                 "subtitle": "Manage your Green-API instances.",
                 "list_title": "Instances",
                 "list_desc": "List of all connected WhatsApp instances.",
-                "search_placeholder": "Filter instances..."
+                "search_placeholder": "Filter instances...",
+                "refresh": "Refresh",
+                "delete_instance": "Delete Instance"
+            },
+            "chats_page": {
+                "title": "Chats",
+                "subtitle": "Manage your WhatsApp conversations",
+                "select_number": "Select a number",
+                "no_number_selected": "No number selected",
+                "no_chats": "No chats available",
+                "search_chats": "Search or start new chat",
+                "type_message": "Type a message...",
+                "send": "Send",
+                "new_chat": "New Chat",
+                "chat_with": "Chat with"
             },
             "login": {
                 "title": "Welcome Back",
                 "subtitle": "Enter your credentials to access your account",
                 "email": "Email",
                 "password": "Password",
-                "submit": "Sign In"
+                "submit": "Sign In",
+                "forgot_password": "Forgot password?",
+                "no_account": "Don't have an account?"
+            },
+            "signup": {
+                "title": "Create an account",
+                "subtitle": "Enter your information below to create your account",
+                "full_name": "Full Name",
+                "email": "Email",
+                "password": "Password",
+                "password_hint": "Password must be at least 6 characters",
+                "create_account": "Create Account",
+                "creating": "Creating account...",
+                "check_email": "Check your email",
+                "account_created": "Account created! Please check your email to confirm your account.",
+                "already_have_account": "Already have an account?"
             },
             "landing": {
                 "hero_title": "Manage Green-API Numbers in One Place",
@@ -46,22 +102,39 @@ const resources = {
                 "get_started": "Get Started",
                 "features": "Features",
                 "pricing": "Pricing",
+                "view_demo": "View Demo",
                 "plans": {
                     "free": "Free",
                     "pro": "Pro",
                     "agency": "Agency",
                     "features": "Features",
-                    "select": "Choose Plan"
+                    "select": "Choose Plan",
+                    "month": "/month",
+                    "numbers": "Numbers",
+                    "users": "Users",
+                    "team_members": "Team Members",
+                    "basic_webhooks": "Basic Webhooks",
+                    "advanced_webhooks": "Advanced webhooks",
+                    "priority_log_retention": "Priority Log Retention",
+                    "dedicated_support": "Dedicated Support",
+                    "custom_integrations": "Custom Integrations",
+                    "unlimited": "Unlimited"
                 }
             },
             "create_org": "Create Organization",
-            "create": "Create"
+            "create": "Create",
+            "error": "Error",
+            "success": "Success",
+            "invalid_email_or_password": "Invalid email or password",
+            "unexpected_error": "An unexpected error occurred",
+            "failed_to_create_account": "Failed to create account"
         }
     },
     "he": {
         "translation": {
             "dashboard": "לוח בקרה",
             "numbers": "מספרים",
+            "chats": "צ'אטים",
             "settings": "הגדרות",
             "logout": "התנתק",
             "welcome": "ברוך שובך",
@@ -73,6 +146,22 @@ const resources = {
             "logs": "לוגים",
             "automation": "אוטומציה",
             "extension": "תוסף",
+            "total_numbers": "סה\"כ מספרים",
+            "active": "פעיל",
+            "system_status": "סטטוס מערכת",
+            "healthy": "בריא",
+            "all_systems_operational": "כל המערכות פועלות",
+            "recent_errors": "שגיאות אחרונות",
+            "last_24_hours": "24 שעות אחרונות",
+            "api_usage": "שימוש ב-API",
+            "requests_today": "בקשות היום",
+            "overview": "סקירה כללית",
+            "recent_activity": "פעילות אחרונה",
+            "latest_actions": "הפעולות האחרונות שבוצעו.",
+            "instance_synced": "מופע מסונכרן",
+            "synced_successfully": "סונכרן בהצלחה",
+            "ago": "לפני",
+            "chart_placeholder": "מקום לתרשים",
             "common": {
                 "name": "שם",
                 "actions": "פעולות",
@@ -80,21 +169,60 @@ const resources = {
                 "instance_id": "מזהה מופע",
                 "last_seen": "נראה לאחרונה",
                 "type": "סוג",
-                "date": "תאריך"
+                "date": "תאריך",
+                "search": "חיפוש",
+                "save": "שמור",
+                "cancel": "ביטול",
+                "delete": "מחק",
+                "edit": "ערוך",
+                "add": "הוסף",
+                "close": "סגור",
+                "confirm": "אישור",
+                "loading": "טוען...",
+                "no_data": "אין נתונים זמינים"
             },
             "numbers_page": {
                 "title": "מספרים",
                 "subtitle": "נהל את מופעי ה-Green-API שלך.",
                 "list_title": "מופעים",
                 "list_desc": "רשימת כל מופעי ה-WhatsApp המחוברים.",
-                "search_placeholder": "סנן מופעים..."
+                "search_placeholder": "סנן מופעים...",
+                "refresh": "רענן",
+                "delete_instance": "מחק מופע"
+            },
+            "chats_page": {
+                "title": "צ'אטים",
+                "subtitle": "נהל את שיחות ה-WhatsApp שלך",
+                "select_number": "בחר מספר",
+                "no_number_selected": "לא נבחר מספר",
+                "no_chats": "אין צ'אטים זמינים",
+                "search_chats": "חפש או התחל צ'אט חדש",
+                "type_message": "הקלד הודעה...",
+                "send": "שלח",
+                "new_chat": "צ'אט חדש",
+                "chat_with": "צ'אט עם"
             },
             "login": {
                 "title": "ברוכים הבאים",
                 "subtitle": "הכנס את פרטי ההתחברות שלך",
                 "email": "אימייל",
                 "password": "סיסמה",
-                "submit": "התחבר"
+                "submit": "התחבר",
+                "forgot_password": "שכחת סיסמה?",
+                "no_account": "אין לך חשבון?"
+            },
+            "signup": {
+                "title": "צור חשבון",
+                "subtitle": "הכנס את הפרטים שלך כדי ליצור חשבון",
+                "full_name": "שם מלא",
+                "email": "אימייל",
+                "password": "סיסמה",
+                "password_hint": "הסיסמה חייבת להכיל לפחות 6 תווים",
+                "create_account": "צור חשבון",
+                "creating": "יוצר חשבון...",
+                "check_email": "בדוק את האימייל שלך",
+                "account_created": "החשבון נוצר! אנא בדוק את האימייל שלך כדי לאשר את החשבון.",
+                "already_have_account": "כבר יש לך חשבון?"
             },
             "landing": {
                 "hero_title": "נהל מספרי Green-API במקום אחד",
@@ -102,16 +230,32 @@ const resources = {
                 "get_started": "התחל עכשיו",
                 "features": "פיצ'רים",
                 "pricing": "מחירים",
+                "view_demo": "צפה בהדגמה",
                 "plans": {
                     "free": "חינם",
                     "pro": "מקצועי",
                     "agency": "סוכנות",
                     "features": "פיצ'רים כוללים",
-                    "select": "בחר תוכנית"
+                    "select": "בחר תוכנית",
+                    "month": "/חודש",
+                    "numbers": "מספרים",
+                    "users": "משתמשים",
+                    "team_members": "חברי צוות",
+                    "basic_webhooks": "Webhooks בסיסיים",
+                    "advanced_webhooks": "Webhooks מתקדמים",
+                    "priority_log_retention": "שמירת לוגים עדיפות",
+                    "dedicated_support": "תמיכה ייעודית",
+                    "custom_integrations": "אינטגרציות מותאמות",
+                    "unlimited": "ללא הגבלה"
                 }
             },
             "create_org": "צור ארגון",
-            "create": "צור"
+            "create": "צור",
+            "error": "שגיאה",
+            "success": "הצלחה",
+            "invalid_email_or_password": "אימייל או סיסמה לא תקינים",
+            "unexpected_error": "אירעה שגיאה בלתי צפויה",
+            "failed_to_create_account": "יצירת החשבון נכשלה"
         }
     }
 };

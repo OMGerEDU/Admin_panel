@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
+import Chats from './pages/Chats'
 import Numbers from './pages/Numbers'
 import Webhooks from './pages/Webhooks'
 import Logs from './pages/Logs'
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/app" element={<DashboardLayout />}>
                   <Route index element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="chats" element={<Chats />} />
                   <Route path="numbers" element={<Numbers />} />
                   <Route path="webhooks" element={<Webhooks />} />
                   <Route path="logs" element={<Logs />} />

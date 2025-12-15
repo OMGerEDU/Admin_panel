@@ -2,13 +2,14 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
-import { LayoutDashboard, Smartphone, Settings, FileText, Bot, Webhook, Chrome } from 'lucide-react';
+import { LayoutDashboard, Smartphone, Settings, FileText, Bot, Webhook, Chrome, MessageSquare } from 'lucide-react';
 
 export function Sidebar({ className }) {
     const { t } = useTranslation();
 
     const links = [
         { href: '/app/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+        { href: '/app/chats', label: t('chats'), icon: MessageSquare },
         { href: '/app/numbers', label: t('numbers'), icon: Smartphone },
         { href: '/app/webhooks', label: t('webhooks'), icon: Webhook },
         { href: '/app/logs', label: t('logs'), icon: FileText },
