@@ -149,12 +149,16 @@ export default function Dashboard() {
                     <CardHeader>
                         <CardTitle>{t('overview')}</CardTitle>
                         <CardDescription>
-                            {t('chart_placeholder')}
+                            {t('dashboard.overview_desc')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <div className="h-[200px] flex items-center justify-center text-muted-foreground bg-accent/20 rounded-md">
-                            {t('chart_placeholder')}
+                        <div className="h-[200px] flex flex-col items-center justify-center text-muted-foreground bg-accent/20 rounded-md p-4">
+                            <div className="text-center space-y-2">
+                                <Activity className="h-12 w-12 mx-auto opacity-50" />
+                                <p className="text-sm font-medium">{t('dashboard.chart_coming_soon')}</p>
+                                <p className="text-xs">{t('dashboard.chart_desc')}</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

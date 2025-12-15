@@ -182,7 +182,10 @@ export default function Settings() {
                 <CardContent>
                     <div className="space-y-4">
                         <p className="text-sm text-muted-foreground">
-                            {t('settings_page.change_password')} - Coming soon
+                            {t('settings_page.change_password_info')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            To change your password, please use the password reset feature from the login page.
                         </p>
                     </div>
                 </CardContent>

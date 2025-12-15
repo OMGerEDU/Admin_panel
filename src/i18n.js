@@ -5,6 +5,9 @@ const resources = {
     "en": {
         "translation": {
             "dashboard": "Dashboard",
+            "dashboard.overview_desc": "Activity overview and statistics",
+            "dashboard.chart_coming_soon": "Analytics Chart Coming Soon",
+            "dashboard.chart_desc": "Message volume, error rates, and usage trends will be displayed here",
             "numbers": "Numbers",
             "chats": "Chats",
             "settings": "Settings",
@@ -104,10 +107,26 @@ const resources = {
                 "features": "Features",
                 "pricing": "Pricing",
                 "view_demo": "View Demo",
+                "footer": "Built by Builders. The source code is available on GitHub.",
+                "features_list": {
+                    "instant_connection": "Instant Connection",
+                    "instant_connection_desc": "Connect your WA instances in seconds with QR code scanning.",
+                    "auto_recovery": "Auto-Recovery",
+                    "auto_recovery_desc": "Automatic webhook retries and disconnection alerts.",
+                    "secure_tokens": "Secure Tokens",
+                    "secure_tokens_desc": "Encrypted storage for all your API keys and secrets.",
+                    "real_time_analytics": "Real-time Analytics",
+                    "real_time_analytics_desc": "Monitor message throughput and error rates live.",
+                    "role_management": "Role Management",
+                    "role_management_desc": "Granular permissions for admins and team members.",
+                    "uptime": "99.9% Uptime",
+                    "uptime_desc": "Built on reliable infrastructure for mission-critical apps."
+                },
                 "plans": {
                     "free": "Free",
                     "pro": "Pro",
                     "agency": "Agency",
+                    "popular": "Popular",
                     "features": "Features",
                     "select": "Choose Plan",
                     "month": "/month",
@@ -189,6 +208,7 @@ const resources = {
                 "email_notifications": "Email Notifications",
                 "security": "Security",
                 "change_password": "Change Password",
+                "change_password_info": "Password management is handled through Supabase Auth. Use the password reset feature from the login page to change your password.",
                 "current_password": "Current Password",
                 "new_password": "New Password",
                 "confirm_password": "Confirm Password"
@@ -214,6 +234,9 @@ const resources = {
     "he": {
         "translation": {
             "dashboard": "לוח בקרה",
+            "dashboard.overview_desc": "סקירה כללית של פעילות וסטטיסטיקות",
+            "dashboard.chart_coming_soon": "תרשים אנליטיקה בקרוב",
+            "dashboard.chart_desc": "נפח הודעות, שיעורי שגיאות ומגמות שימוש יוצגו כאן",
             "numbers": "מספרים",
             "chats": "צ'אטים",
             "settings": "הגדרות",
@@ -313,10 +336,26 @@ const resources = {
                 "features": "פיצ'רים",
                 "pricing": "מחירים",
                 "view_demo": "צפה בהדגמה",
+                "footer": "נבנה על ידי Builders. קוד המקור זמין ב-GitHub.",
+                "features_list": {
+                    "instant_connection": "חיבור מיידי",
+                    "instant_connection_desc": "חבר מופעי WA תוך שניות עם סריקת QR.",
+                    "auto_recovery": "שחזור אוטומטי",
+                    "auto_recovery_desc": "ניסיונות webhook אוטומטיים והתראות ניתוק.",
+                    "secure_tokens": "אסימונים מאובטחים",
+                    "secure_tokens_desc": "אחסון מוצפן לכל מפתחות ה-API והסודות שלך.",
+                    "real_time_analytics": "אנליטיקה בזמן אמת",
+                    "real_time_analytics_desc": "עקוב אחר תפוקת הודעות ושיעורי שגיאות בזמן אמת.",
+                    "role_management": "ניהול תפקידים",
+                    "role_management_desc": "הרשאות מפורטות למנהלים וחברי צוות.",
+                    "uptime": "99.9% זמן פעילות",
+                    "uptime_desc": "נבנה על תשתית אמינה ליישומים קריטיים."
+                },
                 "plans": {
                     "free": "חינם",
                     "pro": "מקצועי",
                     "agency": "סוכנות",
+                    "popular": "פופולרי",
                     "features": "פיצ'רים כוללים",
                     "select": "בחר תוכנית",
                     "month": "/חודש",
@@ -398,6 +437,7 @@ const resources = {
                 "email_notifications": "התראות אימייל",
                 "security": "אבטחה",
                 "change_password": "שנה סיסמה",
+                "change_password_info": "ניהול סיסמה מתבצע דרך Supabase Auth. השתמש בפיצ'ר איפוס סיסמה מדף ההתחברות כדי לשנות את הסיסמה שלך.",
                 "current_password": "סיסמה נוכחית",
                 "new_password": "סיסמה חדשה",
                 "confirm_password": "אשר סיסמה"
