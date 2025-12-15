@@ -1,36 +1,82 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Badge } from 'lucide-react'; // Placeholder for Badge
-import { Search, Plus, MoreHorizontal, RefreshCw, Trash2, Power, PowerOff } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, RefreshCw } from 'lucide-react';
 
 // Simple Badge component since we don't have it in UI lib yet
-function StatusBadge({ status }) {
+function StatusBadge({ status, t }) {
     const styles = {
-        connected: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-        disconnected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+        active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+        inactive: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
         pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+    };
+    const statusText = {
+        active: t('connected'),
+        inactive: t('disconnected'),
+        pending: 'Pending'
     };
     return (
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.pending}`}>
-            {status}
+            {statusText[status] || status}
         </span>
     );
 }
 
 export default function Numbers() {
     const { t } = useTranslation();
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
+    const [numbers, setNumbers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data
-    const numbers = [
-        { id: 1, name: "Marketing WhatsApp", instanceId: "1101828342", status: "connected", lastSeen: "2 mins ago" },
-        { id: 2, name: "Support Team", instanceId: "7721828341", status: "disconnected", lastSeen: "1 hour ago" },
-        { id: 3, name: "Alerts Bot", instanceId: "9918283422", status: "connected", lastSeen: "Just now" },
-    ];
+    useEffect(() => {
+        fetchNumbers();
+    }, [user]);
+
+    const fetchNumbers = async () => {
+        if (!user) return;
+        
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('numbers')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setNumbers(data || []);
+        } catch (error) {
+            console.error('Error fetching numbers:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatLastSeen = (timestamp) => {
+        if (!timestamp) return t('common.no_data');
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return t('common.loading');
+        if (diffMins < 60) return `${diffMins} ${t('ago')}`;
+        if (diffHours < 24) return `${diffHours}h ${t('ago')}`;
+        return `${diffDays}d ${t('ago')}`;
+    };
+
+    const filteredNumbers = numbers.filter(num =>
+        num.phone_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        num.instance_id?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-6">
@@ -39,7 +85,7 @@ export default function Numbers() {
                     <h2 className="text-3xl font-bold tracking-tight">{t('numbers_page.title')}</h2>
                     <p className="text-muted-foreground">{t('numbers_page.subtitle')}</p>
                 </div>
-                <Button>
+                <Button onClick={() => {/* TODO: Open add number modal */}}>
                     <Plus className="mr-2 h-4 w-4" />
                     {t('add_number')}
                 </Button>
@@ -73,26 +119,47 @@ export default function Numbers() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {numbers.map((number) => (
-                                    <TableRow key={number.id}>
-                                        <TableCell className="font-medium">{number.name}</TableCell>
-                                        <TableCell>{number.instanceId}</TableCell>
-                                        <TableCell>
-                                            <StatusBadge status={number.status} />
-                                        </TableCell>
-                                        <TableCell>{number.lastSeen}</TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon">
-                                                    <RefreshCw className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </div>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                            {t('common.loading')}
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ) : filteredNumbers.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                            {t('common.no_data')}
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredNumbers.map((number) => (
+                                        <TableRow key={number.id}>
+                                            <TableCell className="font-medium">
+                                                {number.phone_number || number.instance_id || number.id.slice(0, 8)}
+                                            </TableCell>
+                                            <TableCell>{number.instance_id || '-'}</TableCell>
+                                            <TableCell>
+                                                <StatusBadge status={number.status || 'pending'} t={t} />
+                                            </TableCell>
+                                            <TableCell>{formatLastSeen(number.last_seen)}</TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon"
+                                                        onClick={fetchNumbers}
+                                                        title={t('numbers_page.refresh')}
+                                                    >
+                                                        <RefreshCw className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </div>
