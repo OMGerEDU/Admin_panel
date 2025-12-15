@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +12,12 @@ export function Header() {
     const { toggleLang, lang } = useLanguage();
     const { user, signOut } = useAuth();
     const { t } = useTranslation();
+    const navigate = useNavigate();
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate('/login', { replace: true });
+    };
 
     return (
         <header className="flex h-16 items-center border-b bg-background px-6 justify-between sticky top-0 z-10">
@@ -30,7 +37,7 @@ export function Header() {
                     <div className="text-sm font-medium hidden sm:block">
                         {user?.email}
                     </div>
-                    <Button variant="ghost" size="icon" onClick={signOut} title={t('logout')}>
+                    <Button variant="ghost" size="icon" onClick={handleSignOut} title={t('logout')}>
                         <LogOut className="h-5 w-5" />
                     </Button>
                 </div>
