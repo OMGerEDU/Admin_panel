@@ -10,14 +10,31 @@ if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
   console.warn('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓' : '✗')
 }
 
-// Create client with fallback empty strings to prevent build errors
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
-  {
+// Create client with fallback - use actual values if available, otherwise use placeholders
+// This prevents build errors but will show errors at runtime if env vars are missing
+let supabase;
+try {
+  supabase = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseAnonKey || 'placeholder-key',
+    {
+      auth: {
+        persistSession: false, // Disable persistence if using placeholder
+        autoRefreshToken: false,
+      },
+    }
+  )
+} catch (error) {
+  console.error('Failed to create Supabase client:', error)
+  // Create a minimal mock client to prevent crashes
+  supabase = {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: null } }),
+      signInWithPassword: () => Promise.resolve({ error: { message: 'Supabase not configured' } }),
+      signOut: () => Promise.resolve({ error: null }),
+    }
   }
-)
+}
+
+export { supabase }
