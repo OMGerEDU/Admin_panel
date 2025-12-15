@@ -57,11 +57,18 @@ export default function Dashboard() {
                 .order('created_at', { ascending: false })
                 .limit(10);
 
+            // Calculate API usage from logs (count of info/error/warn logs in last 24 hours as proxy)
+            const { count: apiUsageCount } = await supabase
+                .from('logs')
+                .select('*', { count: 'exact', head: true })
+                .in('level', ['info', 'warn', 'error'])
+                .gte('created_at', yesterday.toISOString());
+
             setStats({
                 totalNumbers,
                 activeNumbers,
                 recentErrors: errorCount || 0,
-                apiUsage: 0, // TODO: Calculate from actual API usage data
+                apiUsage: apiUsageCount || 0, // API calls approximated from log activity
                 recentActivity: recentLogs || []
             });
         } catch (error) {
