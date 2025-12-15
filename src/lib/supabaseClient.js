@@ -14,13 +14,18 @@ if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
 // This prevents build errors but will show errors at runtime if env vars are missing
 let supabase;
 try {
+  const hasValidConfig = supabaseUrl && supabaseAnonKey && 
+    !supabaseUrl.includes('placeholder') && 
+    !supabaseAnonKey.includes('placeholder');
+  
   supabase = createClient(
     supabaseUrl || 'https://placeholder.supabase.co',
     supabaseAnonKey || 'placeholder-key',
     {
       auth: {
-        persistSession: false, // Disable persistence if using placeholder
-        autoRefreshToken: false,
+        persistSession: hasValidConfig, // Enable persistence only if config is valid
+        autoRefreshToken: hasValidConfig,
+        detectSessionInUrl: true, // Detect auth callback from email confirmation
       },
     }
   )
