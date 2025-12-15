@@ -54,7 +54,9 @@ const resources = {
                 "close": "Close",
                 "confirm": "Confirm",
                 "loading": "Loading...",
-                "no_data": "No data available"
+                "no_data": "No data available",
+                "refresh": "Refresh",
+                "confirm_delete": "Are you sure you want to delete this item?"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -228,6 +230,12 @@ const resources = {
                 "step2": "Open Chrome and go to chrome://extensions/",
                 "step3": "Enable Developer mode",
                 "step4": "Click 'Load unpacked' and select the extension folder"
+            },
+            "accounts_management": {
+                "title": "Green-API Accounts",
+                "subtitle": "Manage your Green-API account connections",
+                "list_title": "Connected Accounts",
+                "list_desc": "List of all your Green-API accounts and instances"
             }
         }
     },
@@ -457,6 +465,12 @@ const resources = {
                 "step2": "פתח Chrome ועבור ל-chrome://extensions/",
                 "step3": "הפעל מצב מפתח",
                 "step4": "לחץ על 'טען לא ארוז' ובחר את תיקיית התוסף"
+            },
+            "accounts_management": {
+                "title": "חשבונות Green-API",
+                "subtitle": "נהל את חיבורי חשבונות ה-Green-API שלך",
+                "list_title": "חשבונות מחוברים",
+                "list_desc": "רשימת כל חשבונות ו-מופעי ה-Green-API שלך"
             }
         }
     }
