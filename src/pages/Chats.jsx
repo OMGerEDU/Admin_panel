@@ -132,11 +132,11 @@ export default function Chats() {
     );
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] bg-background">
-            {/* Left Sidebar - Numbers & Chats */}
-            <div className="w-96 border-r flex flex-col bg-muted/30">
-                {/* Number Selector */}
-                <div className="p-4 border-b bg-background">
+        <div className="flex h-[calc(100vh-8rem)] bg-[#0a1014] text-sm">
+            {/* Left Sidebar - Numbers & Chats (WhatsApp-style) */}
+            <div className="w-96 border-r border-[#202c33] flex flex-col bg-[#111b21] text-white">
+                {/* Number Selector / Top bar */}
+                <div className="p-3 border-b border-[#202c33] bg-[#202c33]">
                     <div className="flex items-center gap-2 mb-3">
                         <select
                             value={selectedNumber?.id || ''}
@@ -145,7 +145,7 @@ export default function Chats() {
                                 setSelectedNumber(num);
                                 setSelectedChat(null);
                             }}
-                            className="flex-1 px-3 py-2 rounded-md border bg-background text-sm"
+                            className="flex-1 px-3 py-2 rounded-md border-0 bg-[#202c33] text-sm text-white placeholder:text-[#8696a0] outline-none focus:ring-2 focus:ring-[#00a884]"
                         >
                             <option value="">{t('chats_page.select_number')}</option>
                             {numbers.map((num) => (
@@ -158,30 +158,31 @@ export default function Chats() {
                             size="icon"
                             onClick={() => navigate('/app/numbers')}
                             title={t('add_number')}
+                            className="bg-[#00a884] hover:bg-[#00a884]/90 text-white border-0"
                         >
                             <Plus className="h-4 w-4" />
                         </Button>
                     </div>
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#8696a0]" />
                         <Input
                             placeholder={t('chats_page.search_chats')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9"
+                            className="pl-9 border-0 bg-[#202c33] text-white placeholder:text-[#8696a0] focus-visible:ring-2 focus-visible:ring-[#00a884]"
                         />
                     </div>
                 </div>
 
                 {/* Chats List */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto bg-[#111b21]">
                     {!selectedNumber ? (
-                        <div className="p-8 text-center text-muted-foreground">
+                        <div className="p-8 text-center text-[#8696a0]">
                             {t('chats_page.no_number_selected')}
                         </div>
                     ) : filteredChats.length === 0 ? (
-                        <div className="p-8 text-center text-muted-foreground">
+                        <div className="p-8 text-center text-[#8696a0]">
                             {t('chats_page.no_chats')}
                         </div>
                     ) : (
@@ -190,22 +191,22 @@ export default function Chats() {
                                 key={chat.id}
                                 onClick={() => setSelectedChat(chat)}
                                 className={cn(
-                                    "p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors",
-                                    selectedChat?.id === chat.id && "bg-muted"
+                                    "px-4 py-3 border-b border-[#202c33] cursor-pointer hover:bg-[#202c33] transition-colors",
+                                    selectedChat?.id === chat.id && "bg-[#202c33]"
                                 )}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                                        <Phone className="h-6 w-6 text-primary" />
+                                    <div className="w-12 h-12 rounded-full bg-[#202c33] flex items-center justify-center">
+                                        <Phone className="h-5 w-5 text-[#00a884]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-medium truncate">{chat.name || chat.remote_jid}</p>
-                                        <p className="text-sm text-muted-foreground truncate">
-                                            {chat.last_message || 'No messages'}
+                                        <p className="font-medium truncate text-[#e9edef]">{chat.name || chat.remote_jid}</p>
+                                        <p className="text-sm text-[#8696a0] truncate">
+                                            {chat.last_message || t('chats_page.no_chats')}
                                         </p>
                                     </div>
                                     {chat.last_message_at && (
-                                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                        <span className="text-xs text-[#8696a0] whitespace-nowrap">
                                             {new Date(chat.last_message_at).toLocaleTimeString([], { 
                                                 hour: '2-digit', 
                                                 minute: '2-digit' 
@@ -220,20 +221,26 @@ export default function Chats() {
             </div>
 
             {/* Right Side - Chat Messages */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col bg-[#0a1014]">
                 {selectedChat ? (
                     <>
                         {/* Chat Header */}
-                        <div className="p-4 border-b bg-background">
-                            <h3 className="font-semibold">
-                                {selectedChat.name || selectedChat.remote_jid}
-                            </h3>
+                        <div className="p-3 border-b border-[#202c33] bg-[#202c33] flex items-center gap-3 text-[#e9edef]">
+                            <div className="w-10 h-10 rounded-full bg-[#00a884]/20 flex items-center justify-center">
+                                <Phone className="h-5 w-5 text-[#00a884]" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-semibold">
+                                    {selectedChat.name || selectedChat.remote_jid}
+                                </span>
+                                <span className="text-xs text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
+                            </div>
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#e5ddd5] dark:bg-slate-900">
+                        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[#0a1014]">
                             {messages.length === 0 ? (
-                                <div className="text-center text-muted-foreground py-8">
+                                <div className="text-center text-[#8696a0] py-8">
                                     {t('common.no_data')}
                                 </div>
                             ) : (
@@ -247,14 +254,14 @@ export default function Chats() {
                                     >
                                         <div
                                             className={cn(
-                                                "max-w-[70%] rounded-lg px-4 py-2 shadow-sm",
+                                                "max-w-[70%] rounded-lg px-3 py-2 shadow-sm text-[13px] leading-snug",
                                                 message.is_from_me
-                                                    ? "bg-[#dcf8c6] dark:bg-primary/20 rounded-tr-none"
-                                                    : "bg-white dark:bg-slate-800 rounded-tl-none"
+                                                    ? "bg-[#005c4b] text-[#e9edef] rounded-br-none"
+                                                    : "bg-[#202c33] text-[#e9edef] rounded-bl-none"
                                             )}
                                         >
                                             <p className="text-sm">{message.content}</p>
-                                            <p className="text-xs text-muted-foreground mt-1 text-right">
+                                            <p className="text-[11px] text-[#8696a0] mt-1 text-right">
                                                 {new Date(message.timestamp).toLocaleTimeString([], {
                                                     hour: '2-digit',
                                                     minute: '2-digit'
@@ -267,7 +274,7 @@ export default function Chats() {
                         </div>
 
                         {/* Message Input */}
-                        <div className="p-4 border-t bg-background">
+                        <div className="px-4 py-3 border-t border-[#202c33] bg-[#202c33]">
                             <div className="flex gap-2">
                                 <Input
                                     placeholder={t('chats_page.type_message')}
@@ -279,19 +286,23 @@ export default function Chats() {
                                             sendMessage();
                                         }
                                     }}
-                                    className="flex-1"
+                                    className="flex-1 border-0 bg-[#202c33] text-white placeholder:text-[#8696a0] focus-visible:ring-2 focus-visible:ring-[#00a884]"
                                 />
-                                <Button onClick={sendMessage} disabled={!newMessage.trim()}>
+                                <Button
+                                    onClick={sendMessage}
+                                    disabled={!newMessage.trim()}
+                                    className="bg-[#00a884] hover:bg-[#00a884]/90 text-white border-0"
+                                >
                                     <Send className="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center bg-[#e5ddd5] dark:bg-slate-900">
-                        <div className="text-center text-muted-foreground">
-                            <Phone className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                            <p className="text-lg">{t('chats_page.select_number')}</p>
+                    <div className="flex-1 flex items-center justify-center bg-[#0a1014]">
+                        <div className="text-center text-[#8696a0]">
+                            <Phone className="h-16 w-16 mx-auto mb-4 opacity-40" />
+                            <p className="text-lg text-[#e9edef]">{t('chats_page.select_number')}</p>
                             <p className="text-sm mt-2">{t('chats_page.no_chats')}</p>
                         </div>
                     </div>

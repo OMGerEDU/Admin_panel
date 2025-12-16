@@ -1,15 +1,20 @@
 -- Enable UUID extension if not already enabled
 create extension if not exists "uuid-ossp";
 
--- Create a table for public profiles using Supabase Auth
 create table if not exists public.profiles (
   id uuid not null references auth.users on delete cascade,
   email text,
   full_name text,
   avatar_url text,
+  -- Mark if user is allowed to use the system (for extension + app)
+  is_active boolean default true,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   primary key (id)
 );
+
+-- Ensure is_active exists even if table already created previously
+alter table public.profiles
+  add column if not exists is_active boolean default true;
 
 -- Enable RLS
 alter table public.profiles enable row level security;
