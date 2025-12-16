@@ -97,6 +97,23 @@ create policy "Members can add members" on public.organization_members
        )
   );
 
+drop policy if exists "Admins can delete members" on public.organization_members;
+create policy "Admins can delete members" on public.organization_members
+  for delete using (
+      exists (
+          select 1 from public.organization_members as om
+          where om.organization_id = public.organization_members.organization_id
+          and om.user_id = auth.uid()
+          and om.role = 'admin'
+      )
+      OR
+      exists (
+          select 1 from public.organizations as o
+          where o.id = public.organization_members.organization_id
+          and o.owner_id = auth.uid()
+      )
+  );
+
 -- Function to handle new user signup
 create or replace function public.handle_new_user()
 returns trigger as $$
@@ -150,6 +167,14 @@ drop policy if exists "Users can view own subscription" on public.subscriptions;
 create policy "Users can view own subscription" on public.subscriptions
   for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert own subscription" on public.subscriptions;
+create policy "Users can insert own subscription" on public.subscriptions
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own subscription" on public.subscriptions;
+create policy "Users can update own subscription" on public.subscriptions
+  for update using (auth.uid() = user_id);
+
 -- NUMBERS Table
 create table if not exists public.numbers (
   id uuid default uuid_generate_v4() primary key,
@@ -179,6 +204,14 @@ create policy "Users can check own or org numbers" on public.numbers
 drop policy if exists "Users can insert numbers" on public.numbers;
 create policy "Users can insert numbers" on public.numbers
   for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own numbers" on public.numbers;
+create policy "Users can update own numbers" on public.numbers
+  for update using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own numbers" on public.numbers;
+create policy "Users can delete own numbers" on public.numbers
+  for delete using (auth.uid() = user_id);
 
 -- CHATS Table
 create table if not exists public.chats (
@@ -212,6 +245,26 @@ create policy "Users can view chats for their numbers" on public.chats
     )
   );
 
+drop policy if exists "Users can insert chats for their numbers" on public.chats;
+create policy "Users can insert chats for their numbers" on public.chats
+  for insert with check (
+    exists (
+      select 1 from public.numbers n
+      where n.id = public.chats.number_id
+      and n.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "Users can update chats for their numbers" on public.chats;
+create policy "Users can update chats for their numbers" on public.chats
+  for update using (
+    exists (
+      select 1 from public.numbers n
+      where n.id = public.chats.number_id
+      and n.user_id = auth.uid()
+    )
+  );
+
 -- MESSAGES Table (Optional, but good for history)
 create table if not exists public.messages (
     id uuid default uuid_generate_v4() primary key,
@@ -240,6 +293,20 @@ create policy "Users can view messages for accessible chats" on public.messages
                       and om.user_id = auth.uid()
                   )
               )
+          )
+      )
+  );
+
+drop policy if exists "Users can insert messages for accessible chats" on public.messages;
+create policy "Users can insert messages for accessible chats" on public.messages
+  for insert with check (
+      exists (
+          select 1 from public.chats c
+          where c.id = public.messages.chat_id
+          and exists (
+              select 1 from public.numbers n
+              where n.id = c.number_id
+              and n.user_id = auth.uid()
           )
       )
   );
@@ -339,6 +406,26 @@ alter table public.automation_jobs enable row level security;
 drop policy if exists "Users can view jobs" on public.automation_jobs;
 create policy "Users can view jobs" on public.automation_jobs
   for select using (
+    exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.automation_jobs.organization_id
+      and om.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "Users can insert jobs for their orgs" on public.automation_jobs;
+create policy "Users can insert jobs for their orgs" on public.automation_jobs
+  for insert with check (
+    exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.automation_jobs.organization_id
+      and om.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "Users can update jobs for their orgs" on public.automation_jobs;
+create policy "Users can update jobs for their orgs" on public.automation_jobs
+  for update using (
     exists (
       select 1 from public.organization_members om
       where om.organization_id = public.automation_jobs.organization_id
