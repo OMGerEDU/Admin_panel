@@ -1,47 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-
-const translations = {
-    en: {
-        dashboard: "Dashboard",
-        plans: "Plans",
-        numbers: "Numbers",
-        settings: "Settings",
-        logout: "Log Out",
-        welcome: "Welcome back",
-        your_orgs: "Your Organizations",
-        create_org: "Create New Organization",
-        org_name: "Organization Name",
-        create: "Create",
-        invite_member: "Invite Member",
-        user_email: "User Email",
-        invite: "Invite",
-        choose_plan: "Choose Your Plan",
-        current_plan: "Current Plan",
-        managed_numbers: "Managed Numbers",
-        add_number: "Add Number",
-        status: "Status"
-    },
-    he: {
-        dashboard: "לוח בקרה",
-        plans: "תוכניות",
-        numbers: "מספרים",
-        settings: "הגדרות",
-        logout: "התנתק",
-        welcome: "ברוך שובך",
-        your_orgs: "הארגונים שלך",
-        create_org: "צור ארגון חדש",
-        org_name: "שם הארגון",
-        create: "צור",
-        invite_member: "הזמן משתמש",
-        user_email: "אימייל משתמש",
-        invite: "הזמן",
-        choose_plan: "בחר תוכנית",
-        current_plan: "תוכנית נוכחית",
-        managed_numbers: "מספרים מנוהלים",
-        add_number: "הוסף מספר",
-        status: "סטטוס"
-    }
-};
+import i18n from '../i18n';
 
 const LanguageContext = createContext();
 
@@ -52,9 +10,14 @@ export function LanguageProvider({ children }) {
         document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
         document.documentElement.lang = lang;
         localStorage.setItem('lang', lang);
+        // Sync i18next language with our context
+        if (i18n.language !== lang) {
+            i18n.changeLanguage(lang);
+        }
     }, [lang]);
 
-    const t = (key) => translations[lang][key] || key;
+    // Proxy to i18next so everything uses a single translation source
+    const t = (key, options) => i18n.t(key, options);
 
     const toggleLang = () => {
         setLang(prev => prev === 'en' ? 'he' : 'en');
