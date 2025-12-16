@@ -276,8 +276,13 @@ create table if not exists public.messages (
     chat_id uuid references public.chats(id) not null,
     content text,
     is_from_me boolean default false,
-    timestamp timestamp with time zone default timezone('utc'::text, now()) not null
+    timestamp timestamp with time zone default timezone('utc'::text, now()) not null,
+    media_meta jsonb -- Store media metadata (urlFile, downloadUrl, jpegThumbnail, fileName, etc.)
 );
+
+-- Add media_meta column if table already exists
+alter table public.messages
+add column if not exists media_meta jsonb;
 
 alter table public.messages enable row level security;
 

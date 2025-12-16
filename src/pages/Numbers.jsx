@@ -6,7 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Search, Plus, MoreHorizontal, RefreshCw, X } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, RefreshCw, X, Edit, Trash2 } from 'lucide-react';
+import { logger } from '../lib/logger';
 
 // Simple Badge component since we don't have it in UI lib yet
 function StatusBadge({ status, t }) {
@@ -34,6 +35,8 @@ export default function Numbers() {
     const [numbers, setNumbers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [editingNumber, setEditingNumber] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
     const [formData, setFormData] = useState({
         phone_number: '',
         instance_id: '',
@@ -87,26 +90,87 @@ export default function Numbers() {
 
         try {
             setSaving(true);
-            const { error } = await supabase
-                .from('numbers')
-                .insert({
-                    user_id: user.id,
-                    phone_number: formData.phone_number,
-                    instance_id: formData.instance_id,
-                    api_token: formData.api_token,
-                    status: formData.status
-                });
+            if (editingNumber) {
+                // Update existing number
+                const { error } = await supabase
+                    .from('numbers')
+                    .update({
+                        phone_number: formData.phone_number,
+                        instance_id: formData.instance_id,
+                        api_token: formData.api_token,
+                        status: formData.status
+                    })
+                    .eq('id', editingNumber.id);
 
-            if (error) throw error;
+                if (error) throw error;
+                
+                await logger.info(
+                    `Number updated: ${formData.phone_number || formData.instance_id}`,
+                    { number_id: editingNumber.id },
+                    editingNumber.id
+                );
+            } else {
+                // Insert new number
+                const { error } = await supabase
+                    .from('numbers')
+                    .insert({
+                        user_id: user.id,
+                        phone_number: formData.phone_number,
+                        instance_id: formData.instance_id,
+                        api_token: formData.api_token,
+                        status: formData.status
+                    });
+
+                if (error) throw error;
+                
+                await logger.info(
+                    `New number added: ${formData.phone_number || formData.instance_id}`,
+                    { instance_id: formData.instance_id }
+                );
+            }
             
             setShowModal(false);
+            setEditingNumber(null);
             setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
             fetchNumbers();
         } catch (error) {
-            console.error('Error adding number:', error);
+            console.error('Error saving number:', error);
+            await logger.error('Failed to save number', { error: error.message });
             alert(error.message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleEditNumber = (number) => {
+        setEditingNumber(number);
+        setFormData({
+            phone_number: number.phone_number || '',
+            instance_id: number.instance_id || '',
+            api_token: number.api_token || '', // Note: In production, you might want to mask this
+            status: number.status || 'active'
+        });
+        setShowModal(true);
+    };
+
+    const handleDeleteNumber = async (numberId) => {
+        if (!confirm(t('common.confirm_delete'))) return;
+
+        try {
+            const { error } = await supabase
+                .from('numbers')
+                .delete()
+                .eq('id', numberId);
+
+            if (error) throw error;
+
+            await logger.warn('Number deleted', { number_id: numberId }, numberId);
+            setShowDeleteConfirm(null);
+            fetchNumbers();
+        } catch (error) {
+            console.error('Error deleting number:', error);
+            await logger.error('Failed to delete number', { error: error.message }, numberId);
+            alert(error.message);
         }
     };
 
@@ -189,8 +253,22 @@ export default function Numbers() {
                                                     >
                                                         <RefreshCw className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon"
+                                                        onClick={() => handleEditNumber(number)}
+                                                        title={t('common.edit')}
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon"
+                                                        onClick={() => setShowDeleteConfirm(number.id)}
+                                                        title={t('common.delete')}
+                                                        className="text-destructive hover:text-destructive"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -203,18 +281,19 @@ export default function Numbers() {
                 </CardContent>
             </Card>
 
-            {/* Add Number Modal */}
+            {/* Add/Edit Number Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <Card className="w-full max-w-md">
                         <CardHeader>
                             <div className="flex items-center justify-between">
-                                <CardTitle>{t('add_number')}</CardTitle>
+                                <CardTitle>{editingNumber ? t('common.edit') : t('add_number')}</CardTitle>
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => {
                                         setShowModal(false);
+                                        setEditingNumber(null);
                                         setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
                                     }}
                                 >
@@ -272,6 +351,7 @@ export default function Numbers() {
                                         variant="outline"
                                         onClick={() => {
                                             setShowModal(false);
+                                            setEditingNumber(null);
                                             setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
                                         }}
                                     >
@@ -279,6 +359,34 @@ export default function Numbers() {
                                     </Button>
                                 </div>
                             </form>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <Card className="w-full max-w-md">
+                        <CardHeader>
+                            <CardTitle>{t('common.delete')}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="mb-4">{t('common.confirm_delete')}</p>
+                            <div className="flex gap-2 justify-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowDeleteConfirm(null)}
+                                >
+                                    {t('common.cancel')}
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => handleDeleteNumber(showDeleteConfirm)}
+                                >
+                                    {t('common.delete')}
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

@@ -28,15 +28,15 @@ export default function LandingPage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
-                    <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
+                <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center pb-8 pt-6 md:pb-12 md:pt-10 lg:py-16">
+                    <div className="container flex max-w-[64rem] flex-col items-center gap-6 text-center">
                         <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
                             {t('landing.hero_title')}
                         </h1>
                         <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
                             {t('landing.hero_subtitle')}
                         </p>
-                        <div className="space-x-4 flex items-center justify-center gap-4">
+                        <div className="space-x-4 flex items-center justify-center gap-4 mt-2">
                             <Link to="/login">
                                 <Button size="lg" className="h-12 px-8 text-lg">
                                     {t('landing.get_started')}

@@ -56,7 +56,9 @@ const resources = {
                 "loading": "Loading...",
                 "no_data": "No data available",
                 "refresh": "Refresh",
-                "confirm_delete": "Are you sure you want to delete this item?"
+                "confirm_delete": "Are you sure you want to delete this item?",
+                "sync": "Sync",
+                "syncing": "Syncing..."
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -78,7 +80,18 @@ const resources = {
                 "type_message": "Type a message...",
                 "send": "Send",
                 "new_chat": "New Chat",
-                "chat_with": "Chat with"
+                "chat_with": "Chat with",
+                "open_image": "Open Image",
+                "open_video": "Open Video",
+                "video_message": "Video Message",
+                "audio_not_available": "Audio message (not available for download)",
+                "document_message": "Document Message",
+                "download_document": "Download Document",
+                "sticker_message": "Sticker",
+                "view_sticker": "View Sticker",
+                "location_message": "Location",
+                "view_location": "View Location",
+                "online_status": "Online"
             },
             "login": {
                 "title": "Welcome Back",
@@ -109,7 +122,7 @@ const resources = {
                 "features": "Features",
                 "pricing": "Pricing",
                 "view_demo": "View Demo",
-                "footer": "Built by Builders. The source code is available on GitHub.",
+                "footer": "Built by Builders..",
                 "features_list": {
                     "instant_connection": "Instant Connection",
                     "instant_connection_desc": "Connect your WA instances in seconds with QR code scanning.",
@@ -170,6 +183,9 @@ const resources = {
                 "filter_by_level": "Filter by Level",
                 "filter_by_number": "Filter by Number",
                 "all_levels": "All Levels",
+                "all_logs": "All Logs",
+                "system_logs": "System Logs",
+                "system": "System",
                 "info": "Info",
                 "warn": "Warning",
                 "error": "Error",
@@ -293,7 +309,9 @@ const resources = {
                 "loading": "טוען...",
                 "no_data": "אין נתונים זמינים",
                 "refresh": "רענן",
-                "confirm_delete": "האם אתה בטוח שברצונך למחוק פריט זה?"
+                "confirm_delete": "האם אתה בטוח שברצונך למחוק פריט זה?",
+                "sync": "סנכרן",
+                "syncing": "מסנכרן..."
             },
             "numbers_page": {
                 "title": "מספרים",
@@ -315,7 +333,18 @@ const resources = {
                 "type_message": "הקלד הודעה...",
                 "send": "שלח",
                 "new_chat": "צ'אט חדש",
-                "chat_with": "צ'אט עם"
+                "chat_with": "צ'אט עם",
+                "open_image": "פתח תמונה",
+                "open_video": "פתח וידאו",
+                "video_message": "הודעת וידאו",
+                "audio_not_available": "הודעת קול (לא זמינה להורדה)",
+                "document_message": "הודעת מסמך",
+                "download_document": "הורד מסמך",
+                "sticker_message": "סטיקר",
+                "view_sticker": "צפה בסטיקר",
+                "location_message": "מיקום",
+                "view_location": "צפה במיקום",
+                "online_status": "מחובר עכשיו"
             },
             "login": {
                 "title": "ברוכים הבאים",
@@ -407,6 +436,9 @@ const resources = {
                 "filter_by_level": "סנן לפי רמה",
                 "filter_by_number": "סנן לפי מספר",
                 "all_levels": "כל הרמות",
+                "all_logs": "כל הלוגים",
+                "system_logs": "לוגי מערכת",
+                "system": "מערכת",
                 "info": "מידע",
                 "warn": "אזהרה",
                 "error": "שגיאה",

@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Search, Filter, AlertCircle, Info, AlertTriangle, Bug, X } from 'lucide-react';
+import { Search, AlertCircle, Info, AlertTriangle, Bug, X, RefreshCw } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 export default function Logs() {
     const { t } = useTranslation();
@@ -15,13 +16,16 @@ export default function Logs() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [levelFilter, setLevelFilter] = useState('all');
-    const [numberFilter, setNumberFilter] = useState('all');
+    const [selectedTab, setSelectedTab] = useState('all'); // 'all' or number_id
     const [numbers, setNumbers] = useState([]);
 
     useEffect(() => {
         fetchNumbers();
+    }, [user]);
+
+    useEffect(() => {
         fetchLogs();
-    }, [user, levelFilter, numberFilter]);
+    }, [user, levelFilter, selectedTab]);
 
     const fetchNumbers = async () => {
         if (!user) return;
@@ -30,7 +34,8 @@ export default function Logs() {
             const { data } = await supabase
                 .from('numbers')
                 .select('id, phone_number, instance_id')
-                .eq('user_id', user.id);
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
             setNumbers(data || []);
         } catch (error) {
             console.error('Error fetching numbers:', error);
@@ -46,16 +51,16 @@ export default function Logs() {
                 .from('logs')
                 .select('*, numbers(phone_number, instance_id)')
                 .order('created_at', { ascending: false })
-                .limit(100);
+                .limit(200); // Increased limit
 
             // Filter by level
             if (levelFilter !== 'all') {
                 query = query.eq('level', levelFilter);
             }
 
-            // Filter by number
-            if (numberFilter !== 'all') {
-                query = query.eq('number_id', numberFilter);
+            // Filter by number (tab selection)
+            if (selectedTab !== 'all') {
+                query = query.eq('number_id', selectedTab);
             }
 
             const { data, error } = await query;
@@ -98,10 +103,30 @@ export default function Logs() {
         }
     };
 
-    const filteredLogs = logs.filter(log =>
-        log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.meta?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const getNumberDisplayName = (number) => {
+        return number?.phone_number || number?.instance_id || '-';
+    };
+
+    const filteredLogs = logs.filter(log => {
+        const matchesSearch = 
+            log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.meta?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+            getNumberDisplayName(log.numbers)?.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesSearch;
+    });
+
+    // Group logs by number for tab counts
+    const logsByNumber = {};
+    filteredLogs.forEach(log => {
+        const key = log.number_id || 'no-instance';
+        if (!logsByNumber[key]) {
+            logsByNumber[key] = {
+                count: 0,
+                name: log.number_id ? getNumberDisplayName(log.numbers) : t('logs_page.system_logs')
+            };
+        }
+        logsByNumber[key].count++;
+    });
 
     return (
         <div className="space-y-6">
@@ -110,6 +135,14 @@ export default function Logs() {
                     <h2 className="text-3xl font-bold tracking-tight">{t('logs')}</h2>
                     <p className="text-muted-foreground">{t('logs_page.subtitle')}</p>
                 </div>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={fetchLogs}
+                    title={t('common.refresh')}
+                >
+                    <RefreshCw className="h-4 w-4" />
+                </Button>
             </div>
 
             <Card>
@@ -118,6 +151,51 @@ export default function Logs() {
                     <CardDescription>{t('logs_page.list_desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {/* Tabs for instances */}
+                    <div className="mb-4 border-b border-border">
+                        <div className="flex gap-2 overflow-x-auto">
+                            <button
+                                onClick={() => setSelectedTab('all')}
+                                className={cn(
+                                    "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                                    selectedTab === 'all'
+                                        ? "border-primary text-primary"
+                                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                                )}
+                            >
+                                {t('logs_page.all_logs') || 'All Logs'}
+                                {logsByNumber['all'] && (
+                                    <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-muted">
+                                        {filteredLogs.length}
+                                    </span>
+                                )}
+                            </button>
+                            {numbers.map((num) => {
+                                const key = num.id;
+                                const count = logsByNumber[key]?.count || 0;
+                                return (
+                                    <button
+                                        key={num.id}
+                                        onClick={() => setSelectedTab(num.id)}
+                                        className={cn(
+                                            "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                                            selectedTab === num.id
+                                                ? "border-primary text-primary"
+                                                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                                        )}
+                                    >
+                                        {getNumberDisplayName(num)}
+                                        {count > 0 && (
+                                            <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-muted">
+                                                {count}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Filters */}
                     <div className="flex flex-wrap gap-4 mb-4">
                         <div className="flex-1 min-w-[200px]">
@@ -142,25 +220,11 @@ export default function Logs() {
                             <option value="error">{t('logs_page.error')}</option>
                             <option value="debug">{t('logs_page.debug')}</option>
                         </select>
-                        <select
-                            value={numberFilter}
-                            onChange={(e) => setNumberFilter(e.target.value)}
-                            className="px-3 py-2 rounded-md border bg-background text-sm"
-                        >
-                            <option value="all">{t('numbers')}</option>
-                            {numbers.map((num) => (
-                                <option key={num.id} value={num.id}>
-                                    {num.phone_number || num.instance_id || num.id.slice(0, 8)}
-                                </option>
-                            ))}
-                        </select>
-                        {(levelFilter !== 'all' || numberFilter !== 'all') && (
+                        {(levelFilter !== 'all') && (
                             <Button
                                 variant="outline"
-                                onClick={() => {
-                                    setLevelFilter('all');
-                                    setNumberFilter('all');
-                                }}
+                                size="sm"
+                                onClick={() => setLevelFilter('all')}
                             >
                                 <X className="h-4 w-4 mr-2" />
                                 {t('common.filter')}
@@ -178,10 +242,10 @@ export default function Logs() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>{t('logs_page.level')}</TableHead>
+                                        <TableHead className="w-[100px]">{t('logs_page.level')}</TableHead>
                                         <TableHead>{t('logs_page.message')}</TableHead>
-                                        <TableHead>{t('numbers')}</TableHead>
-                                        <TableHead>{t('common.date')}</TableHead>
+                                        <TableHead className="w-[150px]">{t('numbers')}</TableHead>
+                                        <TableHead className="w-[180px]">{t('common.date')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -190,7 +254,7 @@ export default function Logs() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     {getLevelIcon(log.level)}
-                                                    <span className={`text-xs px-2 py-1 rounded ${getLevelBadgeColor(log.level)}`}>
+                                                    <span className={cn("text-xs px-2 py-1 rounded", getLevelBadgeColor(log.level))}>
                                                         {log.level}
                                                     </span>
                                                 </div>
@@ -199,22 +263,30 @@ export default function Logs() {
                                                 <p className="truncate">{log.message}</p>
                                                 {log.meta && (
                                                     <details className="mt-1">
-                                                        <summary className="text-xs text-muted-foreground cursor-pointer">
+                                                        <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                                                             {t('logs_page.metadata')}
                                                         </summary>
-                                                        <pre className="text-xs mt-1 p-2 bg-muted rounded overflow-auto">
+                                                        <pre className="text-xs mt-1 p-2 bg-muted rounded overflow-auto max-h-40">
                                                             {JSON.stringify(log.meta, null, 2)}
                                                         </pre>
                                                     </details>
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                {log.numbers ? (
-                                                    log.numbers.phone_number || log.numbers.instance_id || '-'
-                                                ) : '-'}
+                                                <span className="text-sm">
+                                                    {log.number_id ? (
+                                                        getNumberDisplayName(log.numbers)
+                                                    ) : (
+                                                        <span className="text-muted-foreground italic">
+                                                            {t('logs_page.system') || 'System'}
+                                                        </span>
+                                                    )}
+                                                </span>
                                             </TableCell>
                                             <TableCell>
-                                                {new Date(log.created_at).toLocaleString()}
+                                                <span className="text-xs text-muted-foreground">
+                                                    {new Date(log.created_at).toLocaleString()}
+                                                </span>
                                             </TableCell>
                                         </TableRow>
                                     ))}
