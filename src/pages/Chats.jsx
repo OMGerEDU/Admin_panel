@@ -14,6 +14,7 @@ import {
     getLastOutgoingMessages,
     getChatHistory,
     normalizePhoneForAPI,
+    getAvatar,
 } from '../services/greenApi';
 import { pollNewMessages } from '../services/messageSync';
 import { logger } from '../lib/logger';
@@ -41,6 +42,10 @@ export default function Chats() {
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+    const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
+    const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
+    const [chatAvatars, setChatAvatars] = useState(new Map()); // Map<chatId, avatarUrl>
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -84,9 +89,58 @@ export default function Chats() {
 
     useEffect(() => {
         if (selectedChat) {
+            // Reset pagination state
+            setHasMoreMessages(true);
+            setOldestMessageTimestamp(null);
             fetchMessages();
         }
     }, [selectedChat]);
+    
+    // Load avatar for a chat
+    const loadChatAvatar = async (chatId) => {
+        if (!selectedNumber || !chatId || chatAvatars.has(chatId)) return;
+
+        try {
+            const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+            if (result.success && result.data?.urlAvatar) {
+                setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
+                console.log(`[AVATAR] Loaded avatar for ${chatId}`);
+            }
+        } catch (error) {
+            console.error('[AVATAR] Error loading avatar:', error);
+        }
+    };
+    
+    // Load avatars for all chats when chats are loaded
+    useEffect(() => {
+        if (chats.length > 0 && selectedNumber?.instance_id && selectedNumber?.api_token) {
+            chats.forEach(chat => {
+                const chatId = chat.chatId || chat.remote_jid;
+                if (chatId && !chatAvatars.has(chatId)) {
+                    // Load avatar asynchronously
+                    getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId)
+                        .then(result => {
+                            if (result.success && result.data?.urlAvatar) {
+                                setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('[AVATAR] Error loading avatar for', chatId, error);
+                        });
+                }
+            });
+        }
+    }, [chats, selectedNumber]);
+    
+    // Load avatar for selected chat after messages are loaded
+    useEffect(() => {
+        if (selectedChat && selectedNumber && messages.length > 0) {
+            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+            if (chatId) {
+                loadChatAvatar(chatId);
+            }
+        }
+    }, [messages.length, selectedChat, selectedNumber]);
 
     // Auto-scroll to bottom when messages change
     const messagesEndRef = useRef(null);
@@ -371,6 +425,8 @@ export default function Chats() {
             if (!Array.isArray(arr) || arr.length === 0) {
                 console.log('[HISTORY] No messages found');
                 setMessages([]);
+                setHasMoreMessages(false);
+                setOldestMessageTimestamp(null);
                 historyCacheRef.current.set(chatId, { messages: [], timestamp: Date.now() });
                 return;
             }
@@ -394,6 +450,12 @@ export default function Chats() {
 
             console.log('[HISTORY] Sorted messages, count:', arr.length);
 
+            // Check if there are more messages (if we got 100, there might be more)
+            setHasMoreMessages(arr.length >= 100);
+            if (arr.length > 0) {
+                setOldestMessageTimestamp(arr[0].timestamp); // Oldest message timestamp
+            }
+
             // Cache the history (simple, like extension)
             historyCacheRef.current.set(chatId, { messages: arr, timestamp: Date.now() });
 
@@ -410,6 +472,123 @@ export default function Chats() {
             setMessagesLoading(false);
         }
     };
+
+    // Load more messages (pagination)
+    const loadMoreMessages = async () => {
+        if (!selectedChat || !selectedNumber || !hasMoreMessages || loadingMoreMessages) return;
+
+        const acc = selectedNumber;
+        const chatId = selectedChat.chatId || selectedChat.remote_jid;
+        if (!chatId || !oldestMessageTimestamp) return;
+
+        setLoadingMoreMessages(true);
+
+        try {
+            const GREEN_API_BASE = 'https://api.green-api.com';
+            const apiUrl = `${GREEN_API_BASE}/waInstance${acc.instance_id}/getChatHistory/${acc.api_token}`;
+            
+            // Request older messages (before the oldest we have)
+            const requestBody = {
+                chatId: chatId,
+                count: 100
+            };
+            
+            console.log('[HISTORY] Loading more messages, before timestamp:', oldestMessageTimestamp);
+            
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!res || !res.ok) {
+                console.error('[HISTORY] Failed to load more messages');
+                setHasMoreMessages(false);
+                return;
+            }
+
+            const data = await res.json();
+            
+            // Parse response
+            let arr = [];
+            if (Array.isArray(data)) {
+                arr = data;
+            } else if (data.data && Array.isArray(data.data)) {
+                arr = data.data;
+            } else if (data.messages && Array.isArray(data.messages)) {
+                arr = data.messages;
+            } else if (data.results && Array.isArray(data.results)) {
+                arr = data.results;
+            }
+
+            if (!Array.isArray(arr) || arr.length === 0) {
+                console.log('[HISTORY] No more messages found');
+                setHasMoreMessages(false);
+                return;
+            }
+
+            // Filter out messages we already have (by timestamp)
+            const existingTimestamps = new Set(messages.map(m => m.timestamp));
+            const newMessages = arr.filter(msg => 
+                msg.timestamp < oldestMessageTimestamp && !existingTimestamps.has(msg.timestamp)
+            );
+
+            if (newMessages.length === 0) {
+                console.log('[HISTORY] No new messages after filtering');
+                setHasMoreMessages(false);
+                return;
+            }
+
+            // Sort by timestamp (oldest first)
+            newMessages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            // Check if there are more messages
+            setHasMoreMessages(newMessages.length >= 100);
+            if (newMessages.length > 0) {
+                setOldestMessageTimestamp(newMessages[0].timestamp);
+            }
+
+            // Prepend new messages to existing ones
+            setMessages([...newMessages, ...messages]);
+
+            // Update cache
+            const allMessages = [...newMessages, ...messages];
+            historyCacheRef.current.set(chatId, { messages: allMessages, timestamp: Date.now() });
+            saveMessagesToCache(acc.instance_id, chatId, allMessages);
+
+            console.log(`[HISTORY] Loaded ${newMessages.length} more messages`);
+        } catch (error) {
+            console.error('[HISTORY] Error loading more messages:', error);
+            setHasMoreMessages(false);
+        } finally {
+            setLoadingMoreMessages(false);
+        }
+    };
+
+    // Load avatar for a chat
+    const loadChatAvatar = async (chatId) => {
+        if (!selectedNumber || !chatId || chatAvatars.has(chatId)) return;
+
+        try {
+            const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+            if (result.success && result.data?.urlAvatar) {
+                setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
+                console.log(`[AVATAR] Loaded avatar for ${chatId}`);
+            }
+        } catch (error) {
+            console.error('[AVATAR] Error loading avatar:', error);
+        }
+    };
+    
+    // Load avatar after messages are loaded
+    useEffect(() => {
+        if (selectedChat && selectedNumber && messages.length > 0) {
+            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+            if (chatId) {
+                loadChatAvatar(chatId);
+            }
+        }
+    }, [messages.length, selectedChat, selectedNumber]);
 
     const sendMessage = async () => {
         if (!newMessage.trim() || !selectedChat || !selectedNumber) return;
@@ -663,9 +842,23 @@ export default function Chats() {
                                     )}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white">
-                                            {getChatInitials(chat)}
-                                        </div>
+                                    {chatAvatars.has(chatId) ? (
+                                        <img
+                                            src={chatAvatars.get(chatId)}
+                                            alt={chat.name || chat.phone}
+                                            className="w-12 h-12 rounded-full object-cover"
+                                            onError={(e) => {
+                                                // Fallback to initials if image fails
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div 
+                                        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white ${chatAvatars.has(chatId) ? 'hidden' : ''}`}
+                                    >
+                                        {getChatInitials(chat)}
+                                    </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium truncate text-foreground dark:text-[#e9edef]">{chat.name || chat.phone || chatId}</p>
                                             <p className="text-sm text-muted-foreground dark:text-[#8696a0] truncate">
@@ -707,8 +900,40 @@ export default function Chats() {
 
                         {/* Messages */}
                         <div
-                            className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-background dark:bg-[#0a1014]"
+                            className="flex-1 overflow-y-auto px-4 py-3 space-y-2 relative"
+                            style={{
+                                backgroundImage: 'url(/bgImage.jpg)',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundAttachment: 'fixed'
+                            }}
                         >
+                            {/* Overlay for better readability */}
+                            <div className="absolute inset-0 bg-background/30 dark:bg-[#0a1014]/50 pointer-events-none" />
+                            <div className="relative z-10">
+                            {/* Load More Messages Button */}
+                            {messages.length > 0 && (
+                                <div className="flex justify-center py-2">
+                                    <Button
+                                        onClick={loadMoreMessages}
+                                        disabled={!hasMoreMessages || loadingMoreMessages}
+                                        variant="outline"
+                                        className={cn(
+                                            "text-sm",
+                                            !hasMoreMessages && "opacity-50 cursor-not-allowed"
+                                        )}
+                                    >
+                                        {loadingMoreMessages 
+                                            ? (t('common.loading') || 'טוען...')
+                                            : hasMoreMessages
+                                                ? (t('chats_page.load_more_messages') || 'טען עוד הודעות')
+                                                : (t('chats_page.no_more_messages') || 'אין עוד הודעות')
+                                        }
+                                    </Button>
+                                </div>
+                            )}
+                            
                             {messages.length === 0 && !messagesLoading ? (
                                 <div className="text-center text-muted-foreground dark:text-[#8696a0] py-8">
                                     {t('common.no_data')}
@@ -921,17 +1146,45 @@ export default function Chats() {
                                                     </div>
                                                 )}
                                                 
+                                                {/* Quoted Message */}
+                                                {typeMessage === 'quotedMessage' && (
+                                                    <div className="space-y-2">
+                                                        {item.quotedMessage && (
+                                                            <div className="text-xs opacity-75 border-l-2 pl-2 mb-2">
+                                                                {item.quotedMessage.textMessage || item.quotedMessage.text || '💬 הודעה מצוטטת'}
+                                                            </div>
+                                                        )}
+                                                        {text && (
+                                                            <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Deleted Message */}
+                                                {typeMessage === 'deletedMessage' && (
+                                                    <p className="text-sm italic text-muted-foreground dark:text-[#8696a0]">
+                                                        🗑️ {t('chats_page.message_deleted') || 'Message deleted'}
+                                                    </p>
+                                                )}
+                                                
                                                 {/* Extended Text Message OR Regular Text Message - MUST be last to catch all text messages */}
-                                                {!['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage'].includes(typeMessage) && text && (
+                                                {!['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && text && (
                                                     <div>
                                                         <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
                                                     </div>
                                                 )}
                                                 
-                                                {/* Fallback - if no text found but message exists */}
-                                                {!text && !['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage'].includes(typeMessage) && (
+                                                {/* Fallback - if no text found but message exists - show what we can */}
+                                                {!text && !['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && typeMessage && (
                                                     <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
-                                                        {t('chats_page.message_not_supported') || 'Message type not supported'}
+                                                        📎 {typeMessage} {t('chats_page.message_not_supported') || '(not fully supported)'}
+                                                    </p>
+                                                )}
+                                                
+                                                {/* Fallback - if no typeMessage and no text, show empty message indicator */}
+                                                {!typeMessage && !text && (
+                                                    <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
+                                                        {t('chats_page.empty_message') || 'Empty message'}
                                                     </p>
                                                 )}
                                                 
@@ -953,6 +1206,7 @@ export default function Chats() {
                                 </div>
                             )}
                             <div ref={messagesEndRef} />
+                            </div>
                         </div>
 
                         {/* Message Input */}
