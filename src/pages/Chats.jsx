@@ -83,20 +83,10 @@ export default function Chats() {
     }, [remoteJid, chats]);
 
     useEffect(() => {
-        if (selectedChat && selectedNumber) {
-            // Load from cache first (instant display)
-            const chatId = selectedChat.chatId || selectedChat.remote_jid;
-            if (chatId && selectedNumber.instance_id) {
-                const cachedMessages = loadMessagesFromCache(selectedNumber.instance_id, chatId);
-                if (cachedMessages && cachedMessages.length > 0) {
-                    console.log('[CHATS] Loading from localStorage cache first');
-                    setMessages(cachedMessages);
-                }
-            }
-            // Then fetch fresh messages from API
+        if (selectedChat) {
             fetchMessages();
         }
-    }, [selectedChat, selectedNumber]);
+    }, [selectedChat]);
 
     // Auto-scroll to bottom when messages change
     const messagesEndRef = useRef(null);
@@ -299,104 +289,123 @@ export default function Chats() {
             return;
         }
 
-        // Check memory cache first (like extension - 10 seconds)
+        // Check cache first (like extension - 10 seconds)
         if (!forceRefresh && historyCacheRef.current.has(chatId)) {
             const cached = historyCacheRef.current.get(chatId);
             if (Date.now() - cached.timestamp < 10000) {
-                console.log('[HISTORY] Using memory cache');
+                console.log('[HISTORY] Using cached history');
                 setMessages(cached.messages);
                 return;
-            }
-        }
-
-        // Load from localStorage cache if available (for instant display)
-        let cachedMessages = null;
-        if (!forceRefresh) {
-            cachedMessages = loadMessagesFromCache(acc.instance_id, chatId);
-            if (cachedMessages && cachedMessages.length > 0) {
-                console.log('[HISTORY] Found localStorage cache, using while fetching fresh data');
-                // Don't set messages here - we'll merge after fetching
             }
         }
 
         setMessagesLoading(true);
 
         try {
-            // Green API endpoint: getChatHistory
-            const result = await getChatHistory(acc.instance_id, acc.api_token, chatId, 100);
+            // Green API endpoint: getChatHistory - DIRECT CALL like extension
+            const GREEN_API_BASE = 'https://api.green-api.com';
+            const apiUrl = `${GREEN_API_BASE}/waInstance${acc.instance_id}/getChatHistory/${acc.api_token}`;
+            
+            console.log('[HISTORY] Fetching from:', apiUrl);
+            console.log('[HISTORY] ChatId:', chatId);
+            
+            // Request body according to Green API documentation
+            const requestBody = {
+                chatId: chatId,
+                count: 100
+            };
+            
+            console.log('[HISTORY] Request body:', requestBody);
+            
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            }).catch(e => {
+                console.error('[HISTORY] Fetch error:', e);
+                const errorMsg = e.message || 'שגיאה לא ידועה';
+                setMessages([]);
+                return null;
+            });
 
-            if (!result.success) {
-                console.error('[HISTORY] Failed to fetch history:', result.error);
-                await logger.error('Failed to fetch chat history', {
-                    error: result.error,
-                    chatId
-                }, selectedNumber.id);
-                
-                // If we have cached messages, use them even if API failed
-                if (cachedMessages && cachedMessages.length > 0) {
-                    console.log('[HISTORY] API failed, using cached messages');
-                    setMessages(cachedMessages);
+            if (!res || !res.ok) {
+                if (res) {
+                    const errorText = await res.text().catch(() => '');
+                    console.error('[HISTORY] HTTP error:', res.status, res.statusText);
+                    console.error('[HISTORY] Error response:', errorText);
+                    await logger.error('Failed to fetch chat history', {
+                        status: res.status,
+                        error: errorText.substring(0, 200),
+                        chatId
+                    }, selectedNumber.id);
                 } else {
-                    setMessages([]);
+                    await logger.error('Failed to fetch chat history - no response', { chatId }, selectedNumber.id);
                 }
+                setMessages([]);
                 return;
             }
 
-            const data = result.data;
+            const data = await res.json();
+            console.log('[HISTORY] Response:', data);
+            console.log('[HISTORY] Response type:', typeof data);
+            console.log('[HISTORY] Is array?', Array.isArray(data));
 
             // Parse response - Green API returns { data: [...] } or direct array
             let arr = [];
             if (Array.isArray(data)) {
                 arr = data;
-            } else if (data?.data && Array.isArray(data.data)) {
+                console.log('[HISTORY] Using direct array, length:', arr.length);
+            } else if (data.data && Array.isArray(data.data)) {
                 arr = data.data;
-            } else if (data?.messages && Array.isArray(data.messages)) {
+                console.log('[HISTORY] Using data.data, length:', arr.length);
+            } else if (data.messages && Array.isArray(data.messages)) {
                 arr = data.messages;
-            } else if (data?.results && Array.isArray(data.results)) {
+                console.log('[HISTORY] Using data.messages, length:', arr.length);
+            } else if (data.results && Array.isArray(data.results)) {
                 arr = data.results;
+                console.log('[HISTORY] Using data.results, length:', arr.length);
+            } else {
+                console.warn('[HISTORY] Unknown response format:', Object.keys(data));
             }
 
             if (!Array.isArray(arr) || arr.length === 0) {
                 console.log('[HISTORY] No messages found');
-                // If we have cached messages, use them
-                if (cachedMessages && cachedMessages.length > 0) {
-                    console.log('[HISTORY] No new messages, using cached');
-                    setMessages(cachedMessages);
-                } else {
-                    setMessages([]);
-                    historyCacheRef.current.set(chatId, { messages: [], timestamp: Date.now() });
-                }
+                setMessages([]);
+                historyCacheRef.current.set(chatId, { messages: [], timestamp: Date.now() });
                 return;
+            }
+
+            // Log first message for debugging
+            if (arr.length > 0) {
+                console.log('[HISTORY] First message sample:', {
+                    idMessage: arr[0].idMessage,
+                    typeMessage: arr[0].typeMessage,
+                    textMessage: arr[0].textMessage,
+                    conversation: arr[0].conversation,
+                    extendedTextMessage: arr[0].extendedTextMessage,
+                    timestamp: arr[0].timestamp,
+                    type: arr[0].type,
+                    fromMe: arr[0].fromMe
+                });
             }
 
             // Sort by timestamp (oldest first, like extension)
             arr.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-            // Merge with cached messages if available
-            let finalMessages = arr;
-            if (cachedMessages && cachedMessages.length > 0) {
-                finalMessages = mergeMessages(cachedMessages, arr);
-                console.log(`[HISTORY] Merged ${cachedMessages.length} cached + ${arr.length} new = ${finalMessages.length} total`);
-            }
+            console.log('[HISTORY] Sorted messages, count:', arr.length);
 
-            // Update memory cache
-            historyCacheRef.current.set(chatId, { messages: finalMessages, timestamp: Date.now() });
+            // Cache the history (simple, like extension)
+            historyCacheRef.current.set(chatId, { messages: arr, timestamp: Date.now() });
 
             // Save to localStorage cache
-            saveMessagesToCache(acc.instance_id, chatId, finalMessages);
+            saveMessagesToCache(acc.instance_id, chatId, arr);
 
-            setMessages(finalMessages);
+            setMessages(arr);
+            console.log('[HISTORY] Messages set in state, count:', arr.length);
         } catch (error) {
             console.error('[HISTORY] Fetch error:', error);
             await logger.error('Error fetching chat history', { error: error.message }, selectedNumber?.id);
-            
-            // If we have cached messages, use them even if fetch failed
-            if (cachedMessages && cachedMessages.length > 0) {
-                console.log('[HISTORY] Error occurred, using cached messages');
-                setMessages(cachedMessages);
-            } else {
-                setMessages([]);
-            }
+            setMessages([]);
         } finally {
             setMessagesLoading(false);
         }
@@ -898,7 +907,16 @@ export default function Chats() {
                                                 
                                                 {/* Regular Text Message (or fallback) */}
                                                 {!typeMessage && text && (
-                                                    <p className="text-sm">{text}</p>
+                                                    <div>
+                                                        <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Fallback - if no text found but message exists */}
+                                                {!typeMessage && !text && (
+                                                    <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
+                                                        {t('chats_page.message_not_supported') || 'Message type not supported'}
+                                                    </p>
                                                 )}
                                                 
                                                 {/* Timestamp */}
