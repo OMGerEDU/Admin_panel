@@ -20,6 +20,8 @@ export default function OrganizationSettings() {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviting, setInviting] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [invites, setInvites] = useState([]);
+    const [creatingInvite, setCreatingInvite] = useState(false);
 
     useEffect(() => {
         fetchOrgDetails();
@@ -61,6 +63,17 @@ export default function OrganizationSettings() {
 
             if (membersError) throw membersError;
             setMembers(membersData || []);
+
+            // Fetch pending invites for this organization
+            const { data: invitesData, error: invitesError } = await supabase
+                .from('organization_invites')
+                .select('*')
+                .eq('organization_id', orgId)
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false });
+
+            if (invitesError) throw invitesError;
+            setInvites(invitesData || []);
 
         } catch (error) {
             console.error(error);
@@ -119,6 +132,43 @@ export default function OrganizationSettings() {
             alert(error.message || 'Failed to add member');
         } finally {
             setInviting(false);
+        }
+    };
+
+    const createInviteLink = async () => {
+        if (!isAdmin || !orgId) return;
+
+        try {
+            setCreatingInvite(true);
+            const token = (window.crypto && window.crypto.randomUUID)
+                ? window.crypto.randomUUID()
+                : Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+            const { data, error } = await supabase
+                .from('organization_invites')
+                .insert({
+                    organization_id: orgId,
+                    token,
+                    email: inviteEmail || null,
+                    // Optional: set a 7-day expiry
+                    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            const link = `${window.location.origin}/signup?invite=${data.token}`;
+            await navigator.clipboard?.writeText(link);
+            alert('Invite link created and copied to clipboard.');
+
+            // Refresh invites list
+            fetchOrgDetails();
+        } catch (error) {
+            console.error('Error creating invite link:', error);
+            alert(error.message || 'Failed to create invite link');
+        } finally {
+            setCreatingInvite(false);
         }
     };
 
@@ -244,35 +294,101 @@ export default function OrganizationSettings() {
             </Card>
 
             {isAdmin && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <UserPlus className="h-5 w-5" />
-                            Invite Member
-                        </CardTitle>
-                        <CardDescription>
-                            Add a member to this organization. The user must already have an account.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleInvite} className="flex gap-2">
-                            <Input
-                                type="email"
-                                placeholder={t('login.email')}
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                                required
-                                className="flex-1"
-                            />
-                            <Button type="submit" disabled={inviting}>
-                                {inviting ? t('common.loading') : 'Invite'}
-                            </Button>
-                        </form>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            Note: The user must already be registered. Enter their email address to add them.
-                        </p>
-                    </CardContent>
-                </Card>
+                <>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <UserPlus className="h-5 w-5" />
+                                Invite Member (email)
+                            </CardTitle>
+                            <CardDescription>
+                                Add a member to this organization. The user must already have an account.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={handleInvite} className="flex flex-col gap-2 sm:flex-row">
+                                <Input
+                                    type="email"
+                                    placeholder={t('login.email')}
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    required
+                                    className="flex-1"
+                                />
+                                <Button type="submit" disabled={inviting}>
+                                    {inviting ? t('common.loading') : 'Invite'}
+                                </Button>
+                            </form>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Note: The user must already be registered. Enter their email address to add them directly.
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Invite Links</CardTitle>
+                            <CardDescription>
+                                Generate shareable links so new users can sign up and automatically join this organization.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                <Input
+                                    type="email"
+                                    placeholder="Optional: invitee email (for reference only)"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    className="flex-1"
+                                />
+                                <Button onClick={createInviteLink} disabled={creatingInvite}>
+                                    {creatingInvite ? t('common.loading') : 'Create Invite Link'}
+                                </Button>
+                            </div>
+                            {invites.length > 0 && (
+                                <div className="space-y-2">
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Active invite links
+                                    </p>
+                                    <div className="space-y-2">
+                                        {invites.map((invite) => {
+                                            const link = `${window.location.origin}/signup?invite=${invite.token}`;
+                                            return (
+                                                <div
+                                                    key={invite.id}
+                                                    className="flex flex-col gap-1 rounded border p-2 text-xs sm:flex-row sm:items-center sm:justify-between"
+                                                >
+                                                    <div className="space-y-1">
+                                                        <div className="font-medium break-all">{link}</div>
+                                                        <div className="text-muted-foreground">
+                                                            {invite.email || 'Any email'} ·{' '}
+                                                            {invite.expires_at
+                                                                ? `Expires ${new Date(invite.expires_at).toLocaleDateString()}`
+                                                                : 'No expiry'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2 mt-1 sm:mt-0 sm:flex-none">
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={async () => {
+                                                                await navigator.clipboard?.writeText(link);
+                                                                alert('Invite link copied to clipboard.');
+                                                            }}
+                                                        >
+                                                            Copy
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </>
             )}
         </div>
     );

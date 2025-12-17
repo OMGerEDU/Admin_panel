@@ -32,7 +32,6 @@ drop policy if exists "Users can update own profile." on public.profiles;
 create policy "Users can update own profile." on public.profiles
   for update using (auth.uid() = id);
 
--- Create a table for Organizations
 create table if not exists public.organizations (
   id uuid default uuid_generate_v4() primary key,
   name text not null,
@@ -42,6 +41,81 @@ create table if not exists public.organizations (
 
 -- Enable RLS
 alter table public.organizations enable row level security;
+
+-- Organization Invites - invite links for users to join organizations
+create table if not exists public.organization_invites (
+  id uuid default uuid_generate_v4() primary key,
+  organization_id uuid references public.organizations(id) on delete cascade not null,
+  email text, -- optional hint, can be null for generic invite links
+  token text not null unique,
+  status text check (status in ('pending', 'accepted', 'expired')) default 'pending',
+  expires_at timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.organization_invites enable row level security;
+
+-- Org members can view invites
+drop policy if exists "Org members can view invites" on public.organization_invites;
+create policy "Org members can view invites" on public.organization_invites
+  for select using (
+    exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.organization_invites.organization_id
+      and om.user_id = auth.uid()
+    )
+  );
+
+-- Org admins/owners can insert invites
+drop policy if exists "Org admins can insert invites" on public.organization_invites;
+create policy "Org admins can insert invites" on public.organization_invites
+  for insert with check (
+    exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.organization_invites.organization_id
+      and om.user_id = auth.uid()
+      and om.role = 'admin'
+    )
+    or exists (
+      select 1 from public.organizations o
+      where o.id = public.organization_invites.organization_id
+      and o.owner_id = auth.uid()
+    )
+  );
+
+-- Org admins/owners can update invites
+drop policy if exists "Org admins can update invites" on public.organization_invites;
+create policy "Org admins can update invites" on public.organization_invites
+  for update using (
+    exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.organization_invites.organization_id
+      and om.user_id = auth.uid()
+      and om.role = 'admin'
+    )
+    or exists (
+      select 1 from public.organizations o
+      where o.id = public.organization_invites.organization_id
+      and o.owner_id = auth.uid()
+    )
+  );
+
+-- Org admins/owners can delete invites
+drop policy if exists "Org admins can delete invites" on public.organization_invites;
+create policy "Org admins can delete invites" on public.organization_invites
+  for delete using (
+    exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.organization_invites.organization_id
+      and om.user_id = auth.uid()
+      and om.role = 'admin'
+    )
+    or exists (
+      select 1 from public.organizations o
+      where o.id = public.organization_invites.organization_id
+      and o.owner_id = auth.uid()
+    )
+  );
 
 -- Create a table for Organization Members
 create table if not exists public.organization_members (
@@ -119,12 +193,41 @@ create policy "Admins can delete members" on public.organization_members
       )
   );
 
--- Function to handle new user signup
+-- Function to handle new user signup (also handles organization invite tokens)
 create or replace function public.handle_new_user()
 returns trigger as $$
+declare
+  v_invite record;
+  v_invite_token text;
 begin
   insert into public.profiles (id, email, full_name, avatar_url)
   values (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+
+  -- If signup included an organization invite token, automatically join the org
+  if new.raw_user_meta_data ? 'invite_token' then
+    v_invite_token := new.raw_user_meta_data->>'invite_token';
+
+    select *
+    into v_invite
+    from public.organization_invites oi
+    where oi.token = v_invite_token
+      and oi.status = 'pending'
+      and (oi.expires_at is null or oi.expires_at > timezone('utc'::text, now()))
+    limit 1;
+
+    if found then
+      -- Add user as a member of the invited organization
+      insert into public.organization_members (organization_id, user_id, role)
+      values (v_invite.organization_id, new.id, 'member')
+      on conflict (organization_id, user_id) do nothing;
+
+      -- Mark invite as accepted
+      update public.organization_invites
+      set status = 'accepted'
+      where id = v_invite.id;
+    end if;
+  end if;
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -391,6 +494,28 @@ create policy "Users can view logs for their scope" on public.logs
       and om.user_id = auth.uid()
     ))
     OR
+    (number_id is not null AND exists (
+      select 1 from public.numbers n
+      where n.id = public.logs.number_id
+      and n.user_id = auth.uid()
+    ))
+  );
+
+-- Allow users to insert logs for scopes they have access to
+drop policy if exists "Users can insert logs for their scope" on public.logs;
+create policy "Users can insert logs for their scope" on public.logs
+  for insert with check (
+    -- System-level or anonymous logs (no org/number) are allowed
+    (organization_id is null and number_id is null)
+    OR
+    -- Org-scoped logs when user is a member
+    (organization_id is not null AND exists (
+      select 1 from public.organization_members om
+      where om.organization_id = public.logs.organization_id
+      and om.user_id = auth.uid()
+    ))
+    OR
+    -- Number-scoped logs when user owns the number
     (number_id is not null AND exists (
       select 1 from public.numbers n
       where n.id = public.logs.number_id

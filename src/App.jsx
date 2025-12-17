@@ -16,6 +16,7 @@ import Logs from './pages/Logs'
 import Automation from './pages/Automation'
 import Settings from './pages/Settings'
 import Extension from './pages/Extension'
+import OrganizationSettings from './pages/OrganizationSettings'
 import './index.css'
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
                   <Route path="logs" element={<Logs />} />
                   <Route path="automation" element={<Automation />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="organization/:orgId" element={<OrganizationSettings />} />
                   <Route path="extension" element={<Extension />} />
                 </Route>
               </Route>

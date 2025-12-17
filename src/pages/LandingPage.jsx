@@ -87,7 +87,7 @@ export default function LandingPage() {
                 </div>
             </header>
 
-            <main className="flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col text-center">
                 {/* Hero Section - fully centered in viewport */}
                 <section className="flex flex-1 items-center justify-center py-10 md:py-16">
                     <div className="container flex max-w-[64rem] flex-col items-center gap-6 text-center">

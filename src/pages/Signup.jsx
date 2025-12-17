@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -11,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 export default function Signup() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -25,12 +26,14 @@ export default function Signup() {
         setSuccess(false);
 
         try {
+            const inviteToken = searchParams.get('invite') || undefined;
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
                     data: {
                         full_name: fullName || email.split('@')[0],
+                        ...(inviteToken ? { invite_token: inviteToken } : {}),
                     },
                     emailRedirectTo: `${window.location.origin}/app/dashboard`,
                 }

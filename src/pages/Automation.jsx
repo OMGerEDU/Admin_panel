@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { logger } from '../lib/logger';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Plus, Play, Clock, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 
@@ -48,6 +49,7 @@ export default function Automation() {
             setJobs(data || []);
         } catch (error) {
             console.error('Error fetching jobs:', error);
+            await logger.error('Error fetching automation jobs', { error: error.message });
         } finally {
             setLoading(false);
         }
@@ -80,9 +82,12 @@ export default function Automation() {
                 });
 
             if (error) throw error;
+
+            await logger.info('Automation job created', { type, organization_id: orgs.organization_id });
             fetchJobs();
         } catch (error) {
             console.error('Error creating job:', error);
+            await logger.error('Error creating automation job', { error: error.message, type });
             alert(error.message);
         }
     };

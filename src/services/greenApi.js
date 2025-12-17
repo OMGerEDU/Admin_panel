@@ -1,6 +1,8 @@
 // Green API service - core WhatsApp messaging features
 // This module is used by both the admin panel and (optionally) the extension.
 
+import { logger } from '../lib/logger';
+
 const GREEN_API_BASE = 'https://api.green-api.com';
 
 /**
@@ -8,6 +10,7 @@ const GREEN_API_BASE = 'https://api.green-api.com';
  */
 async function greenApiCall(instanceId, token, endpoint, options = {}) {
   if (!instanceId || !token) {
+    await logger.warn('Green API call missing credentials', { endpoint });
     return { success: false, error: 'Missing Green API instanceId or token' };
   }
 
@@ -43,6 +46,11 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
 
       if (!response.ok) {
         const errorText = await response.text();
+        await logger.error('Green API HTTP error', {
+          status: response.status,
+          endpoint,
+          errorText: errorText.slice(0, 500),
+        });
         throw new Error(`Green API ${response.status}: ${errorText}`);
       }
 
@@ -50,6 +58,12 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
       return { success: true, data };
     } catch (error) {
       console.error('Green API error:', error);
+      if (retries <= 1) {
+        await logger.error('Green API request failed after retries', {
+          endpoint,
+          error: error.message || 'Green API error',
+        });
+      }
       retries -= 1;
       if (retries <= 0) {
         return { success: false, error: error.message || 'Green API error' };

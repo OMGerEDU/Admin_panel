@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -53,6 +54,7 @@ export default function Webhooks() {
             setWebhooks(data || []);
         } catch (error) {
             console.error('Error fetching webhooks:', error);
+            await logger.error('Error fetching webhooks', { error: error.message });
         } finally {
             setLoading(false);
         }
@@ -97,12 +99,18 @@ export default function Webhooks() {
                 if (error) throw error;
             }
 
+            await logger.info(
+                editingWebhook ? 'Webhook updated' : 'Webhook created',
+                { organization_id: webhookData.organization_id, url: webhookData.url }
+            );
+
             setShowModal(false);
             setEditingWebhook(null);
             setFormData({ url: '', events: [], is_active: true, secret: '' });
             fetchWebhooks();
         } catch (error) {
             console.error('Error saving webhook:', error);
+            await logger.error('Error saving webhook', { error: error.message });
             alert(error.message);
         }
     };
@@ -116,9 +124,12 @@ export default function Webhooks() {
                 .delete()
                 .eq('id', id);
             if (error) throw error;
+
+            await logger.warn('Webhook deleted', { webhook_id: id });
             fetchWebhooks();
         } catch (error) {
             console.error('Error deleting webhook:', error);
+            await logger.error('Error deleting webhook', { error: error.message, webhook_id: id });
             alert(error.message);
         }
     };
@@ -130,9 +141,15 @@ export default function Webhooks() {
                 .update({ is_active: !webhook.is_active })
                 .eq('id', webhook.id);
             if (error) throw error;
+
+            await logger.info('Webhook toggled', {
+                webhook_id: webhook.id,
+                is_active: !webhook.is_active,
+            });
             fetchWebhooks();
         } catch (error) {
             console.error('Error toggling webhook:', error);
+            await logger.error('Error toggling webhook', { error: error.message, webhook_id: webhook.id });
         }
     };
 
