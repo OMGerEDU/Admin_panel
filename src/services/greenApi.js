@@ -183,6 +183,82 @@ export function normalizePhoneNumber(phone) {
   return `${cleaned}@c.us`;
 }
 
+// Phone normalization function from extension (for API calls)
+export function normalizePhoneForAPI(raw) {
+  if (!raw) return "";
+  
+  let input = String(raw);
+  
+  // ניקוי תווים לא רלוונטיים
+  input = input.replace(/[^0-9+]/g, "");
+  
+  // אם מתחיל עם +
+  if (input.startsWith("+")) {
+    input = input.substring(1);
+  }
+  
+  // אם מתחיל עם 0 → ישראל (ממיר ל-972)
+  if (input.startsWith("0")) {
+    input = "972" + input.substring(1);
+  }
+  
+  // אם מתחיל עם 972 → השאר
+  if (!input.startsWith("972")) {
+    // מניח שישראל ברירת מחדל
+    input = "972" + input;
+  }
+  
+  return input;
+}
+
+// Get last incoming messages (like extension)
+export async function getLastIncomingMessages(instanceId, token, minutes = 1440) {
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/lastIncomingMessages/${token}?minutes=${minutes}`;
+  
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      await logger.error('Failed to fetch last incoming messages', {
+        status: response.status,
+        errorText: errorText.slice(0, 500),
+      });
+      return { success: false, error: `HTTP ${response.status}: ${errorText}` };
+    }
+    
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    await logger.error('Error fetching last incoming messages', { error: error.message });
+    return { success: false, error: error.message || 'Failed to fetch last incoming messages' };
+  }
+}
+
+// Get last outgoing messages (like extension)
+export async function getLastOutgoingMessages(instanceId, token) {
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/lastOutgoingMessages/${token}`;
+  
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      await logger.error('Failed to fetch last outgoing messages', {
+        status: response.status,
+        errorText: errorText.slice(0, 500),
+      });
+      return { success: false, error: `HTTP ${response.status}: ${errorText}` };
+    }
+    
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    await logger.error('Error fetching last outgoing messages', { error: error.message });
+    return { success: false, error: error.message || 'Failed to fetch last outgoing messages' };
+  }
+}
+
 // Convenience helper: load chats with basic enrichment (name/avatar where possible)
 export async function loadFullChats(instanceId, token) {
   const chatsResult = await getChats(instanceId, token);

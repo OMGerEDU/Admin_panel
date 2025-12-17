@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -7,21 +7,15 @@ import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Plus, Search, Send, Phone } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { sendMessage as sendGreenMessage } from '../services/greenApi';
-import {
-    fullSync,
-    syncMessagesToSupabase,
-    pollNewMessages,
-    syncChatsToSupabase,
-} from '../services/messageSync';
-import {
-    shouldSyncChats,
-    markChatsSynced,
-    shouldSyncMessages,
-    markMessagesSynced,
-    clearChatCache,
-} from '../lib/messageCache';
+import { cn, removeJidSuffix } from '../lib/utils';
+import { 
+    sendMessage as sendGreenMessage,
+    getLastIncomingMessages,
+    getLastOutgoingMessages,
+    getChatHistory,
+    normalizePhoneForAPI,
+} from '../services/greenApi';
+import { pollNewMessages } from '../services/messageSync';
 import { logger } from '../lib/logger';
 
 export default function Chats() {
@@ -40,9 +34,11 @@ export default function Chats() {
     const [syncing, setSyncing] = useState(false);
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
-    const [hasMoreMessages, setHasMoreMessages] = useState(true);
-    const [oldestMessageTs, setOldestMessageTs] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Cache like extension
+    const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
+    const historyCacheRef = useRef(new Map()); // Map<chatId, { messages, timestamp }>
 
     useEffect(() => {
         fetchNumbers();
@@ -67,15 +63,14 @@ export default function Chats() {
     // Load chat from URL params
     useEffect(() => {
         if (remoteJid && chats.length > 0) {
-            // Decode the remoteJid if it was encoded, and find chat by remote_jid
+            // Decode the remoteJid if it was encoded
             const decodedRemoteJid = decodeURIComponent(remoteJid);
-            // Handle both formats: with @c.us and without
-            const chat = chats.find(c => 
-                c.remote_jid === decodedRemoteJid || 
-                c.remote_jid === `${decodedRemoteJid}@c.us` ||
-                c.remote_jid.replace('@c.us', '') === decodedRemoteJid
-            );
-            if (chat && chat.id !== selectedChat?.id) {
+            // Find chat by comparing the number part (without @ suffix) or chatId
+            const chat = chats.find(c => {
+                const chatNumberOnly = removeJidSuffix(c.chatId || c.remote_jid || '');
+                return chatNumberOnly === decodedRemoteJid || c.chatId === decodedRemoteJid || c.phone === decodedRemoteJid;
+            });
+            if (chat && chat.chatId !== selectedChat?.chatId) {
                 setSelectedChat(chat);
             }
         }
@@ -86,6 +81,14 @@ export default function Chats() {
             fetchMessages();
         }
     }, [selectedChat]);
+
+    // Auto-scroll to bottom when messages change
+    const messagesEndRef = useRef(null);
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
 
     const fetchNumbers = async () => {
         if (!user) return;
@@ -110,222 +113,303 @@ export default function Chats() {
         }
     };
 
-    const fetchChats = async (forceSync = false) => {
-        if (!selectedNumber) return;
+    const fetchChats = async (forceRefresh = false) => {
+        if (!selectedNumber) return [];
+
+        const acc = selectedNumber;
+        if (!acc.instance_id || !acc.api_token) {
+            console.warn('[CHATS] Missing instance_id or api_token');
+            return [];
+        }
+
+        // Check cache first (like extension)
+        if (!forceRefresh && chatsCacheRef.current.data && (Date.now() - chatsCacheRef.current.timestamp < chatsCacheRef.current.ttl)) {
+            console.log('[CHATS] Using cached chats list');
+            setChats(chatsCacheRef.current.data);
+            return chatsCacheRef.current.data;
+        }
 
         try {
-            // Always load from Supabase first (fast)
-            const { data, error } = await supabase
-                .from('chats')
-                .select('*')
-                .eq('number_id', selectedNumber.id)
-                .order('last_message_at', { ascending: false });
-
-            if (error) throw error;
-            setChats(data || []);
-
-            // Only sync from Green API if needed (smart caching)
-            if (
-                forceSync ||
-                (selectedNumber.instance_id &&
-                    selectedNumber.api_token &&
-                    shouldSyncChats())
-            ) {
-                // Background sync - don't block UI
-                syncChatsToSupabase(
-                    selectedNumber.id,
-                    selectedNumber.instance_id,
-                    selectedNumber.api_token,
-                    false, // Don't enrich all names
-                )
-                    .then(() => {
-                        markChatsSynced();
-                        // Refresh from Supabase after sync
-                        return supabase
-                            .from('chats')
-                            .select('*')
-                            .eq('number_id', selectedNumber.id)
-                            .order('last_message_at', { ascending: false });
-                    })
-                    .then(({ data: refreshedData }) => {
-                        if (refreshedData) {
-                            setChats(refreshedData);
-                        }
-                    })
-                    .catch((err) => {
-                        console.error('Background chat sync error:', err);
-                    });
+            // Fetch last incoming messages (last 24 hours = 1440 minutes)
+            const incomingResult = await getLastIncomingMessages(acc.instance_id, acc.api_token, 1440);
+            if (!incomingResult.success) {
+                console.error('[CHATS] Failed to fetch incoming messages:', incomingResult.error);
+                return [];
             }
+
+            // Fetch last outgoing messages
+            const outgoingResult = await getLastOutgoingMessages(acc.instance_id, acc.api_token);
+            if (!outgoingResult.success) {
+                console.error('[CHATS] Failed to fetch outgoing messages:', outgoingResult.error);
+                return [];
+            }
+
+            const incomingData = incomingResult.data;
+            const outgoingData = outgoingResult.data;
+
+            // Parse responses - Green API returns { data: [...] } or direct array
+            let incomingMessages = [];
+            let outgoingMessages = [];
+
+            if (Array.isArray(incomingData)) {
+                incomingMessages = incomingData;
+            } else if (incomingData?.data && Array.isArray(incomingData.data)) {
+                incomingMessages = incomingData.data;
+            } else if (incomingData?.messages && Array.isArray(incomingData.messages)) {
+                incomingMessages = incomingData.messages;
+            }
+
+            if (Array.isArray(outgoingData)) {
+                outgoingMessages = outgoingData;
+            } else if (outgoingData?.data && Array.isArray(outgoingData.data)) {
+                outgoingMessages = outgoingData.data;
+            } else if (outgoingData?.messages && Array.isArray(outgoingData.messages)) {
+                outgoingMessages = outgoingData.messages;
+            }
+
+            // Combine both arrays
+            const allMessages = [...incomingMessages, ...outgoingMessages];
+            console.log('[CHATS] Total messages:', allMessages.length);
+
+            if (allMessages.length === 0) {
+                setChats([]);
+                chatsCacheRef.current.data = [];
+                chatsCacheRef.current.timestamp = Date.now();
+                return [];
+            }
+
+            // Group messages by chatId and get last message for each chat
+            const chatsMap = new Map();
+            let messagesWithoutChatId = 0;
+
+            allMessages.forEach((msg, idx) => {
+                const chatId = msg.chatId;
+                if (!chatId) {
+                    messagesWithoutChatId++;
+                    if (idx < 3) console.log('[CHATS] Message without chatId:', { type: msg.type, typeMessage: msg.typeMessage, id: msg.idMessage });
+                    return;
+                }
+
+                // Extract phone number from chatId (remove @c.us, @g.us, etc.)
+                const phone = removeJidSuffix(chatId);
+
+                // Get message text
+                let text = '';
+                if (msg.textMessage) {
+                    text = msg.textMessage;
+                } else if (msg.extendedTextMessage?.text) {
+                    text = msg.extendedTextMessage.text;
+                } else if (msg.typeMessage === 'audioMessage') {
+                    text = '🎵 הודעת קול';
+                } else if (msg.typeMessage === 'imageMessage') {
+                    text = '📷 תמונה';
+                } else if (msg.typeMessage === 'videoMessage') {
+                    text = '🎥 וידאו';
+                } else if (msg.typeMessage === 'documentMessage') {
+                    text = '📄 מסמך';
+                } else if (msg.typeMessage === 'quotedMessage') {
+                    text = msg.extendedTextMessage?.text || '💬 הודעה מצוטטת';
+                } else if (msg.typeMessage === 'deletedMessage') {
+                    text = '🗑️ הודעה נמחקה';
+                } else {
+                    text = '📎 הודעה';
+                }
+
+                // Get sender name if available (for incoming messages)
+                const senderName = msg.senderName || msg.senderContactName || '';
+
+                // Get avatar URL if available
+                const avatarUrl = msg.avatar || msg.senderAvatar || msg.avatarUrl || '';
+
+                // Check if this chat already exists or if this message is newer
+                const existingChat = chatsMap.get(chatId);
+                if (!existingChat || (msg.timestamp > (existingChat.timestamp || 0))) {
+                    chatsMap.set(chatId, {
+                        chatId: chatId,
+                        phone: phone,
+                        name: senderName || existingChat?.name || phone,
+                        avatar: avatarUrl || existingChat?.avatar || '',
+                        lastMessage: text,
+                        lastMessageTime: msg.timestamp,
+                        timestamp: msg.timestamp
+                    });
+                } else if (existingChat) {
+                    // Update name/avatar if we got better info
+                    if (senderName && (existingChat.name === existingChat.phone || !existingChat.name)) {
+                        existingChat.name = senderName;
+                    }
+                    if (avatarUrl && !existingChat.avatar) {
+                        existingChat.avatar = avatarUrl;
+                    }
+                }
+            });
+
+            if (messagesWithoutChatId > 0) {
+                console.log(`[CHATS] Warning: ${messagesWithoutChatId} messages without chatId`);
+            }
+
+            // Convert map to array and sort by timestamp (newest first)
+            const chats = Array.from(chatsMap.values());
+            chats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            console.log('[CHATS] Grouped into', chats.length, 'chats');
+
+            // Update cache
+            chatsCacheRef.current.data = chats;
+            chatsCacheRef.current.timestamp = Date.now();
+
+            setChats(chats);
+            return chats;
         } catch (error) {
-            console.error('Error fetching chats:', error);
+            console.error('[CHATS] Fetch chats error:', error);
+            await logger.error('Failed to fetch chats', { error: error.message }, selectedNumber?.id);
+            return [];
         }
     };
 
-    const PAGE_SIZE = 50;
+    const fetchMessages = async (forceRefresh = false) => {
+        if (!selectedChat || !selectedNumber) return;
 
-    const fetchMessages = async (initial = true, forceSync = false) => {
-        if (!selectedChat) return;
+        const acc = selectedNumber;
+        if (!acc.instance_id || !acc.api_token) {
+            console.warn('[HISTORY] Missing instance_id or api_token');
+            return;
+        }
+
+        // Get chatId from selectedChat
+        const chatId = selectedChat.chatId || selectedChat.remote_jid;
+        if (!chatId) {
+            console.warn('[HISTORY] No chatId in selectedChat');
+            return;
+        }
+
+        // Check cache first (like extension - 10 seconds)
+        if (!forceRefresh && historyCacheRef.current.has(chatId)) {
+            const cached = historyCacheRef.current.get(chatId);
+            if (Date.now() - cached.timestamp < 10000) {
+                console.log('[HISTORY] Using cached history');
+                setMessages(cached.messages);
+                return;
+            }
+        }
+
+        setMessagesLoading(true);
 
         try {
-            setMessagesLoading(true);
-            if (initial) {
-                setHasMoreMessages(true);
-                setOldestMessageTs(null);
+            // Green API endpoint: getChatHistory
+            const result = await getChatHistory(acc.instance_id, acc.api_token, chatId, 100);
+
+            if (!result.success) {
+                console.error('[HISTORY] Failed to fetch history:', result.error);
+                await logger.error('Failed to fetch chat history', {
+                    error: result.error,
+                    chatId
+                }, selectedNumber.id);
                 setMessages([]);
-            }
-
-            // SMART: Only sync from Green API if:
-            // 1. Force sync requested (user clicked sync)
-            // 2. No messages in DB yet
-            // 3. Haven't synced recently (cache check)
-            const shouldSync =
-                forceSync ||
-                (selectedNumber?.instance_id &&
-                    selectedNumber?.api_token &&
-                    selectedChat.remote_jid &&
-                    shouldSyncMessages(selectedChat.id));
-
-            if (shouldSync) {
-                // Check if we have any messages first
-                const { count } = await supabase
-                    .from('messages')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('chat_id', selectedChat.id);
-
-                // Only sync if we have < 20 messages or force sync
-                if (forceSync || (count || 0) < 20) {
-                    // Background sync - don't block UI
-                    syncMessagesToSupabase(
-                        selectedChat.id,
-                        selectedNumber.instance_id,
-                        selectedNumber.api_token,
-                        selectedChat.remote_jid,
-                        initial ? PAGE_SIZE * 2 : PAGE_SIZE, // Load more on initial
-                    )
-                        .then(() => {
-                            markMessagesSynced(selectedChat.id);
-                        })
-                        .catch((err) => {
-                            console.error('Background message sync error:', err);
-                        });
-                }
-            }
-
-            // Load from Supabase (always fast, even if sync is running)
-            let query = supabase
-                .from('messages')
-                .select('*')
-                .eq('chat_id', selectedChat.id)
-                .order('timestamp', { ascending: false })
-                .limit(PAGE_SIZE);
-
-            if (!initial && oldestMessageTs) {
-                query = query.lt('timestamp', oldestMessageTs);
-            }
-
-            const { data, error } = await query;
-
-            if (error) throw error;
-
-            const batch = data || [];
-            if (batch.length === 0) {
-                if (initial) {
-                    setMessages([]);
-                    setHasMoreMessages(false);
-                } else {
-                    setHasMoreMessages(false);
-                }
                 return;
             }
 
-            // We queried descending; UI expects ascending
-            const reversed = [...batch].reverse();
+            const data = result.data;
 
-            if (initial) {
-                setMessages(reversed);
-            } else {
-                setMessages((prev) => [...reversed, ...prev]);
+            // Parse response - Green API returns { data: [...] } or direct array
+            let arr = [];
+            if (Array.isArray(data)) {
+                arr = data;
+            } else if (data?.data && Array.isArray(data.data)) {
+                arr = data.data;
+            } else if (data?.messages && Array.isArray(data.messages)) {
+                arr = data.messages;
+            } else if (data?.results && Array.isArray(data.results)) {
+                arr = data.results;
             }
 
-            const newOldest = reversed[0]?.timestamp;
-            if (newOldest) {
-                setOldestMessageTs(newOldest);
+            if (!Array.isArray(arr) || arr.length === 0) {
+                console.log('[HISTORY] No messages found');
+                setMessages([]);
+                historyCacheRef.current.set(chatId, { messages: [], timestamp: Date.now() });
+                return;
             }
 
-            if (batch.length < PAGE_SIZE) {
-                setHasMoreMessages(false);
-            }
+            // Sort by timestamp (oldest first, like extension)
+            arr.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            // Cache the history
+            historyCacheRef.current.set(chatId, { messages: arr, timestamp: Date.now() });
+
+            setMessages(arr);
         } catch (error) {
-            console.error('Error fetching messages:', error);
+            console.error('[HISTORY] Fetch error:', error);
+            await logger.error('Error fetching chat history', { error: error.message }, selectedNumber?.id);
+            setMessages([]);
         } finally {
             setMessagesLoading(false);
         }
     };
 
-    const handleLoadMoreMessages = async () => {
-        if (!hasMoreMessages || messagesLoading || !selectedChat) return;
-        await fetchMessages(false);
-    };
-
     const sendMessage = async () => {
-        if (!newMessage.trim() || !selectedChat) return;
+        if (!newMessage.trim() || !selectedChat || !selectedNumber) return;
 
         try {
-            // Send via Green API if possible
-            if (selectedNumber?.instance_id && selectedNumber?.api_token && selectedChat.remote_jid) {
-                const result = await sendGreenMessage(
-                    selectedNumber.instance_id,
-                    selectedNumber.api_token,
-                    selectedChat.remote_jid,
-                    newMessage,
-                );
-
-                if (!result.success) {
-                    console.error('Failed sending via Green API:', result.error);
-                    await logger.error('Failed to send message via Green API', {
-                        error: result.error,
-                        chat_id: selectedChat.remote_jid
-                    }, selectedNumber.id);
-                } else {
-                    await logger.info('Message sent', {
-                        chat_id: selectedChat.remote_jid,
-                        message_length: newMessage.length
-                    }, selectedNumber.id);
-                }
+            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+            if (!chatId) {
+                console.error('[SEND] No chatId');
+                return;
             }
 
-            // Always insert into Supabase so UI is consistent
-            const { data, error } = await supabase
-                .from('messages')
-                .insert({
-                    chat_id: selectedChat.id,
-                    content: newMessage,
-                    is_from_me: true,
-                    timestamp: new Date().toISOString(),
-                })
-                .select()
-                .single();
+            // Send via Green API
+            const result = await sendGreenMessage(
+                selectedNumber.instance_id,
+                selectedNumber.api_token,
+                chatId,
+                newMessage,
+            );
 
-            if (error) throw error;
-            setMessages([...messages, data]);
+            if (!result.success) {
+                console.error('[SEND] Failed sending via Green API:', result.error);
+                await logger.error('Failed to send message via Green API', {
+                    error: result.error,
+                    chatId
+                }, selectedNumber.id);
+                return;
+            }
+
+            await logger.info('Message sent', {
+                chatId,
+                message_length: newMessage.length
+            }, selectedNumber.id);
+
+            // Create a message object for the sent message (like extension)
+            const sentMessage = {
+                type: 'outgoing',
+                fromMe: true,
+                typeMessage: 'textMessage',
+                textMessage: newMessage,
+                timestamp: Math.floor(Date.now() / 1000),
+                chatId: chatId,
+                idMessage: result.data?.idMessage || `temp_${Date.now()}`,
+                is_from_me: true,
+                content: newMessage,
+            };
+
+            // Add to messages and clear input
+            setMessages([...messages, sentMessage]);
             setNewMessage('');
 
-            // Update chat last message
-            await supabase
-                .from('chats')
-                .update({
-                    last_message: newMessage,
-                    last_message_at: new Date().toISOString(),
-                })
-                .eq('id', selectedChat.id);
+            // Clear cache to force refresh on next load
+            historyCacheRef.current.delete(chatId);
+            chatsCacheRef.current.data = null; // Force refresh chats list
+
+            // Refresh chats list to update last message
+            await fetchChats(true);
         } catch (error) {
-            console.error('Error sending message:', error);
+            console.error('[SEND] Send error:', error);
+            await logger.error('Error sending message', { error: error.message }, selectedNumber?.id);
         }
     };
 
     const handleFullSync = async () => {
-        if (!selectedNumber?.id || !selectedNumber.instance_id || !selectedNumber.api_token) {
-            console.warn('Missing number Green API configuration for sync');
+        if (!selectedNumber?.instance_id || !selectedNumber.api_token) {
+            console.warn('[SYNC] Missing number Green API configuration');
             await logger.warn('Sync attempted without Green API credentials', null, selectedNumber?.id);
             return;
         }
@@ -333,34 +417,23 @@ export default function Chats() {
         setSyncing(true);
         try {
             // Clear cache to force fresh sync
-            clearChatCache(selectedChat?.id);
+            chatsCacheRef.current.data = null;
+            chatsCacheRef.current.timestamp = 0;
+            historyCacheRef.current.clear();
             
             await logger.info('Starting full sync', { instance_id: selectedNumber.instance_id }, selectedNumber.id);
-            
-            const result = await fullSync(
-                selectedNumber.id,
-                selectedNumber.instance_id,
-                selectedNumber.api_token,
-                50,
-            );
 
-            if (!result.success) {
-                console.error('Full sync failed:', result.error);
-                await logger.error('Full sync failed', { error: result.error }, selectedNumber.id);
-            } else {
-                await logger.info('Full sync completed', { 
-                    chats: result.data?.chats?.length || 0,
-                    messages: result.data?.messages?.length || 0
-                }, selectedNumber.id);
-            }
-
-            // Force refresh after sync
+            // Force refresh chats
             await fetchChats(true);
+            
+            // Force refresh messages if chat is selected
             if (selectedChat) {
-                await fetchMessages(true, true); // initial + force sync
+                await fetchMessages(true);
             }
+
+            await logger.info('Full sync completed', {}, selectedNumber.id);
         } catch (error) {
-            console.error('Error during full sync:', error);
+            console.error('[SYNC] Error during full sync:', error);
             await logger.error('Full sync error', { error: error.message }, selectedNumber?.id);
         } finally {
             setSyncing(false);
@@ -389,11 +462,14 @@ export default function Chats() {
                         // Only refresh the current chat, not all chats
                         if (selectedChat) {
                             // Clear cache and force refresh
-                            clearChatCache(selectedChat.id);
-                            await fetchMessages(true, true);
+                            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+                            if (chatId) {
+                                historyCacheRef.current.delete(chatId);
+                            }
+                            await fetchMessages(true);
                         }
-                        // Light refresh of chat list (just last_message)
-                        await fetchChats();
+                        // Light refresh of chat list
+                        await fetchChats(true);
                     }
                 },
             );
@@ -404,17 +480,18 @@ export default function Chats() {
             setIsPolling(false);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedNumber?.instance_id, selectedNumber?.api_token, selectedChat?.id]);
+    }, [selectedNumber?.instance_id, selectedNumber?.api_token, selectedChat?.chatId]);
 
     const getChatInitials = (chat) => {
-        const base = (chat.name || chat.remote_jid || 'WA').toString();
+        const base = (chat.name || chat.phone || chat.chatId || 'WA').toString();
         const letters = base.replace(/[^A-Za-zא-ת0-9]/g, '').slice(0, 2);
         return letters.toUpperCase() || 'WA';
     };
 
     const filteredChats = chats.filter((chat) =>
         (chat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (chat.remote_jid || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (chat.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (chat.chatId || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -486,43 +563,48 @@ export default function Chats() {
                             {t('chats_page.no_chats')}
                         </div>
                     ) : (
-                        filteredChats.map((chat) => (
-                            <div
-                                key={chat.id}
-                                onClick={() => {
-                                    setSelectedChat(chat);
-                                    // Update URL when chat is clicked - use only the number part (without @c.us)
-                                    if (selectedNumber) {
-                                        const numberOnly = chat.remote_jid.replace('@c.us', '');
-                                        navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(numberOnly)}`, { replace: true });
-                                    }
-                                }}
-                                className={cn(
-                                    "px-4 py-3 border-b border-border dark:border-[#202c33] cursor-pointer hover:bg-secondary dark:hover:bg-[#202c33] transition-colors",
-                                    selectedChat?.id === chat.id && "bg-secondary dark:bg-[#202c33]"
-                                )}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white">
-                                        {getChatInitials(chat)}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium truncate text-foreground dark:text-[#e9edef]">{chat.name || chat.remote_jid}</p>
-                                        <p className="text-sm text-muted-foreground dark:text-[#8696a0] truncate">
-                                            {chat.last_message || t('chats_page.no_chats')}
-                                        </p>
-                                    </div>
-                                    {chat.last_message_at && (
-                                        <span className="text-xs text-muted-foreground dark:text-[#8696a0] whitespace-nowrap">
-                                            {new Date(chat.last_message_at).toLocaleTimeString([], { 
-                                                hour: '2-digit', 
-                                                minute: '2-digit' 
-                                            })}
-                                        </span>
+                        filteredChats.map((chat) => {
+                            const chatId = chat.chatId || chat.remote_jid || '';
+                            const isSelected = selectedChat?.chatId === chatId || selectedChat?.phone === chat.phone;
+                            
+                            return (
+                                <div
+                                    key={chatId}
+                                    onClick={() => {
+                                        setSelectedChat(chat);
+                                        // Update URL when chat is clicked - use only the number part (without any @ suffix)
+                                        if (selectedNumber) {
+                                            const numberOnly = removeJidSuffix(chatId);
+                                            navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(numberOnly)}`, { replace: true });
+                                        }
+                                    }}
+                                    className={cn(
+                                        "px-4 py-3 border-b border-border dark:border-[#202c33] cursor-pointer hover:bg-secondary dark:hover:bg-[#202c33] transition-colors",
+                                        isSelected && "bg-secondary dark:bg-[#202c33]"
                                     )}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white">
+                                            {getChatInitials(chat)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium truncate text-foreground dark:text-[#e9edef]">{chat.name || chat.phone || chatId}</p>
+                                            <p className="text-sm text-muted-foreground dark:text-[#8696a0] truncate">
+                                                {chat.lastMessage || t('chats_page.no_chats')}
+                                            </p>
+                                        </div>
+                                        {chat.lastMessageTime && (
+                                            <span className="text-xs text-muted-foreground dark:text-[#8696a0] whitespace-nowrap">
+                                                {new Date(chat.lastMessageTime * 1000).toLocaleTimeString([], { 
+                                                    hour: '2-digit', 
+                                                    minute: '2-digit' 
+                                                })}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </div>
@@ -538,7 +620,7 @@ export default function Chats() {
                             </div>
                             <div className="flex flex-col">
                                 <span className="font-semibold">
-                                    {selectedChat.name || selectedChat.remote_jid}
+                                    {selectedChat.name || selectedChat.phone || selectedChat.chatId}
                                 </span>
                                 <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
                             </div>
@@ -547,45 +629,44 @@ export default function Chats() {
                         {/* Messages */}
                         <div
                             className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-background dark:bg-[#0a1014]"
-                            onScroll={(e) => {
-                                if (e.currentTarget.scrollTop < 40) {
-                                    handleLoadMoreMessages();
-                                }
-                            }}
                         >
-                            {hasMoreMessages && messages.length > 0 && (
-                                <div className="flex justify-center pb-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleLoadMoreMessages}
-                                        disabled={messagesLoading}
-                                        className="text-xs text-muted-foreground dark:text-[#8696a0] hover:text-foreground dark:hover:text-[#e9edef] disabled:opacity-60"
-                                    >
-                                        {messagesLoading ? t('common.loading') : t('common.refresh')}
-                                    </button>
-                                </div>
-                            )}
                             {messages.length === 0 && !messagesLoading ? (
                                 <div className="text-center text-muted-foreground dark:text-[#8696a0] py-8">
                                     {t('common.no_data')}
                                 </div>
                             ) : (
-                                messages.map((message) => {
+                                messages.map((message, idx) => {
+                                    // Handle both formats: from Supabase (with media_meta) and from Green API (direct)
                                     const mediaMeta = message.media_meta || {};
-                                    const typeMessage = mediaMeta.typeMessage || mediaMeta.type || '';
+                                    const typeMessage = mediaMeta.typeMessage || message.typeMessage || mediaMeta.type || message.type || '';
+                                    const isFromMe = message.is_from_me !== undefined ? message.is_from_me : (message.fromMe || message.type === 'outgoing');
+                                    
+                                    // Get message content
+                                    let content = message.content || message.textMessage || message.extendedTextMessage?.text || '';
+                                    
+                                    // Handle media messages
+                                    if (typeMessage === 'imageMessage') {
+                                        content = content || '📷 תמונה';
+                                    } else if (typeMessage === 'videoMessage') {
+                                        content = content || '🎥 וידאו';
+                                    } else if (typeMessage === 'audioMessage' || typeMessage === 'ptt') {
+                                        content = content || '🎵 הודעת קול';
+                                    } else if (typeMessage === 'documentMessage') {
+                                        content = content || '📄 מסמך';
+                                    }
                                     
                                     return (
                                         <div
-                                            key={message.id}
+                                            key={message.idMessage || message.id || `msg-${idx}`}
                                             className={cn(
                                                 "flex",
-                                                message.is_from_me ? "justify-end" : "justify-start"
+                                                isFromMe ? "justify-end" : "justify-start"
                                             )}
                                         >
                                             <div
                                                 className={cn(
                                                     "max-w-[70%] rounded-lg px-3 py-2 shadow-sm text-[13px] leading-snug",
-                                                    message.is_from_me
+                                                    isFromMe
                                                         ? "bg-primary/90 dark:bg-[#005c4b] text-primary-foreground dark:text-[#e9edef] rounded-br-none"
                                                         : "bg-secondary dark:bg-[#202c33] text-foreground dark:text-[#e9edef] rounded-bl-none"
                                                 )}
@@ -593,27 +674,27 @@ export default function Chats() {
                                                 {/* Image Message */}
                                                 {typeMessage === 'imageMessage' && (
                                                     <div className="space-y-2">
-                                                        {mediaMeta.jpegThumbnail ? (
+                                                        {(message.imageMessage?.jpegThumbnail || mediaMeta.jpegThumbnail) ? (
                                                             <img
-                                                                src={`data:image/jpeg;base64,${mediaMeta.jpegThumbnail}`}
+                                                                src={`data:image/jpeg;base64,${message.imageMessage?.jpegThumbnail || mediaMeta.jpegThumbnail}`}
                                                                 alt="image"
                                                                 className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
                                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                                             />
-                                                        ) : mediaMeta.urlFile || mediaMeta.downloadUrl ? (
+                                                        ) : (message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl) ? (
                                                             <img
-                                                                src={mediaMeta.urlFile || mediaMeta.downloadUrl}
+                                                                src={message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl}
                                                                 alt="image"
                                                                 className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
                                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                                             />
                                                         ) : null}
-                                                        {(mediaMeta.caption || message.content) && (
-                                                            <div className="text-sm">{mediaMeta.caption || message.content}</div>
+                                                        {(message.imageMessage?.caption || mediaMeta.caption || content) && (
+                                                            <div className="text-sm">{message.imageMessage?.caption || mediaMeta.caption || content}</div>
                                                         )}
-                                                        {(mediaMeta.urlFile || mediaMeta.downloadUrl) && (
+                                                        {(message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl) && (
                                                             <a
-                                                                href={mediaMeta.urlFile || mediaMeta.downloadUrl}
+                                                                href={message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
@@ -741,14 +822,14 @@ export default function Chats() {
                                                 
                                                 {/* Regular Text Message (or fallback) */}
                                                 {!typeMessage && (
-                                                    <p className="text-sm">{message.content}</p>
+                                                    <p className="text-sm">{content}</p>
                                                 )}
                                                 
                                                 <p className="text-[11px] text-muted-foreground dark:text-[#8696a0] mt-1 text-right">
-                                                    {new Date(message.timestamp).toLocaleTimeString([], {
+                                                    {message.timestamp ? new Date(typeof message.timestamp === 'number' ? message.timestamp * 1000 : message.timestamp).toLocaleTimeString([], {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
-                                                    })}
+                                                    }) : ''}
                                                 </p>
                                             </div>
                                         </div>
@@ -760,6 +841,7 @@ export default function Chats() {
                                     {t('common.loading')}
                                 </div>
                             )}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         {/* Message Input */}
