@@ -40,6 +40,8 @@ function App() {
                 <Route path="/app" element={<DashboardLayout />}>
                   <Route index element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="chats/:numberId/:chatId" element={<Chats />} />
+                  <Route path="chats/:numberId" element={<Chats />} />
                   <Route path="chats" element={<Chats />} />
                   <Route path="numbers" element={<Numbers />} />
                   <Route path="webhooks" element={<Webhooks />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -29,6 +29,7 @@ export default function Chats() {
     const { user } = useAuth();
     const { theme } = useTheme();
     const navigate = useNavigate();
+    const { numberId, chatId } = useParams();
     const [numbers, setNumbers] = useState([]);
     const [selectedNumber, setSelectedNumber] = useState(null);
     const [chats, setChats] = useState([]);
@@ -47,11 +48,31 @@ export default function Chats() {
         fetchNumbers();
     }, [user]);
 
+    // Load number and chat from URL params
+    useEffect(() => {
+        if (numberId && numbers.length > 0) {
+            const num = numbers.find(n => n.id === numberId);
+            if (num && num.id !== selectedNumber?.id) {
+                setSelectedNumber(num);
+            }
+        }
+    }, [numberId, numbers]);
+
     useEffect(() => {
         if (selectedNumber) {
             fetchChats();
         }
     }, [selectedNumber]);
+
+    // Load chat from URL params
+    useEffect(() => {
+        if (chatId && chats.length > 0) {
+            const chat = chats.find(c => c.id === chatId);
+            if (chat && chat.id !== selectedChat?.id) {
+                setSelectedChat(chat);
+            }
+        }
+    }, [chatId, chats]);
 
     useEffect(() => {
         if (selectedChat) {
@@ -402,6 +423,12 @@ export default function Chats() {
                                 const num = numbers.find((n) => n.id === e.target.value);
                                 setSelectedNumber(num || null);
                                 setSelectedChat(null);
+                                // Update URL when number changes
+                                if (num) {
+                                    navigate(`/app/chats/${num.id}`, { replace: true });
+                                } else {
+                                    navigate('/app/chats', { replace: true });
+                                }
                             }}
                             className="flex-1 px-3 py-2 rounded-md border-0 bg-secondary dark:bg-[#202c33] text-sm text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-[#8696a0] outline-none focus:ring-2 focus:ring-primary"
                         >
@@ -455,7 +482,13 @@ export default function Chats() {
                         filteredChats.map((chat) => (
                             <div
                                 key={chat.id}
-                                onClick={() => setSelectedChat(chat)}
+                                onClick={() => {
+                                    setSelectedChat(chat);
+                                    // Update URL when chat is clicked
+                                    if (selectedNumber) {
+                                        navigate(`/app/chats/${selectedNumber.id}/${chat.id}`, { replace: true });
+                                    }
+                                }}
                                 className={cn(
                                     "px-4 py-3 border-b border-border dark:border-[#202c33] cursor-pointer hover:bg-secondary dark:hover:bg-[#202c33] transition-colors",
                                     selectedChat?.id === chat.id && "bg-secondary dark:bg-[#202c33]"
