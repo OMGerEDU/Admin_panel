@@ -636,28 +636,22 @@ export default function Chats() {
                                 </div>
                             ) : (
                                 messages.map((message, idx) => {
-                                    // Handle both formats: from Supabase (with media_meta) and from Green API (direct)
-                                    const mediaMeta = message.media_meta || {};
-                                    const typeMessage = mediaMeta.typeMessage || message.typeMessage || mediaMeta.type || message.type || '';
-                                    const isFromMe = message.is_from_me !== undefined ? message.is_from_me : (message.fromMe || message.type === 'outgoing');
+                                    // Parse message like extension does
+                                    const item = message;
+                                    const typeMessage = item.typeMessage || '';
+                                    const isFromMe = item.type === 'outgoing' || item.fromMe === true;
                                     
-                                    // Get message content
-                                    let content = message.content || message.textMessage || message.extendedTextMessage?.text || '';
-                                    
-                                    // Handle media messages
-                                    if (typeMessage === 'imageMessage') {
-                                        content = content || '📷 תמונה';
-                                    } else if (typeMessage === 'videoMessage') {
-                                        content = content || '🎥 וידאו';
-                                    } else if (typeMessage === 'audioMessage' || typeMessage === 'ptt') {
-                                        content = content || '🎵 הודעת קול';
-                                    } else if (typeMessage === 'documentMessage') {
-                                        content = content || '📄 מסמך';
-                                    }
+                                    // Extract text from multiple possible locations (like extension)
+                                    let text = item.textMessage || 
+                                               (item.extendedTextMessage && item.extendedTextMessage.text) || 
+                                               (item.extendedTextMessageData && item.extendedTextMessageData.text) || 
+                                               (item.conversation) || 
+                                               item.content ||
+                                               '';
                                     
                                     return (
                                         <div
-                                            key={message.idMessage || message.id || `msg-${idx}`}
+                                            key={item.idMessage || item.id || `msg-${idx}`}
                                             className={cn(
                                                 "flex",
                                                 isFromMe ? "justify-end" : "justify-start"
@@ -674,27 +668,27 @@ export default function Chats() {
                                                 {/* Image Message */}
                                                 {typeMessage === 'imageMessage' && (
                                                     <div className="space-y-2">
-                                                        {(message.imageMessage?.jpegThumbnail || mediaMeta.jpegThumbnail) ? (
+                                                        {item.jpegThumbnail ? (
                                                             <img
-                                                                src={`data:image/jpeg;base64,${message.imageMessage?.jpegThumbnail || mediaMeta.jpegThumbnail}`}
+                                                                src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
                                                                 alt="image"
                                                                 className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
                                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                                             />
-                                                        ) : (message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl) ? (
+                                                        ) : (item.urlFile || item.downloadUrl || item.mediaUrl) ? (
                                                             <img
-                                                                src={message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl}
+                                                                src={item.urlFile || item.downloadUrl || item.mediaUrl}
                                                                 alt="image"
                                                                 className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
                                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                                             />
                                                         ) : null}
-                                                        {(message.imageMessage?.caption || mediaMeta.caption || content) && (
-                                                            <div className="text-sm">{message.imageMessage?.caption || mediaMeta.caption || content}</div>
+                                                        {(item.caption || text) && (
+                                                            <div className="text-sm">{item.caption || text}</div>
                                                         )}
-                                                        {(message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl) && (
+                                                        {(item.urlFile || item.downloadUrl) && !item.jpegThumbnail && (
                                                             <a
-                                                                href={message.imageMessage?.urlFile || message.urlFile || mediaMeta.urlFile || mediaMeta.downloadUrl || message.downloadUrl}
+                                                                href={item.urlFile || item.downloadUrl}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
@@ -708,17 +702,17 @@ export default function Chats() {
                                                 {/* Video Message */}
                                                 {typeMessage === 'videoMessage' && (
                                                     <div className="space-y-2">
-                                                        {mediaMeta.jpegThumbnail && (
+                                                        {item.jpegThumbnail && (
                                                             <img
-                                                                src={`data:image/jpeg;base64,${mediaMeta.jpegThumbnail}`}
+                                                                src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
                                                                 alt="video"
                                                                 className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
                                                             />
                                                         )}
                                                         <div>🎥 {t('chats_page.video_message') || 'Video Message'}</div>
-                                                        {(mediaMeta.downloadUrl || mediaMeta.urlFile) && (
+                                                        {(item.downloadUrl || item.url) && (
                                                             <a
-                                                                href={mediaMeta.downloadUrl || mediaMeta.urlFile}
+                                                                href={item.downloadUrl || item.url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
@@ -726,8 +720,8 @@ export default function Chats() {
                                                                 🎥 {t('chats_page.open_video') || 'Open Video'}
                                                             </a>
                                                         )}
-                                                        {(mediaMeta.caption || message.content) && (
-                                                            <div className="text-sm mt-2">{mediaMeta.caption || message.content}</div>
+                                                        {text && (
+                                                            <div className="text-sm mt-2">{text}</div>
                                                         )}
                                                     </div>
                                                 )}
@@ -737,14 +731,19 @@ export default function Chats() {
                                                     <div className="space-y-2">
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-lg">🎵</span>
-                                                            {mediaMeta.downloadUrl || mediaMeta.url ? (
+                                                            {(item.downloadUrl || item.url || item.mediaUrl || 
+                                                              (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))) ? (
                                                                 <audio
                                                                     controls
                                                                     preload="metadata"
                                                                     className="max-w-[250px] h-8 outline-none"
                                                                     style={{ width: '100%' }}
                                                                 >
-                                                                    <source src={mediaMeta.downloadUrl || mediaMeta.url} type={mediaMeta.mimeType || 'audio/ogg; codecs=opus'} />
+                                                                    <source 
+                                                                        src={item.downloadUrl || item.url || item.mediaUrl || 
+                                                                              (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))} 
+                                                                        type={item.mimeType || item.audioMessage?.mimeType || 'audio/ogg; codecs=opus'} 
+                                                                    />
                                                                 </audio>
                                                             ) : (
                                                                 <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
@@ -752,13 +751,20 @@ export default function Chats() {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        {mediaMeta.seconds && mediaMeta.seconds > 0 && (
+                                                        {(item.seconds || item.duration || item.length || 
+                                                          (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration))) && (
                                                             <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
-                                                                {Math.floor(mediaMeta.seconds / 60)}:{(mediaMeta.seconds % 60).toString().padStart(2, '0')}
+                                                                {(() => {
+                                                                    const duration = item.seconds || item.duration || item.length || 
+                                                                                     (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration)) || 0;
+                                                                    const minutes = Math.floor(duration / 60);
+                                                                    const secs = Math.floor(duration % 60);
+                                                                    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+                                                                })()}
                                                             </div>
                                                         )}
-                                                        {message.content && (
-                                                            <div className="text-sm mt-2">{message.content}</div>
+                                                        {text && (
+                                                            <div className="text-sm mt-2">{text}</div>
                                                         )}
                                                     </div>
                                                 )}
@@ -767,12 +773,12 @@ export default function Chats() {
                                                 {typeMessage === 'documentMessage' && (
                                                     <div className="space-y-2">
                                                         <div>📄 {t('chats_page.document_message') || 'Document Message'}</div>
-                                                        {mediaMeta.fileName && (
-                                                            <div className="font-semibold text-sm">{mediaMeta.fileName}</div>
+                                                        {item.fileName && (
+                                                            <div className="font-semibold text-sm">{item.fileName}</div>
                                                         )}
-                                                        {(mediaMeta.downloadUrl || mediaMeta.urlFile) && (
+                                                        {(item.downloadUrl || item.url) && (
                                                             <a
-                                                                href={mediaMeta.downloadUrl || mediaMeta.urlFile}
+                                                                href={item.downloadUrl || item.url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
@@ -780,8 +786,8 @@ export default function Chats() {
                                                                 📄 {t('chats_page.download_document') || 'Download Document'}
                                                             </a>
                                                         )}
-                                                        {(mediaMeta.caption || message.content) && (
-                                                            <div className="text-sm mt-2">{mediaMeta.caption || message.content}</div>
+                                                        {text && (
+                                                            <div className="text-sm mt-2">{text}</div>
                                                         )}
                                                     </div>
                                                 )}
@@ -790,9 +796,9 @@ export default function Chats() {
                                                 {typeMessage === 'stickerMessage' && (
                                                     <div className="space-y-2">
                                                         <div>🩹 {t('chats_page.sticker_message') || 'Sticker'}</div>
-                                                        {mediaMeta.downloadUrl && (
+                                                        {item.downloadUrl && (
                                                             <a
-                                                                href={mediaMeta.downloadUrl}
+                                                                href={item.downloadUrl}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
@@ -807,9 +813,9 @@ export default function Chats() {
                                                 {typeMessage === 'locationMessage' && (
                                                     <div className="space-y-2">
                                                         <div>📍 {t('chats_page.location_message') || 'Location'}</div>
-                                                        {mediaMeta.latitude && mediaMeta.longitude && (
+                                                        {item.latitude && item.longitude && (
                                                             <a
-                                                                href={`https://www.google.com/maps?q=${mediaMeta.latitude},${mediaMeta.longitude}`}
+                                                                href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
@@ -821,12 +827,13 @@ export default function Chats() {
                                                 )}
                                                 
                                                 {/* Regular Text Message (or fallback) */}
-                                                {!typeMessage && (
-                                                    <p className="text-sm">{content}</p>
+                                                {!typeMessage && text && (
+                                                    <p className="text-sm">{text}</p>
                                                 )}
                                                 
+                                                {/* Timestamp */}
                                                 <p className="text-[11px] text-muted-foreground dark:text-[#8696a0] mt-1 text-right">
-                                                    {message.timestamp ? new Date(typeof message.timestamp === 'number' ? message.timestamp * 1000 : message.timestamp).toLocaleTimeString([], {
+                                                    {item.timestamp ? new Date(typeof item.timestamp === 'number' ? (item.timestamp < 2e12 ? item.timestamp * 1000 : item.timestamp) : item.timestamp).toLocaleTimeString([], {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
                                                     }) : ''}
