@@ -721,12 +721,28 @@ export default function Chats() {
                                     const isFromMe = item.type === 'outgoing' || item.fromMe === true;
                                     
                                     // Extract text from multiple possible locations (like extension)
+                                    // IMPORTANT: Check textMessage FIRST, then extendedTextMessage.text
                                     let text = item.textMessage || 
                                                (item.extendedTextMessage && item.extendedTextMessage.text) || 
                                                (item.extendedTextMessageData && item.extendedTextMessageData.text) || 
                                                (item.conversation) || 
                                                item.content ||
                                                '';
+                                    
+                                    // Debug log for first few messages
+                                    if (idx < 3) {
+                                        console.log(`[MESSAGE ${idx}]`, {
+                                            idMessage: item.idMessage,
+                                            typeMessage: typeMessage,
+                                            type: item.type,
+                                            textMessage: item.textMessage,
+                                            extendedTextMessage: item.extendedTextMessage,
+                                            conversation: item.conversation,
+                                            extractedText: text,
+                                            textLength: text ? text.length : 0,
+                                            hasText: !!text
+                                        });
+                                    }
                                     
                                     return (
                                         <div
@@ -905,15 +921,15 @@ export default function Chats() {
                                                     </div>
                                                 )}
                                                 
-                                                {/* Regular Text Message (or fallback) */}
-                                                {!typeMessage && text && (
+                                                {/* Extended Text Message OR Regular Text Message - MUST be last to catch all text messages */}
+                                                {!['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage'].includes(typeMessage) && text && (
                                                     <div>
                                                         <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
                                                     </div>
                                                 )}
                                                 
                                                 {/* Fallback - if no text found but message exists */}
-                                                {!typeMessage && !text && (
+                                                {!text && !['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage'].includes(typeMessage) && (
                                                     <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
                                                         {t('chats_page.message_not_supported') || 'Message type not supported'}
                                                     </p>
