@@ -17,6 +17,12 @@ import {
 } from '../services/greenApi';
 import { pollNewMessages } from '../services/messageSync';
 import { logger } from '../lib/logger';
+import {
+    saveMessagesToCache,
+    loadMessagesFromCache,
+    mergeMessages,
+    clearChatCache as clearLocalChatCache,
+} from '../lib/messageLocalCache';
 
 export default function Chats() {
     const { t } = useTranslation();
@@ -77,10 +83,20 @@ export default function Chats() {
     }, [remoteJid, chats]);
 
     useEffect(() => {
-        if (selectedChat) {
+        if (selectedChat && selectedNumber) {
+            // Load from cache first (instant display)
+            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+            if (chatId && selectedNumber.instance_id) {
+                const cachedMessages = loadMessagesFromCache(selectedNumber.instance_id, chatId);
+                if (cachedMessages && cachedMessages.length > 0) {
+                    console.log('[CHATS] Loading from localStorage cache first');
+                    setMessages(cachedMessages);
+                }
+            }
+            // Then fetch fresh messages from API
             fetchMessages();
         }
-    }, [selectedChat]);
+    }, [selectedChat, selectedNumber]);
 
     // Auto-scroll to bottom when messages change
     const messagesEndRef = useRef(null);
@@ -283,13 +299,23 @@ export default function Chats() {
             return;
         }
 
-        // Check cache first (like extension - 10 seconds)
+        // Check memory cache first (like extension - 10 seconds)
         if (!forceRefresh && historyCacheRef.current.has(chatId)) {
             const cached = historyCacheRef.current.get(chatId);
             if (Date.now() - cached.timestamp < 10000) {
-                console.log('[HISTORY] Using cached history');
+                console.log('[HISTORY] Using memory cache');
                 setMessages(cached.messages);
                 return;
+            }
+        }
+
+        // Load from localStorage cache if available (for instant display)
+        let cachedMessages = null;
+        if (!forceRefresh) {
+            cachedMessages = loadMessagesFromCache(acc.instance_id, chatId);
+            if (cachedMessages && cachedMessages.length > 0) {
+                console.log('[HISTORY] Found localStorage cache, using while fetching fresh data');
+                // Don't set messages here - we'll merge after fetching
             }
         }
 
@@ -305,7 +331,14 @@ export default function Chats() {
                     error: result.error,
                     chatId
                 }, selectedNumber.id);
-                setMessages([]);
+                
+                // If we have cached messages, use them even if API failed
+                if (cachedMessages && cachedMessages.length > 0) {
+                    console.log('[HISTORY] API failed, using cached messages');
+                    setMessages(cachedMessages);
+                } else {
+                    setMessages([]);
+                }
                 return;
             }
 
@@ -325,22 +358,45 @@ export default function Chats() {
 
             if (!Array.isArray(arr) || arr.length === 0) {
                 console.log('[HISTORY] No messages found');
-                setMessages([]);
-                historyCacheRef.current.set(chatId, { messages: [], timestamp: Date.now() });
+                // If we have cached messages, use them
+                if (cachedMessages && cachedMessages.length > 0) {
+                    console.log('[HISTORY] No new messages, using cached');
+                    setMessages(cachedMessages);
+                } else {
+                    setMessages([]);
+                    historyCacheRef.current.set(chatId, { messages: [], timestamp: Date.now() });
+                }
                 return;
             }
 
             // Sort by timestamp (oldest first, like extension)
             arr.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-            // Cache the history
-            historyCacheRef.current.set(chatId, { messages: arr, timestamp: Date.now() });
+            // Merge with cached messages if available
+            let finalMessages = arr;
+            if (cachedMessages && cachedMessages.length > 0) {
+                finalMessages = mergeMessages(cachedMessages, arr);
+                console.log(`[HISTORY] Merged ${cachedMessages.length} cached + ${arr.length} new = ${finalMessages.length} total`);
+            }
 
-            setMessages(arr);
+            // Update memory cache
+            historyCacheRef.current.set(chatId, { messages: finalMessages, timestamp: Date.now() });
+
+            // Save to localStorage cache
+            saveMessagesToCache(acc.instance_id, chatId, finalMessages);
+
+            setMessages(finalMessages);
         } catch (error) {
             console.error('[HISTORY] Fetch error:', error);
             await logger.error('Error fetching chat history', { error: error.message }, selectedNumber?.id);
-            setMessages([]);
+            
+            // If we have cached messages, use them even if fetch failed
+            if (cachedMessages && cachedMessages.length > 0) {
+                console.log('[HISTORY] Error occurred, using cached messages');
+                setMessages(cachedMessages);
+            } else {
+                setMessages([]);
+            }
         } finally {
             setMessagesLoading(false);
         }
@@ -392,12 +448,18 @@ export default function Chats() {
             };
 
             // Add to messages and clear input
-            setMessages([...messages, sentMessage]);
+            const updatedMessages = [...messages, sentMessage];
+            setMessages(updatedMessages);
             setNewMessage('');
 
-            // Clear cache to force refresh on next load
-            historyCacheRef.current.delete(chatId);
-            chatsCacheRef.current.data = null; // Force refresh chats list
+            // Update memory cache
+            historyCacheRef.current.set(chatId, { messages: updatedMessages, timestamp: Date.now() });
+
+            // Save to localStorage cache
+            saveMessagesToCache(selectedNumber.instance_id, chatId, updatedMessages);
+
+            // Clear chats cache to force refresh on next load
+            chatsCacheRef.current.data = null;
 
             // Refresh chats list to update last message
             await fetchChats(true);
@@ -420,6 +482,14 @@ export default function Chats() {
             chatsCacheRef.current.data = null;
             chatsCacheRef.current.timestamp = 0;
             historyCacheRef.current.clear();
+            
+            // Clear localStorage cache for current chat if selected
+            if (selectedChat && selectedNumber?.instance_id) {
+                const chatId = selectedChat.chatId || selectedChat.remote_jid;
+                if (chatId) {
+                    clearLocalChatCache(selectedNumber.instance_id, chatId);
+                }
+            }
             
             await logger.info('Starting full sync', { instance_id: selectedNumber.instance_id }, selectedNumber.id);
 
