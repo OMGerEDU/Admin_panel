@@ -1,34 +1,95 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Link } from 'react-router-dom';
-import { Check, Shield, Zap, RefreshCw, BarChart3, Lock } from 'lucide-react';
+import {
+    Check,
+    Shield,
+    Zap,
+    RefreshCw,
+    BarChart3,
+    Lock,
+    Sun,
+    Moon,
+    Languages,
+    LayoutDashboard,
+} from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage() {
     const { t } = useTranslation();
+    const { theme, toggleTheme } = useTheme();
+    const { lang, toggleLang } = useLanguage();
+    const { user } = useAuth();
+    const navigate = useNavigate();
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col bg-background">
             {/* Header */}
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between">
                     <div className="flex gap-2 items-center font-bold text-xl tracking-tight">
                         <span className="text-[#00a884]">Green</span>Builders
                     </div>
-                    <nav className="flex items-center gap-4">
-                        <Link to="/login">
-                            <Button variant="ghost">{t('login.submit')}</Button>
-                        </Link>
-                        <Link to="/signup">
-                            <Button>{t('landing.get_started')}</Button>
-                        </Link>
+                    <nav className="flex items-center gap-3">
+                        {/* Theme toggle */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleTheme}
+                            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        >
+                            {theme === 'dark' ? (
+                                <Sun className="h-5 w-5" />
+                            ) : (
+                                <Moon className="h-5 w-5" />
+                            )}
+                        </Button>
+
+                        {/* Language toggle */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleLang}
+                            title={lang === 'en' ? 'Switch to Hebrew' : 'Switch to English'}
+                            aria-label="Toggle language"
+                        >
+                            <Languages className="h-5 w-5" />
+                        </Button>
+
+                        {/* If user already logged in – quick access to panel */}
+                        {user && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="hidden sm:inline-flex"
+                                onClick={() => navigate('/app/dashboard')}
+                            >
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                {t('dashboard')}
+                            </Button>
+                        )}
+
+                        {/* Auth CTAs */}
+                        {!user && (
+                            <>
+                                <Link to="/login">
+                                    <Button variant="ghost">{t('login.submit')}</Button>
+                                </Link>
+                                <Link to="/signup">
+                                    <Button>{t('landing.get_started')}</Button>
+                                </Link>
+                            </>
+                        )}
                     </nav>
                 </div>
             </header>
 
-            <main className="flex-1">
-                {/* Hero Section */}
-                <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center pb-8 pt-6 md:pb-12 md:pt-10 lg:py-16">
+            <main className="flex-1 flex flex-col">
+                {/* Hero Section - fully centered in viewport */}
+                <section className="flex flex-1 items-center justify-center py-10 md:py-16">
                     <div className="container flex max-w-[64rem] flex-col items-center gap-6 text-center">
                         <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
                             {t('landing.hero_title')}
@@ -37,11 +98,21 @@ export default function LandingPage() {
                             {t('landing.hero_subtitle')}
                         </p>
                         <div className="space-x-4 flex items-center justify-center gap-4 mt-2">
-                            <Link to="/login">
-                                <Button size="lg" className="h-12 px-8 text-lg">
-                                    {t('landing.get_started')}
+                            {user ? (
+                                <Button
+                                    size="lg"
+                                    className="h-12 px-8 text-lg"
+                                    onClick={() => navigate('/app/dashboard')}
+                                >
+                                    {t('dashboard')}
                                 </Button>
-                            </Link>
+                            ) : (
+                                <Link to="/signup">
+                                    <Button size="lg" className="h-12 px-8 text-lg">
+                                        {t('landing.get_started')}
+                                    </Button>
+                                </Link>
+                            )}
                             <Button variant="outline" size="lg" className="h-12 px-8 text-lg">
                                 {t('landing.view_demo')}
                             </Button>
