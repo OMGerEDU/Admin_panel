@@ -29,7 +29,7 @@ export default function Chats() {
     const { user } = useAuth();
     const { theme } = useTheme();
     const navigate = useNavigate();
-    const { numberId, chatId } = useParams();
+    const { numberId, remoteJid } = useParams();
     const [numbers, setNumbers] = useState([]);
     const [selectedNumber, setSelectedNumber] = useState(null);
     const [chats, setChats] = useState([]);
@@ -66,13 +66,20 @@ export default function Chats() {
 
     // Load chat from URL params
     useEffect(() => {
-        if (chatId && chats.length > 0) {
-            const chat = chats.find(c => c.id === chatId);
+        if (remoteJid && chats.length > 0) {
+            // Decode the remoteJid if it was encoded, and find chat by remote_jid
+            const decodedRemoteJid = decodeURIComponent(remoteJid);
+            // Handle both formats: with @c.us and without
+            const chat = chats.find(c => 
+                c.remote_jid === decodedRemoteJid || 
+                c.remote_jid === `${decodedRemoteJid}@c.us` ||
+                c.remote_jid.replace('@c.us', '') === decodedRemoteJid
+            );
             if (chat && chat.id !== selectedChat?.id) {
                 setSelectedChat(chat);
             }
         }
-    }, [chatId, chats]);
+    }, [remoteJid, chats]);
 
     useEffect(() => {
         if (selectedChat) {
@@ -484,9 +491,10 @@ export default function Chats() {
                                 key={chat.id}
                                 onClick={() => {
                                     setSelectedChat(chat);
-                                    // Update URL when chat is clicked
+                                    // Update URL when chat is clicked - use only the number part (without @c.us)
                                     if (selectedNumber) {
-                                        navigate(`/app/chats/${selectedNumber.id}/${chat.id}`, { replace: true });
+                                        const numberOnly = chat.remote_jid.replace('@c.us', '');
+                                        navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(numberOnly)}`, { replace: true });
                                     }
                                 }}
                                 className={cn(
