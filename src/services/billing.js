@@ -1,0 +1,63 @@
+import { supabase as defaultSupabase } from '../lib/supabaseClient'
+
+const BILLING_PROVIDER_BASE_URL =
+  import.meta.env.VITE_BILLING_PROVIDER_URL || 'https://billing-placeholder.local'
+
+/**
+ * Start a plan change / checkout flow.
+ *
+ * In production this should call your billing provider (Stripe/Paddle/etc)
+ * to create a checkout session and return its redirect URL.
+ *
+ * Currently this function:
+ *  - Immediately updates the user's subscription in Supabase
+ *  - Inserts a placeholder billing_events record (if table exists)
+ *  - Returns a deterministic placeholder redirect URL
+ */
+export async function startPlanCheckout({
+  supabase = defaultSupabase,
+  userId,
+  plan,
+}) {
+  if (!userId || !plan?.id) {
+    throw new Error('Missing userId or plan information')
+  }
+
+  // Placeholder checkout URL – in the future, replace with real provider URL
+  const redirectUrl = `${BILLING_PROVIDER_BASE_URL}/checkout?plan=${encodeURIComponent(
+    plan.id,
+  )}`
+
+  // Update subscription immediately (test environment – no real payment)
+  const { error } = await supabase.from('subscriptions').upsert(
+    {
+      user_id: userId,
+      plan_id: plan.id,
+      status: 'active',
+    },
+    { onConflict: 'user_id' },
+  )
+
+  if (error) {
+    throw error
+  }
+
+  // Best-effort: log a billing event if the table exists
+  try {
+    await supabase.from('billing_events').insert({
+      user_id: userId,
+      plan_id: plan.id,
+      amount: plan.price_monthly,
+      currency: 'USD',
+      status: 'paid',
+      description: `Test env direct plan change to ${plan.name}`,
+    })
+  } catch (eventError) {
+    // Ignore missing table / RLS issues in dev, just log for debugging
+    console.warn('Failed to insert billing event (placeholder):', eventError)
+  }
+
+  return { redirectUrl }
+}
+
+

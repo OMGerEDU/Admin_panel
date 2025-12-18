@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Check, Sparkles, Crown, Building2 } from 'lucide-react'
+import { Check, Sparkles, Crown, Building2, Loader2 } from 'lucide-react'
 import { getNumbersUsage, getInstancesUsage, getOrgMembersUsage } from '../lib/planLimits'
+import { startPlanCheckout } from '../services/billing'
 
 const getPlanIcon = (name) => {
   const key = (name || '').toLowerCase()
@@ -37,6 +38,7 @@ export default function Plans() {
     orgName: null,
   })
   const [billingEvents, setBillingEvents] = useState([])
+  const [processingPlanId, setProcessingPlanId] = useState(null)
 
   useEffect(() => {
     fetchPlans()
@@ -137,17 +139,35 @@ export default function Plans() {
     }
   }
 
-  const handleSubscribe = async (planId) => {
-    const { error } = await supabase.from('subscriptions').upsert({
-      user_id: session.user.id,
-      plan_id: planId,
-      status: 'active'
-    }, { onConflict: 'user_id' })
+  const handleSubscribe = async (plan) => {
+    if (!session?.user?.id) return
+    setProcessingPlanId(plan.id)
+    try {
+      const { redirectUrl } = await startPlanCheckout({
+        supabase,
+        userId: session.user.id,
+        plan,
+      })
 
-    if (error) alert('Error subscribing: ' + error.message)
-    else {
-      alert('Subscribed successfully!')
-      fetchSubscription()
+      // In production, you would redirect the user to the billing provider:
+      // window.location.assign(redirectUrl)
+      console.log('Billing redirect URL (placeholder):', redirectUrl)
+
+      // Refresh local data so UI reflects the new plan
+      await Promise.all([
+        fetchSubscription(),
+        fetchUsage(),
+        fetchBillingEvents(),
+      ])
+      // Optional: minimal UX feedback for test environment
+      // eslint-disable-next-line no-alert
+      alert('Plan updated (test environment, no real payment processed).')
+    } catch (error) {
+      console.error('Error starting plan checkout:', error)
+      // eslint-disable-next-line no-alert
+      alert('Error updating plan: ' + (error.message || 'Unknown error'))
+    } finally {
+      setProcessingPlanId(null)
     }
   }
 
@@ -308,12 +328,19 @@ export default function Plans() {
                 </ul>
 
                 <Button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={isCurrent}
+                  onClick={() => handleSubscribe(plan)}
+                  disabled={isCurrent || processingPlanId === plan.id}
                   className="w-full"
                   variant={isCurrent ? 'outline' : 'default'}
                 >
-                  {isCurrent ? t('landing.plans.select') : t('landing.plans.select')}
+                  {processingPlanId === plan.id && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isCurrent
+                    ? t('landing.plans.select')
+                    : processingPlanId === plan.id
+                      ? 'Processing...'
+                      : t('landing.plans.select')}
                 </Button>
               </CardContent>
             </Card>
