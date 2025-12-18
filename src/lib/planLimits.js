@@ -98,7 +98,7 @@ export async function getInstancesUsage(
     }
 
     const limit =
-        typeof plan?.instances_limit === number ? plan.instances_limit : -1
+        typeof plan?.instances_limit === 'number' ? plan.instances_limit : -1
 
     const { data, error: listError } = await supabase
         .from('numbers')

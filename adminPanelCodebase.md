@@ -6372,7 +6372,7 @@ export default {
 
 This is a binary file of the type: Image
 
-# push_to_main.bat
+# push.bat
 
 ```bat
 @echo off
