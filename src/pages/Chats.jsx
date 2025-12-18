@@ -565,31 +565,6 @@ export default function Chats() {
         }
     };
 
-    // Load avatar for a chat
-    const loadChatAvatar = async (chatId) => {
-        if (!selectedNumber || !chatId || chatAvatars.has(chatId)) return;
-
-        try {
-            const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
-            if (result.success && result.data?.urlAvatar) {
-                setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
-                console.log(`[AVATAR] Loaded avatar for ${chatId}`);
-            }
-        } catch (error) {
-            console.error('[AVATAR] Error loading avatar:', error);
-        }
-    };
-    
-    // Load avatar after messages are loaded
-    useEffect(() => {
-        if (selectedChat && selectedNumber && messages.length > 0) {
-            const chatId = selectedChat.chatId || selectedChat.remote_jid;
-            if (chatId) {
-                loadChatAvatar(chatId);
-            }
-        }
-    }, [messages.length, selectedChat, selectedNumber]);
-
     const sendMessage = async () => {
         if (!newMessage.trim() || !selectedChat || !selectedNumber) return;
 
