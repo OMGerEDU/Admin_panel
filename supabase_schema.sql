@@ -697,3 +697,25 @@ create policy "Users can update jobs for their orgs" on public.automation_jobs
       and om.user_id = auth.uid()
     )
   );
+
+-- BILLING EVENTS / TRANSACTIONS (optional, for plan history UI)
+create table if not exists public.billing_events (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) not null,
+  plan_id uuid references public.plans(id),
+  amount numeric,
+  currency text default 'USD',
+  status text check (status in ('pending', 'paid', 'failed', 'refunded')) default 'paid',
+  description text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.billing_events enable row level security;
+
+drop policy if exists "Users can view own billing events" on public.billing_events;
+create policy "Users can view own billing events" on public.billing_events
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own billing events" on public.billing_events;
+create policy "Users can insert own billing events" on public.billing_events
+  for insert with check (auth.uid() = user_id);

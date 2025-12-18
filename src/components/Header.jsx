@@ -121,7 +121,12 @@ export function Header() {
                 </Button>
 
                 {planName && (
-                    <div className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/app/plans')}
+                        className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20 transition-colors"
+                        title={t('landing.plans.select')}
+                    >
                         {planName.toLowerCase() === 'free' && (
                             <Sparkles className="h-3 w-3" />
                         )}
@@ -132,7 +137,7 @@ export function Header() {
                             <Building2 className="h-3 w-3" />
                         )}
                         <span>{planName}</span>
-                    </div>
+                    </button>
                 )}
                 <div className="flex items-center gap-2 border-l pl-4 ml-2 rtl:border-r rtl:border-l-0 rtl:pr-4 rtl:pl-0">
                     <div className="text-sm font-medium hidden sm:block">
