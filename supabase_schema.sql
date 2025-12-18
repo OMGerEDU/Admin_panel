@@ -159,21 +159,46 @@ create policy "Members can view other members" on public.organization_members
 drop policy if exists "Members can add members" on public.organization_members;
 create policy "Members can add members" on public.organization_members
   for insert with check (
-      exists (
-          select 1 from public.organization_members as om
-          where om.organization_id = organization_id
-          and om.user_id = auth.uid()
-          and om.role = 'admin'
+      (
+        -- Admins can add members
+        exists (
+            select 1 from public.organization_members as om
+            where om.organization_id = organization_id
+            and om.user_id = auth.uid()
+            and om.role = 'admin'
+        )
+        OR
+        -- Allow self-insert if you are the owner creating the org (initial member)
+        exists (
+            select 1 from public.organizations as o
+            where o.id = organization_id
+            and o.owner_id = auth.uid()
+        )
       )
-      OR
-      -- Allow self-insert if you are the owner creating the org (this is tricky, usually handled by backend or function. 
-      -- For simplicity in this demo, we might need a trusted function to create org+member together)
-      -- Allowing initial member creation:
-       exists (
-          select 1 from public.organizations as o
-          where o.id = organization_id
-          and o.owner_id = auth.uid()
-       )
+      AND
+      (
+        -- If invites_limit is unlimited (-1), always allow
+        coalesce(
+          (select invites_limit from public.get_effective_plan_for_user(
+             (select owner_id from public.organizations where id = organization_id)
+           )),
+           -1
+        ) = -1
+        OR
+        -- Otherwise enforce that non-owner members are below invites_limit
+        (
+          select count(*) 
+          from public.organization_members m
+          join public.organizations o on o.id = m.organization_id
+          where m.organization_id = organization_id
+            and m.user_id <> o.owner_id
+        ) < coalesce(
+          (select invites_limit from public.get_effective_plan_for_user(
+             (select owner_id from public.organizations where id = organization_id)
+           )),
+           -1
+        )
+      )
   );
 
 drop policy if exists "Admins can delete members" on public.organization_members;
@@ -283,6 +308,107 @@ drop policy if exists "Users can update own subscription" on public.subscription
 create policy "Users can update own subscription" on public.subscriptions
   for update using (auth.uid() = user_id);
 
+-- Helper function: get effective plan for a user (falls back to 'Free')
+create or replace function public.get_effective_plan_for_user(p_user_id uuid)
+returns public.plans as $$
+declare
+  v_plan public.plans;
+begin
+  select p.*
+  into v_plan
+  from public.subscriptions s
+  join public.plans p on p.id = s.plan_id
+  where s.user_id = p_user_id
+  limit 1;
+
+  if not found then
+    select p.*
+    into v_plan
+    from public.plans p
+    where p.name = 'Free'
+    limit 1;
+  end if;
+
+  return v_plan;
+end;
+$$ language plpgsql stable;
+
+-- Check function: enforce numbers_limit for current user
+create or replace function public.check_numbers_limit()
+returns boolean as $$
+declare
+  v_plan public.plans;
+  v_count int;
+begin
+  if auth.uid() is null then
+    return false;
+  end if;
+
+  select * into v_plan
+  from public.get_effective_plan_for_user(auth.uid());
+
+  -- Unlimited
+  if v_plan.numbers_limit is null or v_plan.numbers_limit = -1 then
+    return true;
+  end if;
+
+  select count(*) into v_count
+  from public.numbers n
+  where n.user_id = auth.uid();
+
+  return v_count < v_plan.numbers_limit;
+end;
+$$ language plpgsql stable;
+
+-- Check function: enforce instances_limit for current user, based on instance_id
+create or replace function public.check_instances_limit(p_instance_id text)
+returns boolean as $$
+declare
+  v_plan public.plans;
+  v_limit int;
+  v_count int;
+  v_exists boolean;
+begin
+  if auth.uid() is null then
+    return false;
+  end if;
+
+  select * into v_plan
+  from public.get_effective_plan_for_user(auth.uid());
+
+  v_limit := coalesce(v_plan.instances_limit, -1);
+
+  -- Unlimited
+  if v_limit = -1 then
+    return true;
+  end if;
+
+  -- If no instance_id provided, do not count toward limit
+  if p_instance_id is null then
+    return true;
+  end if;
+
+  -- If this instance_id already exists for the user, allow
+  select exists(
+    select 1 from public.numbers n
+    where n.user_id = auth.uid()
+      and n.instance_id = p_instance_id
+  ) into v_exists;
+
+  if v_exists then
+    return true;
+  end if;
+
+  -- Count distinct instances for this user
+  select count(distinct n.instance_id) into v_count
+  from public.numbers n
+  where n.user_id = auth.uid()
+    and n.instance_id is not null;
+
+  return v_count < v_limit;
+end;
+$$ language plpgsql stable;
+
 -- NUMBERS Table
 create table if not exists public.numbers (
   id uuid default uuid_generate_v4() primary key,
@@ -311,7 +437,11 @@ create policy "Users can check own or org numbers" on public.numbers
 
 drop policy if exists "Users can insert numbers" on public.numbers;
 create policy "Users can insert numbers" on public.numbers
-  for insert with check (auth.uid() = user_id);
+  for insert with check (
+    auth.uid() = user_id
+    and public.check_numbers_limit()
+    and public.check_instances_limit(instance_id)
+  );
 
 drop policy if exists "Users can update own numbers" on public.numbers;
 create policy "Users can update own numbers" on public.numbers
@@ -432,8 +562,8 @@ add column if not exists api_token text,
 add column if not exists last_seen timestamp with time zone,
 add column if not exists settings jsonb default '{}'::jsonb;
 
--- Ensure instance_id is unique
-create unique index if not exists numbers_instance_id_idx on public.numbers (instance_id);
+-- Index on instance_id for faster lookups (no uniqueness constraint)
+create index if not exists numbers_instance_id_idx on public.numbers (instance_id);
 
 -- WEBHOOKS Table
 create table if not exists public.webhooks (

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { getNumbersUsage, getInstancesUsage } from '../lib/planLimits';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -44,9 +45,19 @@ export default function Numbers() {
         status: 'active'
     });
     const [saving, setSaving] = useState(false);
+    const [numbersUsage, setNumbersUsage] = useState({
+        used: 0,
+        limit: -1,
+        planName: null,
+    });
+    const [instancesUsage, setInstancesUsage] = useState({
+        used: 0,
+        limit: -1,
+    });
 
     useEffect(() => {
         fetchNumbers();
+        fetchNumbersUsage();
     }, [user]);
 
     const fetchNumbers = async () => {
@@ -69,6 +80,44 @@ export default function Numbers() {
         }
     };
 
+    const fetchNumbersUsage = async () => {
+        if (!user) return;
+
+        try {
+            const { used, limit, plan, error } = await getNumbersUsage(
+                supabase,
+                user.id,
+            );
+
+            if (error) {
+                console.error('Error loading numbers usage:', error);
+            }
+
+            setNumbersUsage({
+                used: used || 0,
+                limit: typeof limit === 'number' ? limit : -1,
+                planName: plan?.name || null,
+            });
+
+            const {
+                used: instancesUsed,
+                limit: instancesLimit,
+                error: instancesError,
+            } = await getInstancesUsage(supabase, user.id);
+
+            if (instancesError) {
+                console.error('Error loading instances usage:', instancesError);
+            }
+
+            setInstancesUsage({
+                used: instancesUsed || 0,
+                limit: typeof instancesLimit === 'number' ? instancesLimit : -1,
+            });
+        } catch (err) {
+            console.error('Error in fetchNumbersUsage:', err);
+        }
+    };
+
     const formatLastSeen = (timestamp) => {
         if (!timestamp) return t('common.no_data');
         const date = new Date(timestamp);
@@ -87,6 +136,28 @@ export default function Numbers() {
     const handleAddNumber = async (e) => {
         e.preventDefault();
         if (!user) return;
+
+        // Enforce plan limit for creating new numbers (editing is always allowed)
+        if (!editingNumber) {
+            // Enforce numbers per plan
+            if (numbersUsage.limit !== -1 && numbersUsage.used >= numbersUsage.limit) {
+                alert(t('plans_limits.numbers_reached'));
+                return;
+            }
+
+            // Enforce instances per plan (only if this is a new instance_id)
+            const isNewInstance = !numbers.some(
+                (n) => n.instance_id === formData.instance_id,
+            );
+            if (
+                isNewInstance &&
+                instancesUsage.limit !== -1 &&
+                instancesUsage.used >= instancesUsage.limit
+            ) {
+                alert(t('plans_limits.instances_reached'));
+                return;
+            }
+        }
 
         try {
             setSaving(true);
@@ -133,6 +204,7 @@ export default function Numbers() {
             setEditingNumber(null);
             setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
             fetchNumbers();
+            fetchNumbersUsage();
         } catch (error) {
             console.error('Error saving number:', error);
             await logger.error('Failed to save number', { error: error.message });
@@ -153,6 +225,26 @@ export default function Numbers() {
         setShowModal(true);
     };
 
+    const handleOpenAddModal = () => {
+        if (!user) return;
+
+        if (numbersUsage.limit !== -1 && numbersUsage.used >= numbersUsage.limit) {
+            alert(t('plans_limits.numbers_reached'));
+            return;
+        }
+
+        const isAtInstanceLimit =
+            instancesUsage.limit !== -1 &&
+            instancesUsage.used >= instancesUsage.limit;
+
+        if (isAtInstanceLimit) {
+            alert(t('plans_limits.instances_reached'));
+            return;
+        }
+
+        setShowModal(true);
+    };
+
     const handleDeleteNumber = async (numberId) => {
         if (!confirm(t('common.confirm_delete'))) return;
 
@@ -167,6 +259,7 @@ export default function Numbers() {
             await logger.warn('Number deleted', { number_id: numberId }, numberId);
             setShowDeleteConfirm(null);
             fetchNumbers();
+            fetchNumbersUsage();
         } catch (error) {
             console.error('Error deleting number:', error);
             await logger.error('Failed to delete number', { error: error.message }, numberId);
@@ -185,8 +278,21 @@ export default function Numbers() {
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">{t('numbers_page.title')}</h2>
                     <p className="text-muted-foreground">{t('numbers_page.subtitle')}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        {numbersUsage.limit === -1
+                            ? `${numbersUsage.used} ${t('numbers_page.numbers_in_use_unlimited')}`
+                            : `${numbersUsage.used} / ${numbersUsage.limit} ${t('numbers_page.numbers_in_use')}`}
+                        {numbersUsage.planName
+                            ? ` · ${numbersUsage.planName} ${t('landing.plans.features')}`
+                            : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        {instancesUsage.limit === -1
+                            ? `${instancesUsage.used} ${t('numbers_page.instances_in_use_unlimited')}`
+                            : `${instancesUsage.used} / ${instancesUsage.limit} ${t('numbers_page.instances_in_use')}`}
+                    </p>
                 </div>
-                <Button onClick={() => setShowModal(true)}>
+                <Button onClick={handleOpenAddModal}>
                     <Plus className="mr-2 h-4 w-4" />
                     {t('add_number')}
                 </Button>

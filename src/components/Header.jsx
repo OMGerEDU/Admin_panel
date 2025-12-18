@@ -5,7 +5,9 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
-import { Sun, Moon, Languages, LogOut, ChevronRight, Home } from 'lucide-react';
+import { Sun, Moon, Languages, LogOut, ChevronRight, Home, Sparkles, Crown, Building2 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { fetchCurrentSubscriptionAndPlan } from '../lib/planLimits';
 
 export function Header() {
     const { theme, toggleTheme } = useTheme();
@@ -14,11 +16,45 @@ export function Header() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    const [planName, setPlanName] = React.useState(null);
 
     const handleSignOut = async () => {
         await signOut();
         navigate('/login', { replace: true });
     };
+
+    React.useEffect(() => {
+        let isMounted = true;
+
+        const loadPlan = async () => {
+            if (!user?.id) {
+                if (isMounted) setPlanName(null);
+                return;
+            }
+
+            try {
+                const { plan, error } = await fetchCurrentSubscriptionAndPlan(
+                    supabase,
+                    user.id,
+                );
+                if (!isMounted) return;
+                if (!error && plan?.name) {
+                    setPlanName(plan.name);
+                } else {
+                    setPlanName(null);
+                }
+            } catch (err) {
+                console.error('Error loading user plan in header:', err);
+                if (isMounted) setPlanName(null);
+            }
+        };
+
+        loadPlan();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.id]);
 
     const getBreadcrumbs = () => {
         const path = location.pathname;
@@ -84,6 +120,20 @@ export function Header() {
                     <span className="sr-only">Display Language</span>
                 </Button>
 
+                {planName && (
+                    <div className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
+                        {planName.toLowerCase() === 'free' && (
+                            <Sparkles className="h-3 w-3" />
+                        )}
+                        {planName.toLowerCase() === 'pro' && (
+                            <Crown className="h-3 w-3" />
+                        )}
+                        {planName.toLowerCase() === 'agency' && (
+                            <Building2 className="h-3 w-3" />
+                        )}
+                        <span>{planName}</span>
+                    </div>
+                )}
                 <div className="flex items-center gap-2 border-l pl-4 ml-2 rtl:border-r rtl:border-l-0 rtl:pr-4 rtl:pl-0">
                     <div className="text-sm font-medium hidden sm:block">
                         {user?.email}

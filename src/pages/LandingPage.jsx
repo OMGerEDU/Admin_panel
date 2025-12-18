@@ -13,6 +13,9 @@ import {
     Moon,
     Languages,
     LayoutDashboard,
+    Sparkles,
+    Crown,
+    Building2,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -171,7 +174,10 @@ export default function LandingPage() {
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
                     {/* Free Plan */}
                     <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
-                        <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
+                        </div>
                         <div className="mt-4 text-4xl font-bold">$0</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -189,7 +195,10 @@ export default function LandingPage() {
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-blue-600 px-3 py-1 text-xs text-white shadow-md font-medium">
                             {t('landing.plans.popular')}
                         </div>
-                        <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
+                        <div className="flex items-center gap-2">
+                            <Crown className="h-5 w-5 text-yellow-500" />
+                            <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
+                        </div>
                         <div className="mt-4 text-4xl font-bold">$29</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -205,7 +214,10 @@ export default function LandingPage() {
 
                     {/* Agency Plan */}
                     <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
-                        <h3 className="font-bold text-xl">{t('landing.plans.agency')}</h3>
+                        <div className="flex items-center gap-2">
+                            <Building2 className="h-5 w-5 text-purple-500" />
+                            <h3 className="font-bold text-xl">{t('landing.plans.agency')}</h3>
+                        </div>
                         <div className="mt-4 text-4xl font-bold">$99</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">

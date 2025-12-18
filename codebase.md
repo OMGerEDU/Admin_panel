@@ -5917,8 +5917,8 @@ add column if not exists api_token text,
 add column if not exists last_seen timestamp with time zone,
 add column if not exists settings jsonb default '{}'::jsonb;
 
--- Ensure instance_id is unique
-create unique index if not exists numbers_instance_id_idx on public.numbers (instance_id);
+-- Index on instance_id for faster lookups (no uniqueness constraint)
+create index if not exists numbers_instance_id_idx on public.numbers (instance_id);
 
 -- WEBHOOKS Table
 create table if not exists public.webhooks (
@@ -6928,7 +6928,9 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
-import { Sun, Moon, Languages, LogOut, ChevronRight, Home } from 'lucide-react';
+import { Sun, Moon, Languages, LogOut, ChevronRight, Home, Sparkles, Crown, Building2 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { fetchCurrentSubscriptionAndPlan } from '../lib/planLimits';
 
 export function Header() {
     const { theme, toggleTheme } = useTheme();
@@ -6937,11 +6939,45 @@ export function Header() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    const [planName, setPlanName] = React.useState(null);
 
     const handleSignOut = async () => {
         await signOut();
         navigate('/login', { replace: true });
     };
+
+    React.useEffect(() => {
+        let isMounted = true;
+
+        const loadPlan = async () => {
+            if (!user?.id) {
+                if (isMounted) setPlanName(null);
+                return;
+            }
+
+            try {
+                const { plan, error } = await fetchCurrentSubscriptionAndPlan(
+                    supabase,
+                    user.id,
+                );
+                if (!isMounted) return;
+                if (!error && plan?.name) {
+                    setPlanName(plan.name);
+                } else {
+                    setPlanName(null);
+                }
+            } catch (err) {
+                console.error('Error loading user plan in header:', err);
+                if (isMounted) setPlanName(null);
+            }
+        };
+
+        loadPlan();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.id]);
 
     const getBreadcrumbs = () => {
         const path = location.pathname;
@@ -7007,6 +7043,20 @@ export function Header() {
                     <span className="sr-only">Display Language</span>
                 </Button>
 
+                {planName && (
+                    <div className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
+                        {planName.toLowerCase() === 'free' && (
+                            <Sparkles className="h-3 w-3" />
+                        )}
+                        {planName.toLowerCase() === 'pro' && (
+                            <Crown className="h-3 w-3" />
+                        )}
+                        {planName.toLowerCase() === 'agency' && (
+                            <Building2 className="h-3 w-3" />
+                        )}
+                        <span>{planName}</span>
+                    </div>
+                )}
                 <div className="flex items-center gap-2 border-l pl-4 ml-2 rtl:border-r rtl:border-l-0 rtl:pr-4 rtl:pl-0">
                     <div className="text-sm font-medium hidden sm:block">
                         {user?.email}
@@ -7923,6 +7973,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
+const REMEMBER_ME_KEY = 'rememberMe';
 
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
@@ -7941,8 +7992,23 @@ export function AuthProvider({ children }) {
                 console.error('Error getting session:', error);
                 // Don't block app if auth fails - might be 404 from missing schema
             }
-            setSession(session);
-            setUser(session?.user ?? null);
+
+            let rememberMe = false;
+            try {
+                if (typeof window !== 'undefined') {
+                    rememberMe = localStorage.getItem(REMEMBER_ME_KEY) === 'true';
+                }
+            } catch (e) {
+                console.error('Error reading rememberMe flag:', e);
+            }
+
+            if (rememberMe) {
+                setSession(session);
+                setUser(session?.user ?? null);
+            } else {
+                setSession(null);
+                setUser(null);
+            }
             setLoading(false);
         }).catch((error) => {
             clearTimeout(timeout);
@@ -7952,7 +8018,13 @@ export function AuthProvider({ children }) {
 
         let subscription;
         try {
-            const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+            const { data } = supabase.auth.onAuthStateChange((event, session) => {
+                // Ignore INITIAL_SESSION here - it's handled by getSession above,
+                // which also respects the "remember me" preference.
+                if (event === 'INITIAL_SESSION') {
+                    return;
+                }
+
                 setSession(session);
                 setUser(session?.user ?? null);
                 setLoading(false);
@@ -8168,7 +8240,11 @@ const resources = {
                 "search_placeholder": "Filter instances...",
                 "refresh": "Refresh",
                 "delete_instance": "Delete Instance",
-                "phone_number": "Phone Number"
+                "phone_number": "Phone Number",
+                "numbers_in_use": "numbers in use",
+                "numbers_in_use_unlimited": "numbers in use (unlimited by plan)",
+                "instances_in_use": "instances in use",
+                "instances_in_use_unlimited": "instances in use (unlimited by plan)"
             },
             "chats_page": {
                 "title": "Chats",
@@ -8191,7 +8267,8 @@ const resources = {
                 "view_sticker": "View Sticker",
                 "location_message": "Location",
                 "view_location": "View Location",
-                "online_status": "Online"
+                "online_status": "Online",
+                "no_more_messages": "🎉 You're all caught up – no more messages in this chat"
             },
             "login": {
                 "title": "Welcome Back",
@@ -8199,6 +8276,7 @@ const resources = {
                 "email": "Email",
                 "password": "Password",
                 "submit": "Sign In",
+                "remember_me": "Remember me",
                 "forgot_password": "Forgot password?",
                 "no_account": "Don't have an account?"
             },
@@ -8255,6 +8333,11 @@ const resources = {
                     "custom_integrations": "Custom Integrations",
                     "unlimited": "Unlimited"
                 }
+            },
+            "plans_limits": {
+                "numbers_reached": "You’ve reached the maximum number of phone numbers for your current plan. Upgrade your plan to add more.",
+                "instances_reached": "You’ve reached the maximum number of instances for your current plan. Upgrade your plan to add more.",
+                "members_reached": "You’ve reached the team member limit for this organization. Upgrade your plan to invite more teammates."
             },
             "create_org": "Create Organization",
             "create": "Create",
@@ -8329,7 +8412,9 @@ const resources = {
                 "change_password_info": "Password management is handled through Supabase Auth. Use the password reset feature from the login page to change your password.",
                 "current_password": "Current Password",
                 "new_password": "New Password",
-                "confirm_password": "Confirm Password"
+                "confirm_password": "Confirm Password",
+                "members_in_use": "team members (excluding owner)",
+                "members_in_use_unlimited": "team members (excluding owner, unlimited by plan)"
             },
             "extension_page": {
                 "subtitle": "Install and manage browser extension",
@@ -8421,7 +8506,11 @@ const resources = {
                 "search_placeholder": "סנן מופעים...",
                 "refresh": "רענן",
                 "delete_instance": "מחק מופע",
-                "phone_number": "מספר טלפון"
+                "phone_number": "מספר טלפון",
+                "numbers_in_use": "מספרים בשימוש",
+                "numbers_in_use_unlimited": "מספרים בשימוש (ללא הגבלה בתוכנית)",
+                "instances_in_use": "מופעים בשימוש",
+                "instances_in_use_unlimited": "מופעים בשימוש (ללא הגבלה בתוכנית)"
             },
             "chats_page": {
                 "title": "צ'אטים",
@@ -8444,14 +8533,16 @@ const resources = {
                 "view_sticker": "צפה בסטיקר",
                 "location_message": "מיקום",
                 "view_location": "צפה במיקום",
-                "online_status": "מחובר עכשיו"
+                "online_status": "מחובר עכשיו",
+                "no_more_messages": "🎉 הגעת לסוף השיחה – אין עוד הודעות כאן"
             },
             "login": {
                 "title": "ברוכים הבאים",
                 "subtitle": "הכנס את פרטי ההתחברות שלך",
                 "email": "אימייל",
                 "password": "סיסמה",
-                "submit": "התחבר",
+                 "submit": "התחבר",
+                 "remember_me": "זכור אותי",
                 "forgot_password": "שכחת סיסמה?",
                 "no_account": "אין לך חשבון?"
             },
@@ -8508,6 +8599,11 @@ const resources = {
                     "custom_integrations": "אינטגרציות מותאמות",
                     "unlimited": "ללא הגבלה"
                 }
+            },
+            "plans_limits": {
+                "numbers_reached": "הגעת למספר המקסימלי של מספרי טלפון בתוכנית הנוכחית. כדי להוסיף עוד, שדרג את התוכנית.",
+                "instances_reached": "הגעת למספר המקסימלי של המופעים בתוכנית הנוכחית. כדי להוסיף עוד, שדרג את התוכנית.",
+                "members_reached": "הגעת למגבלת חברי הצוות לארגון זה. כדי להזמין עוד חברים, שדרג את התוכנית."
             },
             "create_org": "צור ארגון",
             "create": "צור",
@@ -8582,7 +8678,9 @@ const resources = {
                 "change_password_info": "ניהול סיסמה מתבצע דרך Supabase Auth. השתמש בפיצ'ר איפוס סיסמה מדף ההתחברות כדי לשנות את הסיסמה שלך.",
                 "current_password": "סיסמה נוכחית",
                 "new_password": "סיסמה חדשה",
-                "confirm_password": "אשר סיסמה"
+                "confirm_password": "אשר סיסמה",
+                "members_in_use": "חברי צוות (למעט הבעלים)",
+                "members_in_use_unlimited": "חברי צוות (למעט הבעלים, ללא הגבלה בתוכנית)"
             },
             "extension_page": {
                 "subtitle": "התקן ונהל תוסף דפדפן",
@@ -9140,6 +9238,222 @@ export function getCacheStats() {
         return { chatCount: 0, totalMessages: 0, totalSizeKB: 0 };
     }
 }
+
+
+```
+
+# src\lib\planLimits.js
+
+```js
+import { supabase as defaultSupabase } from './supabaseClient'
+
+/**
+ * Fetch the current user's subscription and associated plan.
+ * Falls back to the \"Free\" plan if no subscription exists.
+ */
+export async function fetchCurrentSubscriptionAndPlan(
+    supabase = defaultSupabase,
+    userId,
+) {
+    if (!userId) {
+        return { subscription: null, plan: null, error: null }
+    }
+
+    // Try to get the user's subscription joined with the plan
+    const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*, plans(*)')
+        .eq('user_id', userId)
+        .single()
+
+    if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching subscription:', error)
+        return { subscription: null, plan: null, error }
+    }
+
+    let subscription = data || null
+    let plan = data?.plans || null
+
+    // If user has no subscription yet, fall back to the \"Free\" plan
+    if (!plan) {
+        const { data: freePlan, error: planError } = await supabase
+            .from('plans')
+            .select('*')
+            .eq('name', 'Free')
+            .single()
+
+        if (planError) {
+            console.error('Error fetching default Free plan:', planError)
+            return { subscription, plan: null, error: planError }
+        }
+
+        plan = freePlan
+    }
+
+    return { subscription, plan, error: null }
+}
+
+/**
+ * Get usage information for phone numbers for a given user.
+ * Returns the number of numbers used and the allowed limit from the plan.
+ */
+export async function getNumbersUsage(
+    supabase = defaultSupabase,
+    userId,
+) {
+    const { plan, error } = await fetchCurrentSubscriptionAndPlan(supabase, userId)
+
+    if (error) {
+        // Soft-fail: treat as unlimited if we can't load the plan
+        return { used: 0, limit: -1, plan: null, error }
+    }
+
+    const limit =
+        typeof plan?.numbers_limit === 'number' ? plan.numbers_limit : -1
+
+    const { count, error: countError } = await supabase
+        .from('numbers')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+
+    if (countError) {
+        console.error('Error counting numbers:', countError)
+        return { used: 0, limit, plan, error: countError }
+    }
+
+    return {
+        used: count || 0,
+        limit,
+        plan,
+        error: null,
+    }
+}
+
+/**
+ * Get usage information for distinct instances (instance_id) for a given user.
+ * Returns how many unique instances are used and the allowed limit from the plan.
+ */
+export async function getInstancesUsage(
+    supabase = defaultSupabase,
+    userId,
+) {
+    const { plan, error } = await fetchCurrentSubscriptionAndPlan(supabase, userId)
+
+    if (error) {
+        // Soft-fail: treat as unlimited if we can't load the plan
+        return { used: 0, limit: -1, plan: null, error }
+    }
+
+    const limit =
+        typeof plan?.instances_limit === number ? plan.instances_limit : -1
+
+    const { data, error: listError } = await supabase
+        .from('numbers')
+        .select('instance_id')
+        .eq('user_id', userId)
+
+    if (listError) {
+        console.error('Error fetching instances for usage:', listError)
+        return { used: 0, limit, plan, error: listError }
+    }
+
+    const uniqueIds = new Set(
+        (data || [])
+            .map((row) => row.instance_id)
+            .filter((id) => !!id),
+    )
+
+    return {
+        used: uniqueIds.size,
+        limit,
+        plan,
+        error: null,
+    }
+}
+
+/**
+ * Get usage information for organization members for a given organization.
+ * Uses the organization owner's plan \"invites_limit\" and counts
+ * NON-owner members as used invites.
+ */
+export async function getOrgMembersUsage(
+    supabase = defaultSupabase,
+    orgId,
+) {
+    if (!orgId) {
+        return { used: 0, totalMembers: 0, limit: -1, plan: null, error: null }
+    }
+
+    // Fetch organization to get owner_id
+    const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .select('id, owner_id')
+        .eq('id', orgId)
+        .single()
+
+    if (orgError) {
+        console.error('Error fetching organization:', orgError)
+        return {
+            used: 0,
+            totalMembers: 0,
+            limit: -1,
+            plan: null,
+            error: orgError,
+        }
+    }
+
+    const ownerId = org.owner_id
+
+    // Get owner's plan
+    const { plan, error: planError } = await fetchCurrentSubscriptionAndPlan(
+        supabase,
+        ownerId,
+    )
+
+    if (planError) {
+        return {
+            used: 0,
+            totalMembers: 0,
+            limit: -1,
+            plan: null,
+            error: planError,
+        }
+    }
+
+    const limit =
+        typeof plan?.invites_limit === 'number' ? plan.invites_limit : -1
+
+    // Fetch all members for the org to compute usage
+    const { data: members, error: membersError } = await supabase
+        .from('organization_members')
+        .select('id, user_id')
+        .eq('organization_id', orgId)
+
+    if (membersError) {
+        console.error('Error fetching organization members:', membersError)
+        return {
+            used: 0,
+            totalMembers: 0,
+            limit,
+            plan,
+            error: membersError,
+        }
+    }
+
+    const totalMembers = members?.length || 0
+    const nonOwnerMembers = (members || []).filter(
+        (m) => m.user_id !== ownerId,
+    ).length
+
+    return {
+        used: nonOwnerMembers,
+        totalMembers,
+        limit,
+        plan,
+        error: null,
+    }
+}
+
 
 
 ```
@@ -10058,31 +10372,6 @@ export default function Chats() {
         }
     };
 
-    // Load avatar for a chat
-    const loadChatAvatar = async (chatId) => {
-        if (!selectedNumber || !chatId || chatAvatars.has(chatId)) return;
-
-        try {
-            const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
-            if (result.success && result.data?.urlAvatar) {
-                setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
-                console.log(`[AVATAR] Loaded avatar for ${chatId}`);
-            }
-        } catch (error) {
-            console.error('[AVATAR] Error loading avatar:', error);
-        }
-    };
-    
-    // Load avatar after messages are loaded
-    useEffect(() => {
-        if (selectedChat && selectedNumber && messages.length > 0) {
-            const chatId = selectedChat.chatId || selectedChat.remote_jid;
-            if (chatId) {
-                loadChatAvatar(chatId);
-            }
-        }
-    }, [messages.length, selectedChat, selectedNumber]);
-
     const sendMessage = async () => {
         if (!newMessage.trim() || !selectedChat || !selectedNumber) return;
 
@@ -10402,9 +10691,14 @@ export default function Chats() {
                                 backgroundAttachment: 'fixed'
                             }}
                         >
-                            {/* Overlay for better readability */}
-                            <div className="absolute inset-0 bg-background/30 dark:bg-[#0a1014]/50 pointer-events-none" />
-                            <div className="relative z-10">
+                            {/* Overlay for better readability - very light overlay */}
+                            <div 
+                                className="absolute inset-0 pointer-events-none z-0"
+                                style={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                                }}
+                            />
+                            <div className="relative z-10 space-y-2">
                             {/* Load More Messages Button */}
                             {messages.length > 0 && (
                                 <div className="flex justify-center py-2">
@@ -11081,6 +11375,9 @@ import {
     Moon,
     Languages,
     LayoutDashboard,
+    Sparkles,
+    Crown,
+    Building2,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -11239,7 +11536,10 @@ export default function LandingPage() {
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
                     {/* Free Plan */}
                     <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
-                        <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
+                        </div>
                         <div className="mt-4 text-4xl font-bold">$0</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -11257,7 +11557,10 @@ export default function LandingPage() {
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-blue-600 px-3 py-1 text-xs text-white shadow-md font-medium">
                             {t('landing.plans.popular')}
                         </div>
-                        <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
+                        <div className="flex items-center gap-2">
+                            <Crown className="h-5 w-5 text-yellow-500" />
+                            <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
+                        </div>
                         <div className="mt-4 text-4xl font-bold">$29</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -11273,7 +11576,10 @@ export default function LandingPage() {
 
                     {/* Agency Plan */}
                     <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
-                        <h3 className="font-bold text-xl">{t('landing.plans.agency')}</h3>
+                        <div className="flex items-center gap-2">
+                            <Building2 className="h-5 w-5 text-purple-500" />
+                            <h3 className="font-bold text-xl">{t('landing.plans.agency')}</h3>
+                        </div>
                         <div className="mt-4 text-4xl font-bold">$99</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -11331,11 +11637,22 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+const REMEMBER_ME_KEY = 'rememberMe'
+
 export default function Login() {
     const [loading, setLoading] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
+    const [rememberMe, setRememberMe] = useState(() => {
+        if (typeof window === 'undefined') return false
+        try {
+            return localStorage.getItem(REMEMBER_ME_KEY) === 'true'
+        } catch {
+            return false
+        }
+    })
+
     const navigate = useNavigate()
     const { signIn, user } = useAuth()
     const { t } = useTranslation()
@@ -11358,6 +11675,15 @@ export default function Login() {
             if (signInError) {
                 setError(signInError.message || 'Invalid email or password')
                 return
+            }
+
+            // Persist "remember me" preference only on successful login
+            try {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem(REMEMBER_ME_KEY, rememberMe ? 'true' : 'false')
+                }
+            } catch (storageError) {
+                console.error('Failed to persist rememberMe preference:', storageError)
             }
 
             // Success - AuthContext will update and redirect
@@ -11409,6 +11735,18 @@ export default function Login() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={loading}
                             />
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    disabled={loading}
+                                />
+                                <span>{t('login.remember_me')}</span>
+                            </label>
                         </div>
                         <Button className="w-full" disabled={loading}>
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -11745,6 +12083,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { getNumbersUsage, getInstancesUsage } from '../lib/planLimits';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -11787,9 +12126,19 @@ export default function Numbers() {
         status: 'active'
     });
     const [saving, setSaving] = useState(false);
+    const [numbersUsage, setNumbersUsage] = useState({
+        used: 0,
+        limit: -1,
+        planName: null,
+    });
+    const [instancesUsage, setInstancesUsage] = useState({
+        used: 0,
+        limit: -1,
+    });
 
     useEffect(() => {
         fetchNumbers();
+        fetchNumbersUsage();
     }, [user]);
 
     const fetchNumbers = async () => {
@@ -11812,6 +12161,44 @@ export default function Numbers() {
         }
     };
 
+    const fetchNumbersUsage = async () => {
+        if (!user) return;
+
+        try {
+            const { used, limit, plan, error } = await getNumbersUsage(
+                supabase,
+                user.id,
+            );
+
+            if (error) {
+                console.error('Error loading numbers usage:', error);
+            }
+
+            setNumbersUsage({
+                used: used || 0,
+                limit: typeof limit === 'number' ? limit : -1,
+                planName: plan?.name || null,
+            });
+
+            const {
+                used: instancesUsed,
+                limit: instancesLimit,
+                error: instancesError,
+            } = await getInstancesUsage(supabase, user.id);
+
+            if (instancesError) {
+                console.error('Error loading instances usage:', instancesError);
+            }
+
+            setInstancesUsage({
+                used: instancesUsed || 0,
+                limit: typeof instancesLimit === 'number' ? instancesLimit : -1,
+            });
+        } catch (err) {
+            console.error('Error in fetchNumbersUsage:', err);
+        }
+    };
+
     const formatLastSeen = (timestamp) => {
         if (!timestamp) return t('common.no_data');
         const date = new Date(timestamp);
@@ -11830,6 +12217,28 @@ export default function Numbers() {
     const handleAddNumber = async (e) => {
         e.preventDefault();
         if (!user) return;
+
+        // Enforce plan limit for creating new numbers (editing is always allowed)
+        if (!editingNumber) {
+            // Enforce numbers per plan
+            if (numbersUsage.limit !== -1 && numbersUsage.used >= numbersUsage.limit) {
+                alert(t('plans_limits.numbers_reached'));
+                return;
+            }
+
+            // Enforce instances per plan (only if this is a new instance_id)
+            const isNewInstance = !numbers.some(
+                (n) => n.instance_id === formData.instance_id,
+            );
+            if (
+                isNewInstance &&
+                instancesUsage.limit !== -1 &&
+                instancesUsage.used >= instancesUsage.limit
+            ) {
+                alert(t('plans_limits.instances_reached'));
+                return;
+            }
+        }
 
         try {
             setSaving(true);
@@ -11876,6 +12285,7 @@ export default function Numbers() {
             setEditingNumber(null);
             setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
             fetchNumbers();
+            fetchNumbersUsage();
         } catch (error) {
             console.error('Error saving number:', error);
             await logger.error('Failed to save number', { error: error.message });
@@ -11896,6 +12306,26 @@ export default function Numbers() {
         setShowModal(true);
     };
 
+    const handleOpenAddModal = () => {
+        if (!user) return;
+
+        if (numbersUsage.limit !== -1 && numbersUsage.used >= numbersUsage.limit) {
+            alert(t('plans_limits.numbers_reached'));
+            return;
+        }
+
+        const isAtInstanceLimit =
+            instancesUsage.limit !== -1 &&
+            instancesUsage.used >= instancesUsage.limit;
+
+        if (isAtInstanceLimit) {
+            alert(t('plans_limits.instances_reached'));
+            return;
+        }
+
+        setShowModal(true);
+    };
+
     const handleDeleteNumber = async (numberId) => {
         if (!confirm(t('common.confirm_delete'))) return;
 
@@ -11910,6 +12340,7 @@ export default function Numbers() {
             await logger.warn('Number deleted', { number_id: numberId }, numberId);
             setShowDeleteConfirm(null);
             fetchNumbers();
+            fetchNumbersUsage();
         } catch (error) {
             console.error('Error deleting number:', error);
             await logger.error('Failed to delete number', { error: error.message }, numberId);
@@ -11928,8 +12359,21 @@ export default function Numbers() {
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">{t('numbers_page.title')}</h2>
                     <p className="text-muted-foreground">{t('numbers_page.subtitle')}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        {numbersUsage.limit === -1
+                            ? `${numbersUsage.used} ${t('numbers_page.numbers_in_use_unlimited')}`
+                            : `${numbersUsage.used} / ${numbersUsage.limit} ${t('numbers_page.numbers_in_use')}`}
+                        {numbersUsage.planName
+                            ? ` · ${numbersUsage.planName} ${t('landing.plans.features')}`
+                            : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        {instancesUsage.limit === -1
+                            ? `${instancesUsage.used} ${t('numbers_page.instances_in_use_unlimited')}`
+                            : `${instancesUsage.used} / ${instancesUsage.limit} ${t('numbers_page.instances_in_use')}`}
+                    </p>
                 </div>
-                <Button onClick={() => setShowModal(true)}>
+                <Button onClick={handleOpenAddModal}>
                     <Plus className="mr-2 h-4 w-4" />
                     {t('add_number')}
                 </Button>
@@ -12148,6 +12592,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { getOrgMembersUsage } from '../lib/planLimits';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -12167,6 +12612,12 @@ export default function OrganizationSettings() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [invites, setInvites] = useState([]);
     const [creatingInvite, setCreatingInvite] = useState(false);
+    const [membersUsage, setMembersUsage] = useState({
+        used: 0,
+        totalMembers: 0,
+        limit: -1,
+        planName: null,
+    });
 
     useEffect(() => {
         fetchOrgDetails();
@@ -12220,6 +12671,9 @@ export default function OrganizationSettings() {
             if (invitesError) throw invitesError;
             setInvites(invitesData || []);
 
+            // Load plan-based member limits & usage
+            await fetchMembersUsage(orgId);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -12227,9 +12681,37 @@ export default function OrganizationSettings() {
         }
     };
 
+    const fetchMembersUsage = async (organizationId) => {
+        if (!organizationId) return;
+
+        try {
+            const { used, totalMembers, limit, plan, error } =
+                await getOrgMembersUsage(supabase, organizationId);
+
+            if (error) {
+                console.error('Error loading organization member usage:', error);
+            }
+
+            setMembersUsage({
+                used: used || 0,
+                totalMembers: totalMembers || 0,
+                limit: typeof limit === 'number' ? limit : -1,
+                planName: plan?.name || null,
+            });
+        } catch (err) {
+            console.error('Error in fetchMembersUsage:', err);
+        }
+    };
+
     const handleInvite = async (e) => {
         e.preventDefault();
         if (!inviteEmail || !isAdmin) return;
+
+        // Enforce plan-based team member limit (non-owner members)
+        if (membersUsage.limit !== -1 && membersUsage.used >= membersUsage.limit) {
+            alert(t('plans_limits.members_reached'));
+            return;
+        }
 
         try {
             setInviting(true);
@@ -12282,6 +12764,12 @@ export default function OrganizationSettings() {
 
     const createInviteLink = async () => {
         if (!isAdmin || !orgId) return;
+
+        // Reuse the same check for invite links – don't create links if limit is reached
+        if (membersUsage.limit !== -1 && membersUsage.used >= membersUsage.limit) {
+            alert(t('plans_limits.members_reached'));
+            return;
+        }
 
         try {
             setCreatingInvite(true);
@@ -12379,7 +12867,17 @@ export default function OrganizationSettings() {
             <Card>
                 <CardHeader>
                     <CardTitle>Members</CardTitle>
-                    <CardDescription>Manage organization members</CardDescription>
+                    <CardDescription>
+                        Manage organization members
+                        <div className="mt-1 text-xs text-muted-foreground">
+                            {membersUsage.limit === -1
+                                ? `${membersUsage.used} ${t('settings_page.members_in_use_unlimited')}`
+                                : `${membersUsage.used} / ${membersUsage.limit} ${t('settings_page.members_in_use')}`}
+                            {membersUsage.planName
+                                ? ` · ${membersUsage.planName} ${t('landing.plans.features')}`
+                                : ''}
+                        </div>
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -12550,7 +13048,21 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Check } from 'lucide-react'
+import { Check, Sparkles, Crown, Building2 } from 'lucide-react'
+
+const getPlanIcon = (name) => {
+  const key = (name || '').toLowerCase()
+  if (key === 'free') {
+    return <Sparkles className="h-5 w-5 text-primary" />
+  }
+  if (key === 'pro') {
+    return <Crown className="h-5 w-5 text-yellow-500" />
+  }
+  if (key === 'agency') {
+    return <Building2 className="h-5 w-5 text-purple-500" />
+  }
+  return null
+}
 
 export default function Plans() {
   const { session } = useAuth()
@@ -12621,14 +13133,20 @@ export default function Plans() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map(plan => {
           const isCurrent = currentSubscription?.plan_id === plan.id;
+          const icon = getPlanIcon(plan.name);
 
           return (
             <Card key={plan.id} className={`flex flex-col ${isCurrent ? 'border-primary shadow-lg' : ''}`}>
               <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <div className="text-4xl font-bold">
-                  ${plan.price_monthly}
-                  <span className="text-base font-normal text-muted-foreground">{t('landing.plans.month')}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {icon}
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  </div>
+                  <div className="text-4xl font-bold">
+                    ${plan.price_monthly}
+                    <span className="text-base font-normal text-muted-foreground">{t('landing.plans.month')}</span>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
@@ -14337,21 +14855,46 @@ create policy "Members can view other members" on public.organization_members
 drop policy if exists "Members can add members" on public.organization_members;
 create policy "Members can add members" on public.organization_members
   for insert with check (
-      exists (
-          select 1 from public.organization_members as om
-          where om.organization_id = organization_id
-          and om.user_id = auth.uid()
-          and om.role = 'admin'
+      (
+        -- Admins can add members
+        exists (
+            select 1 from public.organization_members as om
+            where om.organization_id = organization_id
+            and om.user_id = auth.uid()
+            and om.role = 'admin'
+        )
+        OR
+        -- Allow self-insert if you are the owner creating the org (initial member)
+        exists (
+            select 1 from public.organizations as o
+            where o.id = organization_id
+            and o.owner_id = auth.uid()
+        )
       )
-      OR
-      -- Allow self-insert if you are the owner creating the org (this is tricky, usually handled by backend or function. 
-      -- For simplicity in this demo, we might need a trusted function to create org+member together)
-      -- Allowing initial member creation:
-       exists (
-          select 1 from public.organizations as o
-          where o.id = organization_id
-          and o.owner_id = auth.uid()
-       )
+      AND
+      (
+        -- If invites_limit is unlimited (-1), always allow
+        coalesce(
+          (select invites_limit from public.get_effective_plan_for_user(
+             (select owner_id from public.organizations where id = organization_id)
+           )),
+           -1
+        ) = -1
+        OR
+        -- Otherwise enforce that non-owner members are below invites_limit
+        (
+          select count(*) 
+          from public.organization_members m
+          join public.organizations o on o.id = m.organization_id
+          where m.organization_id = organization_id
+            and m.user_id <> o.owner_id
+        ) < coalesce(
+          (select invites_limit from public.get_effective_plan_for_user(
+             (select owner_id from public.organizations where id = organization_id)
+           )),
+           -1
+        )
+      )
   );
 
 drop policy if exists "Admins can delete members" on public.organization_members;
@@ -14461,6 +15004,107 @@ drop policy if exists "Users can update own subscription" on public.subscription
 create policy "Users can update own subscription" on public.subscriptions
   for update using (auth.uid() = user_id);
 
+-- Helper function: get effective plan for a user (falls back to 'Free')
+create or replace function public.get_effective_plan_for_user(p_user_id uuid)
+returns public.plans as $$
+declare
+  v_plan public.plans;
+begin
+  select p.*
+  into v_plan
+  from public.subscriptions s
+  join public.plans p on p.id = s.plan_id
+  where s.user_id = p_user_id
+  limit 1;
+
+  if not found then
+    select p.*
+    into v_plan
+    from public.plans p
+    where p.name = 'Free'
+    limit 1;
+  end if;
+
+  return v_plan;
+end;
+$$ language plpgsql stable;
+
+-- Check function: enforce numbers_limit for current user
+create or replace function public.check_numbers_limit()
+returns boolean as $$
+declare
+  v_plan public.plans;
+  v_count int;
+begin
+  if auth.uid() is null then
+    return false;
+  end if;
+
+  select * into v_plan
+  from public.get_effective_plan_for_user(auth.uid());
+
+  -- Unlimited
+  if v_plan.numbers_limit is null or v_plan.numbers_limit = -1 then
+    return true;
+  end if;
+
+  select count(*) into v_count
+  from public.numbers n
+  where n.user_id = auth.uid();
+
+  return v_count < v_plan.numbers_limit;
+end;
+$$ language plpgsql stable;
+
+-- Check function: enforce instances_limit for current user, based on instance_id
+create or replace function public.check_instances_limit(p_instance_id text)
+returns boolean as $$
+declare
+  v_plan public.plans;
+  v_limit int;
+  v_count int;
+  v_exists boolean;
+begin
+  if auth.uid() is null then
+    return false;
+  end if;
+
+  select * into v_plan
+  from public.get_effective_plan_for_user(auth.uid());
+
+  v_limit := coalesce(v_plan.instances_limit, -1);
+
+  -- Unlimited
+  if v_limit = -1 then
+    return true;
+  end if;
+
+  -- If no instance_id provided, do not count toward limit
+  if p_instance_id is null then
+    return true;
+  end if;
+
+  -- If this instance_id already exists for the user, allow
+  select exists(
+    select 1 from public.numbers n
+    where n.user_id = auth.uid()
+      and n.instance_id = p_instance_id
+  ) into v_exists;
+
+  if v_exists then
+    return true;
+  end if;
+
+  -- Count distinct instances for this user
+  select count(distinct n.instance_id) into v_count
+  from public.numbers n
+  where n.user_id = auth.uid()
+    and n.instance_id is not null;
+
+  return v_count < v_limit;
+end;
+$$ language plpgsql stable;
+
 -- NUMBERS Table
 create table if not exists public.numbers (
   id uuid default uuid_generate_v4() primary key,
@@ -14489,7 +15133,11 @@ create policy "Users can check own or org numbers" on public.numbers
 
 drop policy if exists "Users can insert numbers" on public.numbers;
 create policy "Users can insert numbers" on public.numbers
-  for insert with check (auth.uid() = user_id);
+  for insert with check (
+    auth.uid() = user_id
+    and public.check_numbers_limit()
+    and public.check_instances_limit(instance_id)
+  );
 
 drop policy if exists "Users can update own numbers" on public.numbers;
 create policy "Users can update own numbers" on public.numbers
@@ -14610,8 +15258,8 @@ add column if not exists api_token text,
 add column if not exists last_seen timestamp with time zone,
 add column if not exists settings jsonb default '{}'::jsonb;
 
--- Ensure instance_id is unique
-create unique index if not exists numbers_instance_id_idx on public.numbers (instance_id);
+-- Index on instance_id for faster lookups (no uniqueness constraint)
+create index if not exists numbers_instance_id_idx on public.numbers (instance_id);
 
 -- WEBHOOKS Table
 create table if not exists public.webhooks (

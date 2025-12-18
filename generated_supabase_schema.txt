@@ -329,8 +329,8 @@ add column if not exists api_token text,
 add column if not exists last_seen timestamp with time zone,
 add column if not exists settings jsonb default '{}'::jsonb;
 
--- Ensure instance_id is unique
-create unique index if not exists numbers_instance_id_idx on public.numbers (instance_id);
+-- Index on instance_id for faster lookups (no uniqueness constraint)
+create index if not exists numbers_instance_id_idx on public.numbers (instance_id);
 
 -- WEBHOOKS Table
 create table if not exists public.webhooks (

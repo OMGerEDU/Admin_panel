@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { getOrgMembersUsage } from '../lib/planLimits';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -22,6 +23,12 @@ export default function OrganizationSettings() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [invites, setInvites] = useState([]);
     const [creatingInvite, setCreatingInvite] = useState(false);
+    const [membersUsage, setMembersUsage] = useState({
+        used: 0,
+        totalMembers: 0,
+        limit: -1,
+        planName: null,
+    });
 
     useEffect(() => {
         fetchOrgDetails();
@@ -75,6 +82,9 @@ export default function OrganizationSettings() {
             if (invitesError) throw invitesError;
             setInvites(invitesData || []);
 
+            // Load plan-based member limits & usage
+            await fetchMembersUsage(orgId);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -82,9 +92,37 @@ export default function OrganizationSettings() {
         }
     };
 
+    const fetchMembersUsage = async (organizationId) => {
+        if (!organizationId) return;
+
+        try {
+            const { used, totalMembers, limit, plan, error } =
+                await getOrgMembersUsage(supabase, organizationId);
+
+            if (error) {
+                console.error('Error loading organization member usage:', error);
+            }
+
+            setMembersUsage({
+                used: used || 0,
+                totalMembers: totalMembers || 0,
+                limit: typeof limit === 'number' ? limit : -1,
+                planName: plan?.name || null,
+            });
+        } catch (err) {
+            console.error('Error in fetchMembersUsage:', err);
+        }
+    };
+
     const handleInvite = async (e) => {
         e.preventDefault();
         if (!inviteEmail || !isAdmin) return;
+
+        // Enforce plan-based team member limit (non-owner members)
+        if (membersUsage.limit !== -1 && membersUsage.used >= membersUsage.limit) {
+            alert(t('plans_limits.members_reached'));
+            return;
+        }
 
         try {
             setInviting(true);
@@ -137,6 +175,12 @@ export default function OrganizationSettings() {
 
     const createInviteLink = async () => {
         if (!isAdmin || !orgId) return;
+
+        // Reuse the same check for invite links – don't create links if limit is reached
+        if (membersUsage.limit !== -1 && membersUsage.used >= membersUsage.limit) {
+            alert(t('plans_limits.members_reached'));
+            return;
+        }
 
         try {
             setCreatingInvite(true);
@@ -234,7 +278,17 @@ export default function OrganizationSettings() {
             <Card>
                 <CardHeader>
                     <CardTitle>Members</CardTitle>
-                    <CardDescription>Manage organization members</CardDescription>
+                    <CardDescription>
+                        Manage organization members
+                        <div className="mt-1 text-xs text-muted-foreground">
+                            {membersUsage.limit === -1
+                                ? `${membersUsage.used} ${t('settings_page.members_in_use_unlimited')}`
+                                : `${membersUsage.used} / ${membersUsage.limit} ${t('settings_page.members_in_use')}`}
+                            {membersUsage.planName
+                                ? ` · ${membersUsage.planName} ${t('landing.plans.features')}`
+                                : ''}
+                        </div>
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>

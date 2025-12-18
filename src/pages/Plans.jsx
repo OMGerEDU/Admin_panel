@@ -4,7 +4,21 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Check } from 'lucide-react'
+import { Check, Sparkles, Crown, Building2 } from 'lucide-react'
+
+const getPlanIcon = (name) => {
+  const key = (name || '').toLowerCase()
+  if (key === 'free') {
+    return <Sparkles className="h-5 w-5 text-primary" />
+  }
+  if (key === 'pro') {
+    return <Crown className="h-5 w-5 text-yellow-500" />
+  }
+  if (key === 'agency') {
+    return <Building2 className="h-5 w-5 text-purple-500" />
+  }
+  return null
+}
 
 export default function Plans() {
   const { session } = useAuth()
@@ -75,14 +89,20 @@ export default function Plans() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map(plan => {
           const isCurrent = currentSubscription?.plan_id === plan.id;
+          const icon = getPlanIcon(plan.name);
 
           return (
             <Card key={plan.id} className={`flex flex-col ${isCurrent ? 'border-primary shadow-lg' : ''}`}>
               <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <div className="text-4xl font-bold">
-                  ${plan.price_monthly}
-                  <span className="text-base font-normal text-muted-foreground">{t('landing.plans.month')}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {icon}
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  </div>
+                  <div className="text-4xl font-bold">
+                    ${plan.price_monthly}
+                    <span className="text-base font-normal text-muted-foreground">{t('landing.plans.month')}</span>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">

@@ -68,7 +68,11 @@ const resources = {
                 "search_placeholder": "Filter instances...",
                 "refresh": "Refresh",
                 "delete_instance": "Delete Instance",
-                "phone_number": "Phone Number"
+                "phone_number": "Phone Number",
+                "numbers_in_use": "numbers in use",
+                "numbers_in_use_unlimited": "numbers in use (unlimited by plan)",
+                "instances_in_use": "instances in use",
+                "instances_in_use_unlimited": "instances in use (unlimited by plan)"
             },
             "chats_page": {
                 "title": "Chats",
@@ -91,7 +95,8 @@ const resources = {
                 "view_sticker": "View Sticker",
                 "location_message": "Location",
                 "view_location": "View Location",
-                "online_status": "Online"
+                "online_status": "Online",
+                "no_more_messages": "🎉 You're all caught up – no more messages in this chat"
             },
             "login": {
                 "title": "Welcome Back",
@@ -156,6 +161,11 @@ const resources = {
                     "custom_integrations": "Custom Integrations",
                     "unlimited": "Unlimited"
                 }
+            },
+            "plans_limits": {
+                "numbers_reached": "You’ve reached the maximum number of phone numbers for your current plan. Upgrade your plan to add more.",
+                "instances_reached": "You’ve reached the maximum number of instances for your current plan. Upgrade your plan to add more.",
+                "members_reached": "You’ve reached the team member limit for this organization. Upgrade your plan to invite more teammates."
             },
             "create_org": "Create Organization",
             "create": "Create",
@@ -230,7 +240,9 @@ const resources = {
                 "change_password_info": "Password management is handled through Supabase Auth. Use the password reset feature from the login page to change your password.",
                 "current_password": "Current Password",
                 "new_password": "New Password",
-                "confirm_password": "Confirm Password"
+                "confirm_password": "Confirm Password",
+                "members_in_use": "team members (excluding owner)",
+                "members_in_use_unlimited": "team members (excluding owner, unlimited by plan)"
             },
             "extension_page": {
                 "subtitle": "Install and manage browser extension",
@@ -322,7 +334,11 @@ const resources = {
                 "search_placeholder": "סנן מופעים...",
                 "refresh": "רענן",
                 "delete_instance": "מחק מופע",
-                "phone_number": "מספר טלפון"
+                "phone_number": "מספר טלפון",
+                "numbers_in_use": "מספרים בשימוש",
+                "numbers_in_use_unlimited": "מספרים בשימוש (ללא הגבלה בתוכנית)",
+                "instances_in_use": "מופעים בשימוש",
+                "instances_in_use_unlimited": "מופעים בשימוש (ללא הגבלה בתוכנית)"
             },
             "chats_page": {
                 "title": "צ'אטים",
@@ -345,7 +361,8 @@ const resources = {
                 "view_sticker": "צפה בסטיקר",
                 "location_message": "מיקום",
                 "view_location": "צפה במיקום",
-                "online_status": "מחובר עכשיו"
+                "online_status": "מחובר עכשיו",
+                "no_more_messages": "🎉 הגעת לסוף השיחה – אין עוד הודעות כאן"
             },
             "login": {
                 "title": "ברוכים הבאים",
@@ -410,6 +427,11 @@ const resources = {
                     "custom_integrations": "אינטגרציות מותאמות",
                     "unlimited": "ללא הגבלה"
                 }
+            },
+            "plans_limits": {
+                "numbers_reached": "הגעת למספר המקסימלי של מספרי טלפון בתוכנית הנוכחית. כדי להוסיף עוד, שדרג את התוכנית.",
+                "instances_reached": "הגעת למספר המקסימלי של המופעים בתוכנית הנוכחית. כדי להוסיף עוד, שדרג את התוכנית.",
+                "members_reached": "הגעת למגבלת חברי הצוות לארגון זה. כדי להזמין עוד חברים, שדרג את התוכנית."
             },
             "create_org": "צור ארגון",
             "create": "צור",
@@ -484,7 +506,9 @@ const resources = {
                 "change_password_info": "ניהול סיסמה מתבצע דרך Supabase Auth. השתמש בפיצ'ר איפוס סיסמה מדף ההתחברות כדי לשנות את הסיסמה שלך.",
                 "current_password": "סיסמה נוכחית",
                 "new_password": "סיסמה חדשה",
-                "confirm_password": "אשר סיסמה"
+                "confirm_password": "אשר סיסמה",
+                "members_in_use": "חברי צוות (למעט הבעלים)",
+                "members_in_use_unlimited": "חברי צוות (למעט הבעלים, ללא הגבלה בתוכנית)"
             },
             "extension_page": {
                 "subtitle": "התקן ונהל תוסף דפדפן",
