@@ -1,5 +1,9 @@
 -- Enable UUID extension if not already enabled
 create extension if not exists "uuid-ossp";
+-- Additional extensions for scheduling & HTTP
+create extension if not exists "pgcrypto";
+create extension if not exists "pg_net";
+create extension if not exists "pg_cron";
 
 create table if not exists public.profiles (
   id uuid not null references auth.users on delete cascade,
@@ -216,6 +220,18 @@ create policy "Admins can delete members" on public.organization_members
           where o.id = public.organization_members.organization_id
           and o.owner_id = auth.uid()
       )
+  );
+
+-- Allow regular members to leave organizations (but not owners)
+drop policy if exists "Members can leave organizations" on public.organization_members;
+create policy "Members can leave organizations" on public.organization_members
+  for delete using (
+    public.organization_members.user_id = auth.uid()
+    and not exists (
+      select 1 from public.organizations o
+      where o.id = public.organization_members.organization_id
+      and o.owner_id = auth.uid()
+    )
   );
 
 -- Function to handle new user signup (also handles organization invite tokens)
@@ -719,3 +735,74 @@ create policy "Users can view own billing events" on public.billing_events
 drop policy if exists "Users can insert own billing events" on public.billing_events;
 create policy "Users can insert own billing events" on public.billing_events
   for insert with check (auth.uid() = user_id);
+
+-- SCHEDULED MESSAGES TABLE FOR WHATSAPP DISPATCH
+create table if not exists public.scheduled_messages (
+  id uuid primary key default gen_random_uuid(),
+  to_phone text not null,
+  message text not null,
+  scheduled_at timestamp with time zone not null,
+  status text not null default 'pending',
+  attempts int not null default 0,
+  last_error text,
+  sent_at timestamp with time zone,
+  provider_message_id text,
+  created_at timestamp with time zone not null default timezone('utc'::text, now())
+);
+
+-- Ensure required columns exist if table was created earlier
+alter table public.scheduled_messages
+  add column if not exists to_phone text not null,
+  add column if not exists message text not null,
+  add column if not exists scheduled_at timestamp with time zone not null,
+  add column if not exists status text not null default 'pending',
+  add column if not exists attempts int not null default 0,
+  add column if not exists last_error text,
+  add column if not exists sent_at timestamp with time zone,
+  add column if not exists provider_message_id text,
+  add column if not exists created_at timestamp with time zone not null default timezone('utc'::text, now());
+
+-- Index for efficient lookup of due messages
+create index if not exists scheduled_messages_status_scheduled_at_idx
+  on public.scheduled_messages (status, scheduled_at);
+
+-- Atomic claim function: marks due messages as 'processing' and returns them
+create or replace function public.claim_due_scheduled_messages(max_batch integer default 50)
+returns setof public.scheduled_messages
+language plpgsql
+as $$
+begin
+  return query
+  update public.scheduled_messages sm
+  set status = 'processing'
+  from (
+    select id
+    from public.scheduled_messages
+    where status = 'pending'
+      and scheduled_at <= timezone('utc'::text, now())
+    order by scheduled_at
+    for update skip locked
+    limit max_batch
+  ) as pending
+  where sm.id = pending.id
+  returning sm.*;
+end;
+$$;
+
+-- Schedule cron job to dispatch due messages every minute
+select
+  cron.schedule(
+    'dispatch_scheduled_messages',
+    '* * * * *',
+    $$
+      select net.http_post(
+        url := 'https://<YOUR_DOMAIN>/api/dispatch',
+        headers := jsonb_build_object(
+          'authorization', 'Bearer CRON_SECRET',
+          'content-type', 'application/json'
+        ),
+        body := '{}'::jsonb
+      );
+    $$
+  );
+

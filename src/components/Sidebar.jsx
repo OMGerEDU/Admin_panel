@@ -28,6 +28,7 @@ export function Sidebar({ className }) {
 
     const settingsChildren = [
         { href: '/app/settings', label: t('settings'), icon: Settings },
+        { href: '/app/organization', label: t('organization_settings') || 'Organization', icon: Building2 },
         { href: '/app/plans', label: t('landing.plans.select'), icon: LayoutDashboard },
         { href: '/app/webhooks', label: t('webhooks'), icon: Webhook },
         { href: '/app/logs', label: t('logs'), icon: FileText },

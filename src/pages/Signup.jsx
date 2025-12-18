@@ -16,6 +16,7 @@ export default function Signup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
@@ -26,7 +27,8 @@ export default function Signup() {
         setSuccess(false);
 
         try {
-            const inviteToken = searchParams.get('invite') || undefined;
+            const urlInvite = searchParams.get('invite') || '';
+            const inviteToken = (inviteCode || '').trim() || urlInvite || undefined;
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
@@ -93,6 +95,21 @@ export default function Signup() {
                                 onChange={(e) => setFullName(e.target.value)}
                                 required 
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="invite" className="text-sm font-medium leading-none">
+                                {t('signup.invite_code_label') || 'Organization invite code (optional)'}
+                            </label>
+                            <Input
+                                id="invite"
+                                placeholder={t('signup.invite_code_placeholder') || 'Paste invite code if you have one'}
+                                value={inviteCode}
+                                onChange={(e) => setInviteCode(e.target.value)}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                {t('signup.invite_code_help') ||
+                                    'Ask an admin to send you an invite link or code. Leave empty to sign up without an organization.'}
+                            </p>
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="email" className="text-sm font-medium leading-none">

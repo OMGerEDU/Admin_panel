@@ -21,6 +21,8 @@ export default function OrganizationSettings() {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviting, setInviting] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
+    const [canLeave, setCanLeave] = useState(false);
     const [invites, setInvites] = useState([]);
     const [creatingInvite, setCreatingInvite] = useState(false);
     const [membersUsage, setMembersUsage] = useState({
@@ -46,15 +48,18 @@ export default function OrganizationSettings() {
             if (orgError) throw orgError;
             setOrg(orgData);
 
-            // Check if user is admin
+            // Check if user is a member / admin
             const { data: memberData } = await supabase
                 .from('organization_members')
-                .select('role')
+                .select('role, user_id')
                 .eq('organization_id', orgId)
                 .eq('user_id', user?.id)
                 .single();
-            
-            setIsAdmin(memberData?.role === 'admin' || orgData.owner_id === user?.id);
+
+            const owner = orgData.owner_id === user?.id;
+            setIsOwner(owner);
+            setIsAdmin(memberData?.role === 'admin' || owner);
+            setCanLeave(!!memberData && !owner);
 
             // Fetch Members
             const { data: membersData, error: membersError } = await supabase
@@ -237,6 +242,27 @@ export default function OrganizationSettings() {
         } catch (error) {
             console.error('Error removing member:', error);
             alert(error.message);
+        }
+    };
+
+    const handleLeaveOrganization = async () => {
+        if (!user || !orgId) return;
+        if (!confirm(t('organization_leave_confirm') || 'Are you sure you want to leave this organization?')) return;
+
+        try {
+            const { error } = await supabase
+                .from('organization_members')
+                .delete()
+                .eq('organization_id', orgId)
+                .eq('user_id', user.id);
+
+            if (error) throw error;
+
+            alert(t('organization_leave_success') || 'You have left the organization.');
+            navigate('/app/organization');
+        } catch (error) {
+            console.error('Error leaving organization:', error);
+            alert(error.message || 'Failed to leave organization');
         }
     };
 
@@ -443,6 +469,28 @@ export default function OrganizationSettings() {
                         </CardContent>
                     </Card>
                 </>
+            )}
+
+            {canLeave && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-destructive">
+                            {t('organization_leave_title') || 'Leave organization'}
+                        </CardTitle>
+                        <CardDescription>
+                            {t('organization_leave_desc') ||
+                                'You will lose access to resources, numbers and logs of this organization.'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            variant="destructive"
+                            onClick={handleLeaveOrganization}
+                        >
+                            {t('organization_leave_button') || 'Leave organization'}
+                        </Button>
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

@@ -119,7 +119,10 @@ const resources = {
                 "creating": "Creating account...",
                 "check_email": "Check your email",
                 "account_created": "Account created! Please check your email to confirm your account.",
-                "already_have_account": "Already have an account?"
+                "already_have_account": "Already have an account?",
+                "invite_code_label": "Organization invite code (optional)",
+                "invite_code_placeholder": "Paste invite code if you have one",
+                "invite_code_help": "Ask an admin to send you an invite link or code. Leave empty to sign up without an organization."
             },
             "landing": {
                 "hero_title": "Manage Green-API Numbers in One Place",
@@ -162,6 +165,12 @@ const resources = {
                     "unlimited": "Unlimited"
                 }
             },
+            "organization_settings": "Organization Settings",
+            "organization_leave_title": "Leave organization",
+            "organization_leave_desc": "You will lose access to numbers, logs and resources of this organization. This action cannot be undone.",
+            "organization_leave_button": "Leave organization",
+            "organization_leave_confirm": "Are you sure you want to leave this organization?",
+            "organization_leave_success": "You have left the organization.",
             "plans_limits": {
                 "numbers_reached": "You’ve reached the maximum number of phone numbers for your current plan. Upgrade your plan to add more.",
                 "instances_reached": "You’ve reached the maximum number of instances for your current plan. Upgrade your plan to add more.",
@@ -385,7 +394,10 @@ const resources = {
                 "creating": "יוצר חשבון...",
                 "check_email": "בדוק את האימייל שלך",
                 "account_created": "החשבון נוצר! אנא בדוק את האימייל שלך כדי לאשר את החשבון.",
-                "already_have_account": "כבר יש לך חשבון?"
+                "already_have_account": "כבר יש לך חשבון?",
+                "invite_code_label": "קוד הזמנה לארגון (לא חובה)",
+                "invite_code_placeholder": "הדבק כאן קוד הזמנה אם יש לך",
+                "invite_code_help": "בקש ממנהל הארגון לשלוח לך לינק או קוד הזמנה. אפשר להשאיר ריק כדי להירשם בלי ארגון."
             },
             "landing": {
                 "hero_title": "נהל מספרי Green-API במקום אחד",
@@ -428,6 +440,12 @@ const resources = {
                     "unlimited": "ללא הגבלה"
                 }
             },
+            "organization_settings": "הגדרות ארגון",
+            "organization_leave_title": "עזיבת ארגון",
+            "organization_leave_desc": "לאחר העזיבה לא תהיה לך גישה למספרים, לוגים ומשאבים של הארגון. לא ניתן לבטל פעולה זו.",
+            "organization_leave_button": "עזוב ארגון",
+            "organization_leave_confirm": "האם אתה בטוח שברצונך לעזוב את הארגון?",
+            "organization_leave_success": "עזבת את הארגון בהצלחה.",
             "plans_limits": {
                 "numbers_reached": "הגעת למספר המקסימלי של מספרי טלפון בתוכנית הנוכחית. כדי להוסיף עוד, שדרג את התוכנית.",
                 "instances_reached": "הגעת למספר המקסימלי של המופעים בתוכנית הנוכחית. כדי להוסיף עוד, שדרג את התוכנית.",
