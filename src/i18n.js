@@ -99,6 +99,7 @@ const resources = {
                 "email": "Email",
                 "password": "Password",
                 "submit": "Sign In",
+                "remember_me": "Remember me",
                 "forgot_password": "Forgot password?",
                 "no_account": "Don't have an account?"
             },
@@ -351,7 +352,8 @@ const resources = {
                 "subtitle": "הכנס את פרטי ההתחברות שלך",
                 "email": "אימייל",
                 "password": "סיסמה",
-                "submit": "התחבר",
+                 "submit": "התחבר",
+                 "remember_me": "זכור אותי",
                 "forgot_password": "שכחת סיסמה?",
                 "no_account": "אין לך חשבון?"
             },

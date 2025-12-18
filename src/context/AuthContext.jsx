@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
+const REMEMBER_ME_KEY = 'rememberMe';
 
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
@@ -20,8 +21,23 @@ export function AuthProvider({ children }) {
                 console.error('Error getting session:', error);
                 // Don't block app if auth fails - might be 404 from missing schema
             }
-            setSession(session);
-            setUser(session?.user ?? null);
+
+            let rememberMe = false;
+            try {
+                if (typeof window !== 'undefined') {
+                    rememberMe = localStorage.getItem(REMEMBER_ME_KEY) === 'true';
+                }
+            } catch (e) {
+                console.error('Error reading rememberMe flag:', e);
+            }
+
+            if (rememberMe) {
+                setSession(session);
+                setUser(session?.user ?? null);
+            } else {
+                setSession(null);
+                setUser(null);
+            }
             setLoading(false);
         }).catch((error) => {
             clearTimeout(timeout);
@@ -31,7 +47,13 @@ export function AuthProvider({ children }) {
 
         let subscription;
         try {
-            const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+            const { data } = supabase.auth.onAuthStateChange((event, session) => {
+                // Ignore INITIAL_SESSION here - it's handled by getSession above,
+                // which also respects the "remember me" preference.
+                if (event === 'INITIAL_SESSION') {
+                    return;
+                }
+
                 setSession(session);
                 setUser(session?.user ?? null);
                 setLoading(false);

@@ -909,9 +909,14 @@ export default function Chats() {
                                 backgroundAttachment: 'fixed'
                             }}
                         >
-                            {/* Overlay for better readability */}
-                            <div className="absolute inset-0 bg-background/30 dark:bg-[#0a1014]/50 pointer-events-none" />
-                            <div className="relative z-10">
+                            {/* Overlay for better readability - very light overlay */}
+                            <div 
+                                className="absolute inset-0 pointer-events-none z-0"
+                                style={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                                }}
+                            />
+                            <div className="relative z-10 space-y-2">
                             {/* Load More Messages Button */}
                             {messages.length > 0 && (
                                 <div className="flex justify-center py-2">
