@@ -12,6 +12,7 @@ import {
     Chrome,
     MessageSquare,
     ChevronDown,
+    Building2,
 } from 'lucide-react';
 
 export function Sidebar({ className }) {

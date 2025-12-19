@@ -179,7 +179,7 @@ export default function OrganizationSettings() {
     };
 
     const createInviteLink = async () => {
-        if (!isAdmin || !orgId) return;
+        if (!isAdmin || !orgId || !user?.id) return;
 
         // Reuse the same check for invite links – don't create links if limit is reached
         if (membersUsage.limit !== -1 && membersUsage.used >= membersUsage.limit) {
@@ -193,12 +193,32 @@ export default function OrganizationSettings() {
                 ? window.crypto.randomUUID()
                 : Math.random().toString(36).slice(2) + Date.now().toString(36);
 
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/2257821c-c44d-4275-bde6-7bd11eb6a724', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: 'debug-session',
+                    runId: 'pre-fix',
+                    hypothesisId: 'H2',
+                    location: 'OrganizationSettings.jsx:createInviteLink',
+                    message: 'Created organization invite token',
+                    data: {
+                        hasOrgId: !!orgId,
+                        tokenPreview: String(token).slice(0, 12),
+                    },
+                    timestamp: Date.now(),
+                }),
+            }).catch(() => { });
+            // #endregion
+
             const { data, error } = await supabase
                 .from('organization_invites')
                 .insert({
                     organization_id: orgId,
                     token,
                     email: inviteEmail || null,
+                    invited_by: user.id,
                     // Optional: set a 7-day expiry
                     expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
                 })

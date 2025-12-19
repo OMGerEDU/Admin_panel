@@ -165,19 +165,19 @@ export default function LandingPage() {
                 </section>
 
                 {/* Pricing Section */}
-            <section className="container space-y-6 py-8 md:py-12 lg:py-24">
-                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                    <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-                        {t('landing.pricing')}
-                    </h2>
-                </div>
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
-                    {/* Free Plan */}
-                    <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
-                        </div>
+                <section className="container space-y-6 py-8 md:py-12 lg:py-24">
+                    <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+                        <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+                            {t('landing.pricing')}
+                        </h2>
+                    </div>
+                    <div className="mx-auto grid max-w-[64rem] grid-cols-1 gap-8 justify-center md:grid-cols-3 md:gap-8">
+                        {/* Free Plan */}
+                        <div className="flex flex-col items-center text-center rounded-lg border bg-background p-6 shadow-sm">
+                            <div className="flex items-center gap-2 justify-center">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
+                            </div>
                         <div className="mt-4 text-4xl font-bold">$0</div>
                         <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
                         <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -191,11 +191,11 @@ export default function LandingPage() {
                     </div>
 
                     {/* Pro Plan */}
-                    <div className="flex flex-col rounded-lg border bg-background p-6 shadow-md border-primary/20 relative">
+                    <div className="flex flex-col items-center text-center rounded-lg border bg-background p-6 shadow-md border-primary/20 relative">
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-blue-600 px-3 py-1 text-xs text-white shadow-md font-medium">
                             {t('landing.plans.popular')}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-center">
                             <Crown className="h-5 w-5 text-yellow-500" />
                             <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
                         </div>
@@ -212,26 +212,26 @@ export default function LandingPage() {
                         </Link>
                     </div>
 
-                    {/* Agency Plan */}
-                    <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5 text-purple-500" />
-                            <h3 className="font-bold text-xl">{t('landing.plans.agency')}</h3>
+                        {/* Agency Plan */}
+                        <div className="flex flex-col items-center text-center rounded-lg border bg-background p-6 shadow-sm">
+                            <div className="flex items-center gap-2 justify-center">
+                                <Building2 className="h-5 w-5 text-purple-500" />
+                                <h3 className="font-bold text-xl">{t('landing.plans.agency')}</h3>
+                            </div>
+                            <div className="mt-4 text-4xl font-bold">$99</div>
+                            <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
+                            <ul className="mt-6 flex-1 space-y-3 text-sm">
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.unlimited')} {t('landing.plans.numbers')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.dedicated_support')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.custom_integrations')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.unlimited')} {t('landing.plans.users')}</li>
+                            </ul>
+                            <Link to="/signup">
+                                <Button className="mt-8 w-full" variant="outline">{t('landing.plans.select')}</Button>
+                            </Link>
                         </div>
-                        <div className="mt-4 text-4xl font-bold">$99</div>
-                        <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
-                        <ul className="mt-6 flex-1 space-y-3 text-sm">
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.unlimited')} {t('landing.plans.numbers')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.dedicated_support')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.custom_integrations')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.unlimited')} {t('landing.plans.users')}</li>
-                        </ul>
-                        <Link to="/signup">
-                            <Button className="mt-8 w-full" variant="outline">{t('landing.plans.select')}</Button>
-                        </Link>
                     </div>
-                </div>
-            </section>
+                </section>
         </main>
 
         {/* Footer */}
@@ -249,7 +249,7 @@ export default function LandingPage() {
 function FeatureCard({ icon, title, description }) {
     return (
         <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <div className="flex h-[180px] flex-col items-center justify-between rounded-md p-6 text-center">
                 {icon}
                 <div className="space-y-2">
                     <h3 className="font-bold">{title}</h3>

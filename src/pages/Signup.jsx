@@ -16,7 +16,9 @@ export default function Signup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
-    const [inviteCode, setInviteCode] = useState('');
+    const initialInviteFromUrl = searchParams.get('invite') || '';
+    const [inviteCode, setInviteCode] = useState(initialInviteFromUrl);
+    const [inviteLocked, setInviteLocked] = useState(!!initialInviteFromUrl);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
@@ -29,6 +31,27 @@ export default function Signup() {
         try {
             const urlInvite = searchParams.get('invite') || '';
             const inviteToken = (inviteCode || '').trim() || urlInvite || undefined;
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/2257821c-c44d-4275-bde6-7bd11eb6a724', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: 'debug-session',
+                    runId: 'pre-fix',
+                    hypothesisId: 'H1',
+                    location: 'Signup.jsx:handleSignup:beforeSignUp',
+                    message: 'Computed invite token before signUp',
+                    data: {
+                        urlInvitePresent: !!urlInvite,
+                        inviteCodePresent: !!inviteCode.trim(),
+                        inviteLocked: !!initialInviteFromUrl,
+                        inviteTokenPreview: inviteToken ? String(inviteToken).slice(0, 12) : null,
+                    },
+                    timestamp: Date.now(),
+                }),
+            }).catch(() => { });
+            // #endregion
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
@@ -40,6 +63,26 @@ export default function Signup() {
                     emailRedirectTo: `${window.location.origin}/app/dashboard`,
                 }
             });
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/2257821c-c44d-4275-bde6-7bd11eb6a724', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: 'debug-session',
+                    runId: 'pre-fix',
+                    hypothesisId: 'H3',
+                    location: 'Signup.jsx:handleSignup:afterSignUp',
+                    message: 'Result of supabase.auth.signUp',
+                    data: {
+                        hasUser: !!data?.user,
+                        hasSession: !!data?.session,
+                        usedInviteToken: !!inviteToken,
+                    },
+                    timestamp: Date.now(),
+                }),
+            }).catch(() => { });
+            // #endregion
 
             if (signUpError) {
                 setError(signUpError.message || 'Failed to create account');
@@ -100,12 +143,26 @@ export default function Signup() {
                             <label htmlFor="invite" className="text-sm font-medium leading-none">
                                 {t('signup.invite_code_label') || 'Organization invite code (optional)'}
                             </label>
-                            <Input
-                                id="invite"
-                                placeholder={t('signup.invite_code_placeholder') || 'Paste invite code if you have one'}
-                                value={inviteCode}
-                                onChange={(e) => setInviteCode(e.target.value)}
-                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    id="invite"
+                                    placeholder={t('signup.invite_code_placeholder') || 'Paste invite code if you have one'}
+                                    value={inviteCode}
+                                    onChange={(e) => setInviteCode(e.target.value)}
+                                    disabled={inviteLocked}
+                                    className="flex-1"
+                                />
+                                {inviteLocked && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setInviteLocked(false)}
+                                    >
+                                        {t('common.replace') || 'Replace'}
+                                    </Button>
+                                )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                                 {t('signup.invite_code_help') ||
                                     'Ask an admin to send you an invite link or code. Leave empty to sign up without an organization.'}

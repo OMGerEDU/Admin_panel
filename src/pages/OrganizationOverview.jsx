@@ -110,6 +110,7 @@ export default function OrganizationOverview() {
   }
 
   const hasOrgs = orgs.length > 0
+  const ownsOrganization = orgs.some((org) => org.owner_id === user.id)
 
   return (
     <div className="space-y-6">
@@ -183,37 +184,62 @@ export default function OrganizationOverview() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              {t('create_org')}
+              {ownsOrganization ? 'Manage organization' : t('create_org')}
             </CardTitle>
             <CardDescription>
-              Create a new organization where you will be the owner and admin.
+              {ownsOrganization
+                ? 'You already own an organization. Each user can own only one organization.'
+                : 'Create a new organization where you will be the owner and admin.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreateOrg} className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">
-                  {t('common.name')}
-                </label>
-                <Input
-                  value={newOrgName}
-                  onChange={(e) => setNewOrgName(e.target.value)}
-                  placeholder={t('create_org')}
-                  required
-                />
+            {ownsOrganization ? (
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  You can own only one organization. To join other organizations, ask an admin to invite
+                  you by email or via an invite link.
+                </p>
+                {orgs
+                  .filter((org) => org.owner_id === user.id)
+                  .map((org) => (
+                    <Button
+                      key={org.id}
+                      variant="outline"
+                      size="sm"
+                      className="mt-1"
+                      onClick={() => navigate(`/app/organization/${org.id}`)}
+                    >
+                      <ArrowRight className="mr-1 h-3 w-3" />
+                      Go to your organization
+                    </Button>
+                  ))}
               </div>
-              <Button type="submit" disabled={saving} className="w-full">
-                {saving ? t('common.loading') : t('create')}
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
-                <Users className="mt-0.5 h-3 w-3" />
-                <span>
-                  To join an existing organization, ask an admin to invite you
-                  by email or send you an invite link. New members are managed
-                  from the organization settings page.
-                </span>
-              </p>
-            </form>
+            ) : (
+              <form onSubmit={handleCreateOrg} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">
+                    {t('common.name')}
+                  </label>
+                  <Input
+                    value={newOrgName}
+                    onChange={(e) => setNewOrgName(e.target.value)}
+                    placeholder={t('create_org')}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={saving} className="w-full">
+                  {saving ? t('common.loading') : t('create')}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
+                  <Users className="mt-0.5 h-3 w-3" />
+                  <span>
+                    To join an existing organization, ask an admin to invite you
+                    by email or send you an invite link. New members are managed
+                    from the organization settings page.
+                  </span>
+                </p>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -43,6 +43,10 @@ create table if not exists public.organizations (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Ensure each user can own at most one organization
+create unique index if not exists organizations_owner_id_unique
+  on public.organizations(owner_id);
+
 -- Enable RLS
 alter table public.organizations enable row level security;
 
@@ -52,21 +56,47 @@ create table if not exists public.organization_invites (
   organization_id uuid references public.organizations(id) on delete cascade not null,
   email text, -- optional hint, can be null for generic invite links
   token text not null unique,
+  invited_by uuid references public.profiles(id),
   status text check (status in ('pending', 'accepted', 'expired')) default 'pending',
   expires_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Ensure required columns exist on older databases where organization_invites
+-- might have been created without the token column
+alter table public.organization_invites
+  add column if not exists token text,
+  add column if not exists invited_by uuid references public.profiles(id);
+
+-- Ensure token is unique for invite links
+create unique index if not exists organization_invites_token_key
+  on public.organization_invites(token);
+
 alter table public.organization_invites enable row level security;
 
--- Org members can view invites
+-- Org members, invitees and internal auth flows (no auth.uid) can view invites
 drop policy if exists "Org members can view invites" on public.organization_invites;
-create policy "Org members can view invites" on public.organization_invites
+drop policy if exists "Org members and invitees can view invites" on public.organization_invites;
+create policy "Org members and invitees can view invites" on public.organization_invites
   for select using (
+    -- Internal flows like auth triggers, where there is no authenticated user context
+    auth.uid() is null
+    OR
+    -- Existing members of the organization
     exists (
       select 1 from public.organization_members om
       where om.organization_id = public.organization_invites.organization_id
       and om.user_id = auth.uid()
+    )
+    OR
+    -- Users who are the target of the invite (by email) or generic invites (email is null)
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+      and (
+        public.organization_invites.email is null
+        or lower(p.email) = lower(public.organization_invites.email)
+      )
     )
   );
 

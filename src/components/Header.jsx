@@ -80,7 +80,8 @@ export function Header() {
 
         if (parts[0] === 'app' && parts[1]) {
             const page = parts[1];
-            if (routeMap[page]) {
+            // Avoid adding a duplicate "dashboard" crumb when already at /app/dashboard
+            if (page !== 'dashboard' && routeMap[page]) {
                 breadcrumbs.push({ label: routeMap[page], path: `/app/${page}` });
             }
         }

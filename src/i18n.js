@@ -58,7 +58,8 @@ const resources = {
                 "refresh": "Refresh",
                 "confirm_delete": "Are you sure you want to delete this item?",
                 "sync": "Sync",
-                "syncing": "Syncing..."
+                "syncing": "Syncing...",
+                "replace": "Change / החלף 🔁"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -333,7 +334,8 @@ const resources = {
                 "refresh": "רענן",
                 "confirm_delete": "האם אתה בטוח שברצונך למחוק פריט זה?",
                 "sync": "סנכרן",
-                "syncing": "מסנכרן..."
+                "syncing": "מסנכרן...",
+                "replace": "Change / החלף 🔁"
             },
             "numbers_page": {
                 "title": "מספרים",
