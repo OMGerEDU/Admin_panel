@@ -55,7 +55,7 @@ export default function OrganizationOverview() {
 
   const handleCreateOrg = async (e) => {
     e.preventDefault()
-    if (!user || !newOrgName.trim()) return
+    if (!user || !newOrgName.trim() || !canCreateOrganization) return
 
     try {
       setSaving(true)
@@ -69,7 +69,15 @@ export default function OrganizationOverview() {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        // Check if error is due to unique constraint (user already owns an org)
+        if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('organizations_owner_id_unique')) {
+          alert('You can only own one organization. If you want to join another organization, ask an admin to invite you.')
+        } else {
+          throw error
+        }
+        return
+      }
 
       // Make sure owner is also a member (role admin)
       const { error: memberError } = await supabase.from('organization_members').insert({
@@ -111,6 +119,9 @@ export default function OrganizationOverview() {
 
   const hasOrgs = orgs.length > 0
   const ownsOrganization = orgs.some((org) => org.owner_id === user.id)
+  // User can only create an organization if they don't own one already
+  // (enforced by unique constraint, but we check in UI too)
+  const canCreateOrganization = !ownsOrganization
 
   return (
     <div className="space-y-6">
@@ -184,16 +195,16 @@ export default function OrganizationOverview() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              {ownsOrganization ? 'Manage organization' : t('create_org')}
+              {canCreateOrganization ? t('create_org') : 'Manage organization'}
             </CardTitle>
             <CardDescription>
-              {ownsOrganization
-                ? 'You already own an organization. Each user can own only one organization.'
-                : 'Create a new organization where you will be the owner and admin.'}
+              {canCreateOrganization
+                ? 'Create a new organization where you will be the owner and admin.'
+                : 'You already own an organization. Each user can own only one organization.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {ownsOrganization ? (
+            {!canCreateOrganization ? (
               <div className="space-y-3 text-sm text-muted-foreground">
                 <p>
                   You can own only one organization. To join other organizations, ask an admin to invite

@@ -155,10 +155,11 @@ export default function Chats() {
         
         try {
             setLoading(true);
+            // Fetch numbers that the user owns OR numbers from organizations they're a member of
+            // RLS policy will handle the filtering, so we just select all accessible numbers
             const { data, error } = await supabase
                 .from('numbers')
                 .select('*')
-                .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

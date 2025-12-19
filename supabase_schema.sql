@@ -208,6 +208,30 @@ create policy "Members can add members" on public.organization_members
             where o.id = organization_id
             and o.owner_id = auth.uid()
         )
+        OR
+        -- Allow self-insert when joining via a valid pending invite
+        -- Note: This check allows any pending invite for the org, since the function
+        -- (security definer) will validate the token match separately
+        (
+          user_id = auth.uid()
+          and exists (
+            select 1 from public.organization_invites oi
+            where oi.organization_id = organization_id
+            and oi.status = 'pending'
+            and (oi.expires_at is null or oi.expires_at > timezone('utc'::text, now()))
+            and (
+              -- Generic invite (no email restriction)
+              oi.email is null
+              or 
+              -- Email-specific invite matches user's email
+              exists (
+                select 1 from public.profiles p
+                where p.id = auth.uid()
+                and lower(p.email) = lower(oi.email)
+              )
+            )
+          )
+        )
       )
       AND
       (
@@ -278,6 +302,8 @@ begin
   if new.raw_user_meta_data ? 'invite_token' then
     v_invite_token := new.raw_user_meta_data->>'invite_token';
 
+    -- Find the invite by token (bypassing RLS since this is security definer)
+    -- We need to use a direct query that doesn't rely on auth.uid()
     select *
     into v_invite
     from public.organization_invites oi
@@ -288,6 +314,7 @@ begin
 
     if found then
       -- Add user as a member of the invited organization
+      -- This should work because the function is security definer
       insert into public.organization_members (organization_id, user_id, role)
       values (v_invite.organization_id, new.id, 'member')
       on conflict (organization_id, user_id) do nothing;
@@ -300,6 +327,11 @@ begin
   end if;
 
   return new;
+exception
+  when others then
+    -- Log error but don't fail user creation
+    raise warning 'Error in handle_new_user for user %: %', new.id, sqlerrm;
+    return new;
 end;
 $$ language plpgsql security definer;
 
