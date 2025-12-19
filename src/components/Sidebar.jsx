@@ -13,6 +13,7 @@ import {
     MessageSquare,
     ChevronDown,
     Building2,
+    CalendarClock,
 } from 'lucide-react';
 
 export function Sidebar({ className }) {
@@ -24,6 +25,7 @@ export function Sidebar({ className }) {
         { href: '/app/dashboard', label: t('dashboard'), icon: LayoutDashboard },
         { href: '/app/chats', label: t('chats'), icon: MessageSquare },
         { href: '/app/numbers', label: t('numbers'), icon: Smartphone },
+        { href: '/app/scheduled', label: t('scheduled.title') || 'Scheduled', icon: CalendarClock },
         { href: '/app/extension', label: t('extension'), icon: Chrome },
     ];
 

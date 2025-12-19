@@ -41,8 +41,8 @@ function normalizePhoneToChatId(phone: string): string {
   return `${cleaned}@c.us`
 }
 
-// GreenAPI send wrapper using user's credentials from numbers table
-async function sendViaGreenApi(
+// GreenAPI send text message
+async function sendTextMessage(
   instanceId: string,
   apiToken: string,
   toPhone: string,
@@ -52,21 +52,13 @@ async function sendViaGreenApi(
     throw new Error('Missing GreenAPI credentials (instance_id or api_token)')
   }
 
-  // Normalize phone to chatId format
   const chatId = normalizePhoneToChatId(toPhone)
-
-  // Construct proper GreenAPI URL
   const url = `${GREEN_API_BASE}/waInstance${instanceId}/sendMessage/${apiToken}`
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      chatId,
-      message,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chatId, message }),
   })
 
   if (!res.ok) {
@@ -75,9 +67,58 @@ async function sendViaGreenApi(
   }
 
   const data = (await res.json().catch(() => ({}))) as { idMessage?: string }
-  return {
-    providerMessageId: data.idMessage ?? null,
+  return { providerMessageId: data.idMessage ?? null }
+}
+
+// GreenAPI send media via URL
+async function sendMediaMessage(
+  instanceId: string,
+  apiToken: string,
+  toPhone: string,
+  mediaUrl: string,
+  mediaFilename: string,
+  caption: string,
+) {
+  if (!instanceId || !apiToken) {
+    throw new Error('Missing GreenAPI credentials (instance_id or api_token)')
   }
+
+  const chatId = normalizePhoneToChatId(toPhone)
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/sendFileByUrl/${apiToken}`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatId,
+      urlFile: mediaUrl,
+      fileName: mediaFilename || 'file',
+      caption: caption || '',
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`GreenAPI media error: ${res.status} ${res.statusText} ${text}`.trim())
+  }
+
+  const data = (await res.json().catch(() => ({}))) as { idMessage?: string }
+  return { providerMessageId: data.idMessage ?? null }
+}
+
+// Combined send function - handles both text and media
+async function sendViaGreenApi(
+  instanceId: string,
+  apiToken: string,
+  toPhone: string,
+  message: string,
+  mediaUrl?: string | null,
+  mediaFilename?: string | null,
+) {
+  if (mediaUrl) {
+    return sendMediaMessage(instanceId, apiToken, toPhone, mediaUrl, mediaFilename || 'file', message)
+  }
+  return sendTextMessage(instanceId, apiToken, toPhone, message)
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -133,6 +174,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const numberId: string = msg.number_id
       const toPhone: string = msg.to_phone
       const text: string = msg.message
+      const mediaUrl: string | null = msg.media_url || null
+      const mediaFilename: string | null = msg.media_filename || null
 
       // Fetch the number's credentials
       const { data: numberData, error: numberError } = await supabase
@@ -192,6 +235,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           numberData.api_token,
           toPhone,
           text,
+          mediaUrl,
+          mediaFilename,
         )
 
         const { error: updateError } = await supabase
@@ -206,6 +251,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (updateError) {
           throw updateError
+        }
+
+        // If recurring, reschedule for next occurrence
+        if (msg.is_recurring) {
+          await supabase.rpc('reschedule_recurring_message', { p_message_id: id })
         }
 
         sentCount += 1

@@ -801,6 +801,7 @@ create policy "Users can insert own billing events" on public.billing_events
 -- SCHEDULED MESSAGES TABLE FOR WHATSAPP DISPATCH
 create table if not exists public.scheduled_messages (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
   number_id uuid references public.numbers(id) on delete cascade not null,
   to_phone text not null,
   message text not null,
@@ -810,11 +811,27 @@ create table if not exists public.scheduled_messages (
   last_error text,
   sent_at timestamp with time zone,
   provider_message_id text,
+  -- Recurring schedule support
+  is_recurring boolean not null default false,
+  recurrence_type text check (recurrence_type in ('daily', 'weekly', 'monthly')),
+  day_of_week int check (day_of_week >= 0 and day_of_week <= 6), -- 0=Sunday, 6=Saturday
+  time_of_day time,
+  is_active boolean not null default true,
+  -- Media support
+  media_url text,
+  media_type text check (media_type in ('image', 'video', 'audio', 'document')),
+  media_filename text,
+  -- Community template support
+  is_community_template boolean not null default false,
+  template_name text,
+  template_description text,
+  copied_from_id uuid references public.scheduled_messages(id) on delete set null,
   created_at timestamp with time zone not null default timezone('utc'::text, now())
 );
 
 -- Ensure required columns exist if table was created earlier
 alter table public.scheduled_messages
+  add column if not exists user_id uuid references public.profiles(id) on delete cascade,
   add column if not exists number_id uuid references public.numbers(id) on delete cascade,
   add column if not exists to_phone text,
   add column if not exists message text,
@@ -824,15 +841,53 @@ alter table public.scheduled_messages
   add column if not exists last_error text,
   add column if not exists sent_at timestamp with time zone,
   add column if not exists provider_message_id text,
+  add column if not exists is_recurring boolean not null default false,
+  add column if not exists recurrence_type text,
+  add column if not exists day_of_week int,
+  add column if not exists time_of_day time,
+  add column if not exists is_active boolean not null default true,
+  add column if not exists media_url text,
+  add column if not exists media_type text,
+  add column if not exists media_filename text,
+  add column if not exists is_community_template boolean not null default false,
+  add column if not exists template_name text,
+  add column if not exists template_description text,
+  add column if not exists copied_from_id uuid references public.scheduled_messages(id) on delete set null,
   add column if not exists created_at timestamp with time zone not null default timezone('utc'::text, now());
 
--- Note: If number_id column was just added and contains nulls, you may need to:
--- 1. Update existing rows to set number_id to a valid number
--- 2. Then add the NOT NULL constraint:
---    alter table public.scheduled_messages alter column number_id set not null;
---    alter table public.scheduled_messages alter column to_phone set not null;
---    alter table public.scheduled_messages alter column message set not null;
---    alter table public.scheduled_messages alter column scheduled_at set not null;
+-- Enable RLS for scheduled_messages
+alter table public.scheduled_messages enable row level security;
+
+-- Users can view their own scheduled messages
+drop policy if exists "Users can view own scheduled messages" on public.scheduled_messages;
+create policy "Users can view own scheduled messages" on public.scheduled_messages
+  for select using (
+    auth.uid() = user_id
+    OR is_community_template = true
+  );
+
+-- Users can insert their own scheduled messages
+drop policy if exists "Users can insert own scheduled messages" on public.scheduled_messages;
+create policy "Users can insert own scheduled messages" on public.scheduled_messages
+  for insert with check (auth.uid() = user_id);
+
+-- Users can update their own scheduled messages
+drop policy if exists "Users can update own scheduled messages" on public.scheduled_messages;
+create policy "Users can update own scheduled messages" on public.scheduled_messages
+  for update using (auth.uid() = user_id);
+
+-- Users can delete their own scheduled messages
+drop policy if exists "Users can delete own scheduled messages" on public.scheduled_messages;
+create policy "Users can delete own scheduled messages" on public.scheduled_messages
+  for delete using (auth.uid() = user_id);
+
+-- Index for user's messages
+create index if not exists scheduled_messages_user_id_idx
+  on public.scheduled_messages (user_id);
+
+-- Index for community templates
+create index if not exists scheduled_messages_community_template_idx
+  on public.scheduled_messages (is_community_template) where is_community_template = true;
 
 -- Index for efficient lookup of due messages
 create index if not exists scheduled_messages_status_scheduled_at_idx
@@ -851,6 +906,7 @@ begin
     select id
     from public.scheduled_messages
     where status = 'pending'
+      and is_active = true
       and scheduled_at <= timezone('utc'::text, now())
     order by scheduled_at
     for update skip locked
@@ -858,6 +914,46 @@ begin
   ) as pending
   where sm.id = pending.id
   returning sm.*;
+end;
+$$;
+
+-- Function to reschedule recurring messages after send
+create or replace function public.reschedule_recurring_message(p_message_id uuid)
+returns void
+language plpgsql
+as $$
+declare
+  v_msg record;
+  v_next_scheduled_at timestamp with time zone;
+begin
+  select * into v_msg from public.scheduled_messages where id = p_message_id;
+  
+  if not found or not v_msg.is_recurring then
+    return;
+  end if;
+  
+  -- Calculate next scheduled_at based on recurrence_type
+  case v_msg.recurrence_type
+    when 'daily' then
+      v_next_scheduled_at := v_msg.scheduled_at + interval '1 day';
+    when 'weekly' then
+      v_next_scheduled_at := v_msg.scheduled_at + interval '1 week';
+    when 'monthly' then
+      v_next_scheduled_at := v_msg.scheduled_at + interval '1 month';
+    else
+      return; -- Unknown recurrence type
+  end case;
+  
+  -- Update the message with new scheduled_at and reset status
+  update public.scheduled_messages
+  set 
+    scheduled_at = v_next_scheduled_at,
+    status = 'pending',
+    attempts = 0,
+    last_error = null,
+    sent_at = null,
+    provider_message_id = null
+  where id = p_message_id;
 end;
 $$;
 
