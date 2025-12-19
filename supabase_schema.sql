@@ -801,10 +801,11 @@ create policy "Users can insert own billing events" on public.billing_events
 -- SCHEDULED MESSAGES TABLE FOR WHATSAPP DISPATCH
 create table if not exists public.scheduled_messages (
   id uuid primary key default gen_random_uuid(),
+  number_id uuid references public.numbers(id) on delete cascade not null,
   to_phone text not null,
   message text not null,
   scheduled_at timestamp with time zone not null,
-  status text not null default 'pending',
+  status text not null default 'pending' check (status in ('pending', 'processing', 'sent', 'failed', 'cancelled')),
   attempts int not null default 0,
   last_error text,
   sent_at timestamp with time zone,
@@ -814,15 +815,24 @@ create table if not exists public.scheduled_messages (
 
 -- Ensure required columns exist if table was created earlier
 alter table public.scheduled_messages
-  add column if not exists to_phone text not null,
-  add column if not exists message text not null,
-  add column if not exists scheduled_at timestamp with time zone not null,
+  add column if not exists number_id uuid references public.numbers(id) on delete cascade,
+  add column if not exists to_phone text,
+  add column if not exists message text,
+  add column if not exists scheduled_at timestamp with time zone,
   add column if not exists status text not null default 'pending',
   add column if not exists attempts int not null default 0,
   add column if not exists last_error text,
   add column if not exists sent_at timestamp with time zone,
   add column if not exists provider_message_id text,
   add column if not exists created_at timestamp with time zone not null default timezone('utc'::text, now());
+
+-- Note: If number_id column was just added and contains nulls, you may need to:
+-- 1. Update existing rows to set number_id to a valid number
+-- 2. Then add the NOT NULL constraint:
+--    alter table public.scheduled_messages alter column number_id set not null;
+--    alter table public.scheduled_messages alter column to_phone set not null;
+--    alter table public.scheduled_messages alter column message set not null;
+--    alter table public.scheduled_messages alter column scheduled_at set not null;
 
 -- Index for efficient lookup of due messages
 create index if not exists scheduled_messages_status_scheduled_at_idx
@@ -852,6 +862,10 @@ end;
 $$;
 
 -- Schedule cron job to dispatch due messages every minute
+-- NOTE: Replace <YOUR_DOMAIN> with your actual Vercel domain (e.g., 'admin-panel-788h-git-main-omgeredus-projects.vercel.app')
+-- NOTE: Replace YOUR_CRON_SECRET_HERE with your actual CRON_SECRET value from Vercel environment variables
+-- To schedule, run this SQL in Supabase SQL Editor:
+/*
 select
   cron.schedule(
     'dispatch_scheduled_messages',
@@ -860,11 +874,31 @@ select
       select net.http_post(
         url := 'https://<YOUR_DOMAIN>/api/dispatch',
         headers := jsonb_build_object(
-          'authorization', 'Bearer CRON_SECRET',
+          'authorization', 'Bearer YOUR_CRON_SECRET_HERE',
           'content-type', 'application/json'
         ),
         body := '{}'::jsonb
       );
     $$
   );
+*/
+
+-- SQL Snippets for Cron Job Management:
+-- 
+-- 1. List all cron jobs:
+--    select * from cron.job;
+--
+-- 2. List cron job execution history:
+--    select * from cron.job_run_details order by start_time desc limit 50;
+--
+-- 3. Unschedule the dispatch job:
+--    select cron.unschedule('dispatch_scheduled_messages');
+--
+-- 4. Reschedule with different interval (e.g., every 5 minutes):
+--    select cron.unschedule('dispatch_scheduled_messages');
+--    select cron.schedule(
+--      'dispatch_scheduled_messages',
+--      '*/5 * * * *',
+--      $$ ... (same as above) $$
+--    );
 

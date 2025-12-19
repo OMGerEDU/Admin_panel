@@ -4,11 +4,10 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 const CRON_SECRET = process.env.CRON_SECRET as string
-const GREENAPI_BASE_URL = process.env.GREENAPI_INSTANCE_URL as string
-const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN as string
 
 const BATCH_SIZE = 50
 const MAX_ATTEMPTS = 5
+const GREEN_API_BASE = 'https://api.green-api.com'
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing Supabase service configuration')
@@ -18,19 +17,54 @@ const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROL
   auth: { persistSession: false },
 })
 
-// Minimal GreenAPI send wrapper (adjust endpoint/payload to your actual GreenAPI setup)
-async function sendViaGreenApi(toPhone: string, message: string) {
-  const base = (GREENAPI_BASE_URL || '').replace(/\/+$/, '')
-  const url = `${base}/sendMessage`
+// Normalize phone number to GreenAPI chatId format (e.g., "972501234567@c.us")
+function normalizePhoneToChatId(phone: string): string {
+  // Remove all non-digit characters except +
+  let cleaned = phone.replace(/[^\d+]/g, '')
+
+  // Remove + if present
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.substring(1)
+  }
+
+  // If starts with 0, replace with 972 (Israeli number)
+  if (cleaned.startsWith('0')) {
+    cleaned = '972' + cleaned.substring(1)
+  }
+
+  // If doesn't start with 972, prepend it (assume Israeli number)
+  if (!cleaned.startsWith('972')) {
+    cleaned = '972' + cleaned
+  }
+
+  // Return in chatId format
+  return `${cleaned}@c.us`
+}
+
+// GreenAPI send wrapper using user's credentials from numbers table
+async function sendViaGreenApi(
+  instanceId: string,
+  apiToken: string,
+  toPhone: string,
+  message: string,
+) {
+  if (!instanceId || !apiToken) {
+    throw new Error('Missing GreenAPI credentials (instance_id or api_token)')
+  }
+
+  // Normalize phone to chatId format
+  const chatId = normalizePhoneToChatId(toPhone)
+
+  // Construct proper GreenAPI URL
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/sendMessage/${apiToken}`
 
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${GREENAPI_TOKEN}`,
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      to: toPhone,
+      chatId,
       message,
     }),
   })
@@ -96,11 +130,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     for (const msg of messages) {
       const id: string = msg.id
+      const numberId: string = msg.number_id
       const toPhone: string = msg.to_phone
       const text: string = msg.message
 
+      // Fetch the number's credentials
+      const { data: numberData, error: numberError } = await supabase
+        .from('numbers')
+        .select('instance_id, api_token')
+        .eq('id', numberId)
+        .single()
+
+      if (numberError || !numberData) {
+        const errorMessage = numberError?.message || 'Number not found'
+        console.error(`Error fetching number ${numberId} for message ${id}:`, errorMessage)
+
+        // Mark as failed
+        await supabase
+          .from('scheduled_messages')
+          .update({
+            status: 'failed',
+            last_error: `Failed to fetch number credentials: ${errorMessage}`,
+            attempts: (msg.attempts || 0) + 1,
+          })
+          .eq('id', id)
+
+        failedCount += 1
+        results.push({
+          id,
+          status: 'failed',
+          error: errorMessage,
+        })
+        continue
+      }
+
+      if (!numberData.instance_id || !numberData.api_token) {
+        const errorMessage = 'Number missing instance_id or api_token'
+        console.error(`Number ${numberId} missing credentials for message ${id}`)
+
+        await supabase
+          .from('scheduled_messages')
+          .update({
+            status: 'failed',
+            last_error: errorMessage,
+            attempts: (msg.attempts || 0) + 1,
+          })
+          .eq('id', id)
+
+        failedCount += 1
+        results.push({
+          id,
+          status: 'failed',
+          error: errorMessage,
+        })
+        continue
+      }
+
       try {
-        const { providerMessageId } = await sendViaGreenApi(toPhone, text)
+        const { providerMessageId } = await sendViaGreenApi(
+          numberData.instance_id,
+          numberData.api_token,
+          toPhone,
+          text,
+        )
 
         const { error: updateError } = await supabase
           .from('scheduled_messages')
