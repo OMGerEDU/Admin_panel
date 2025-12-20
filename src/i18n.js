@@ -321,7 +321,14 @@ const resources = {
                 "by": "by",
                 "copy_to_account": "Copy to My Account",
                 "copied_success": "Template copied to your account!",
-                "go_to_template": "Go to Template"
+                "go_to_template": "Go to Template",
+                "send_now": "Send Now ⚡",
+                "send_now_title": "Send Message Now? ⚡",
+                "send_now_message": "Are you sure you want to send this message right now?",
+                "remember_option": "Remember this option (skip confirmation next time)",
+                "send_now_confirm": "Send Now ⚡",
+                "missing_credentials": "Missing number credentials",
+                "send_now_error": "Failed to send message"
             }
         }
     },
@@ -644,7 +651,14 @@ const resources = {
                 "by": "מאת",
                 "copy_to_account": "העתק לחשבון שלי",
                 "copied_success": "התבנית הועתקה לחשבון שלך!",
-                "go_to_template": "עבור לתבנית"
+                "go_to_template": "עבור לתבנית",
+                "send_now": "שלח עכשיו ⚡",
+                "send_now_title": "לשלוח הודעה עכשיו? ⚡",
+                "send_now_message": "האם אתה בטוח שברצונך לשלוח את ההודעה הזו עכשיו?",
+                "remember_option": "זכור את האפשרות הזו (דלג על אישור בפעם הבאה)",
+                "send_now_confirm": "שלח עכשיו ⚡",
+                "missing_credentials": "חסרים פרטי מספר",
+                "send_now_error": "שליחת ההודעה נכשלה"
             }
         }
     }

@@ -957,8 +957,11 @@ export default function ScheduledMessages() {
 
                             {/* Message */}
                             <p className="text-sm text-muted-foreground">
-                                {t('scheduled.send_now_message') || 
-                                `Are you sure you want to send this message to ${sendNowDialog.message.to_phone} right now?`}
+                                {t('scheduled.send_now_message') || 'Are you sure you want to send this message right now?'}
+                                <br />
+                                <span className="font-medium text-foreground">
+                                    {t('scheduled.recipient') || 'Recipient'}: {sendNowDialog.message.to_phone}
+                                </span>
                             </p>
 
                             {/* Message preview */}
