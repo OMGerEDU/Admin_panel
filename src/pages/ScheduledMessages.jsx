@@ -27,6 +27,7 @@ import {
     Send,
     Pause,
     Play,
+    Zap,
 } from 'lucide-react';
 
 // Status badge component
@@ -73,6 +74,8 @@ export default function ScheduledMessages() {
     const [editingMessage, setEditingMessage] = useState(null);
     const [saving, setSaving] = useState(false);
     const [copiedToast, setCopiedToast] = useState(null);
+    const [sendNowDialog, setSendNowDialog] = useState(null); // { message: msg, remember: false }
+    const [sendingNow, setSendingNow] = useState(false);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -105,7 +108,7 @@ export default function ScheduledMessages() {
             setLoading(true);
             const { data, error } = await supabase
                 .from('scheduled_messages')
-                .select('*, numbers(phone_number)')
+                .select('*, numbers(phone_number, instance_id, api_token)')
                 .eq('user_id', user.id)
                 .order('scheduled_at', { ascending: true });
 
@@ -319,6 +322,117 @@ export default function ScheduledMessages() {
         }
     };
 
+    // Normalize phone number to chatId format (like dispatch.ts)
+    const normalizePhoneToChatId = (phone) => {
+        let cleaned = phone.replace(/\D/g, '');
+        if (cleaned.startsWith('0')) {
+            cleaned = '972' + cleaned.substring(1);
+        }
+        if (!cleaned.startsWith('972')) {
+            cleaned = '972' + cleaned;
+        }
+        return `${cleaned}@c.us`;
+    };
+
+    // Send message immediately via Green API
+    const sendMessageNow = async (msg) => {
+        if (!msg.numbers?.instance_id || !msg.numbers?.api_token) {
+            alert(t('scheduled.missing_credentials') || 'Missing number credentials');
+            return;
+        }
+
+        try {
+            setSendingNow(true);
+            const chatId = normalizePhoneToChatId(msg.to_phone);
+            const url = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendMessage/${msg.numbers.api_token}`;
+
+            // Send text message
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chatId, message: msg.message }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`GreenAPI error: ${response.status} ${errorText}`);
+            }
+
+            const data = await response.json();
+            const providerMessageId = data.idMessage || null;
+
+            // If there's media, send it too
+            if (msg.media_url && msg.media_type) {
+                const mediaUrl = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendFileByUrl/${msg.numbers.api_token}`;
+                await fetch(mediaUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chatId,
+                        urlFile: msg.media_url,
+                        fileName: msg.media_filename || 'file',
+                        caption: msg.message,
+                    }),
+                });
+            }
+
+            // Update scheduled message status to 'sent' first
+            const updateData = {
+                status: 'sent',
+                sent_at: new Date().toISOString(),
+                provider_message_id: providerMessageId,
+                last_error: null,
+            };
+
+            const { error: updateError } = await supabase
+                .from('scheduled_messages')
+                .update(updateData)
+                .eq('id', msg.id);
+
+            if (updateError) throw updateError;
+
+            // If recurring, reschedule for next occurrence (this will reset status to 'pending')
+            if (msg.is_recurring) {
+                const { error: rpcError } = await supabase.rpc('reschedule_recurring_message', {
+                    p_message_id: msg.id,
+                });
+                if (rpcError) {
+                    console.error('Error rescheduling recurring message:', rpcError);
+                }
+            }
+
+            setSendNowDialog(null);
+            fetchMessages();
+        } catch (err) {
+            console.error('Error sending message now:', err);
+            alert(err.message || t('scheduled.send_now_error') || 'Failed to send message');
+        } finally {
+            setSendingNow(false);
+        }
+    };
+
+    // Handle Send Now button click
+    const handleSendNow = (msg) => {
+        const rememberPreference = localStorage.getItem('scheduled_send_now_skip_confirm');
+        if (rememberPreference === 'true') {
+            // Skip confirmation if user chose to remember
+            sendMessageNow(msg);
+        } else {
+            // Show confirmation dialog
+            setSendNowDialog({ message: msg, remember: false });
+        }
+    };
+
+    // Handle confirmation dialog confirm
+    const handleConfirmSendNow = () => {
+        if (sendNowDialog) {
+            if (sendNowDialog.remember) {
+                localStorage.setItem('scheduled_send_now_skip_confirm', 'true');
+            }
+            sendMessageNow(sendNowDialog.message);
+        }
+    };
+
     // Filter messages by active tab
     const filteredMessages = messages.filter((msg) => {
         if (activeTab === 'active') return msg.is_active;
@@ -529,6 +643,17 @@ export default function ScheduledMessages() {
 
                                         {/* Actions */}
                                         <div className="flex items-center gap-1">
+                                            {msg.status === 'pending' && msg.is_active && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleSendNow(msg)}
+                                                    title={t('scheduled.send_now') || 'Send Now'}
+                                                    className="text-green-600 hover:text-green-700 dark:text-green-400"
+                                                >
+                                                    <Zap className="h-4 w-4" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -811,6 +936,70 @@ export default function ScheduledMessages() {
                                 </Button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Send Now Confirmation Dialog */}
+            {sendNowDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-card border rounded-lg shadow-xl w-full max-w-md m-4 animate-in zoom-in-95">
+                        <div className="p-6 space-y-4">
+                            {/* Cute header */}
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                                    <Zap className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold">
+                                    {t('scheduled.send_now_title') || 'Send Message Now?'}
+                                </h3>
+                            </div>
+
+                            {/* Message */}
+                            <p className="text-sm text-muted-foreground">
+                                {t('scheduled.send_now_message') || 
+                                `Are you sure you want to send this message to ${sendNowDialog.message.to_phone} right now?`}
+                            </p>
+
+                            {/* Message preview */}
+                            <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                                <p className="line-clamp-3">{sendNowDialog.message.message}</p>
+                            </div>
+
+                            {/* Remember option */}
+                            <label className="flex items-center gap-2 cursor-pointer pt-2">
+                                <input
+                                    type="checkbox"
+                                    checked={sendNowDialog.remember}
+                                    onChange={(e) => setSendNowDialog({ ...sendNowDialog, remember: e.target.checked })}
+                                    className="text-primary rounded"
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    {t('scheduled.remember_option') || 'Remember this option (skip confirmation next time)'}
+                                </span>
+                            </label>
+
+                            {/* Actions */}
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setSendNowDialog(null)}
+                                    disabled={sendingNow}
+                                >
+                                    {t('common.cancel') || 'Cancel'}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={handleConfirmSendNow}
+                                    disabled={sendingNow}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                    {sendingNow && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {t('scheduled.send_now_confirm') || 'Send Now'}
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
