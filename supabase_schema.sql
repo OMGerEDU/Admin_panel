@@ -893,6 +893,72 @@ create index if not exists scheduled_messages_community_template_idx
 create index if not exists scheduled_messages_status_scheduled_at_idx
   on public.scheduled_messages (status, scheduled_at);
 
+-- SCHEDULED MESSAGE RECIPIENTS TABLE (for multiple recipients support)
+create table if not exists public.scheduled_message_recipients (
+  id uuid primary key default gen_random_uuid(),
+  scheduled_message_id uuid references public.scheduled_messages(id) on delete cascade not null,
+  phone_number text not null,
+  status text not null default 'pending' check (status in ('pending', 'sent', 'failed')),
+  sent_at timestamp with time zone,
+  provider_message_id text,
+  error_message text,
+  created_at timestamp with time zone not null default timezone('utc'::text, now())
+);
+
+-- Index for efficient lookup
+create index if not exists scheduled_message_recipients_message_id_idx
+  on public.scheduled_message_recipients (scheduled_message_id);
+
+create index if not exists scheduled_message_recipients_status_idx
+  on public.scheduled_message_recipients (status);
+
+-- Enable RLS for scheduled_message_recipients
+alter table public.scheduled_message_recipients enable row level security;
+
+-- Users can view recipients of their own scheduled messages
+drop policy if exists "Users can view own message recipients" on public.scheduled_message_recipients;
+create policy "Users can view own message recipients" on public.scheduled_message_recipients
+  for select using (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
+-- Users can insert recipients for their own scheduled messages
+drop policy if exists "Users can insert own message recipients" on public.scheduled_message_recipients;
+create policy "Users can insert own message recipients" on public.scheduled_message_recipients
+  for insert with check (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
+-- Users can update recipients of their own scheduled messages
+drop policy if exists "Users can update own message recipients" on public.scheduled_message_recipients;
+create policy "Users can update own message recipients" on public.scheduled_message_recipients
+  for update using (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
+-- Users can delete recipients of their own scheduled messages
+drop policy if exists "Users can delete own message recipients" on public.scheduled_message_recipients;
+create policy "Users can delete own message recipients" on public.scheduled_message_recipients
+  for delete using (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
 -- Atomic claim function: marks due messages as 'processing' and returns them
 create or replace function public.claim_due_scheduled_messages(max_batch integer default 50)
 returns setof public.scheduled_messages

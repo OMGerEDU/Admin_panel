@@ -172,7 +172,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     for (const msg of messages) {
       const id: string = msg.id
       const numberId: string = msg.number_id
-      const toPhone: string = msg.to_phone
       const text: string = msg.message
       const mediaUrl: string | null = msg.media_url || null
       const mediaFilename: string | null = msg.media_filename || null
@@ -229,46 +228,150 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         continue
       }
 
+      // Fetch all recipients for this message
+      const { data: recipientsData } = await supabase
+        .from('scheduled_message_recipients')
+        .select('id, phone_number')
+        .eq('scheduled_message_id', id)
+        .eq('status', 'pending')
+
+      // Fallback to old to_phone if no recipients table entries
+      const recipients = recipientsData && recipientsData.length > 0
+        ? recipientsData
+        : (msg.to_phone ? [{ id: null, phone_number: msg.to_phone }] : [])
+
+      if (recipients.length === 0) {
+        console.error(`No recipients found for message ${id}`)
+        await supabase
+          .from('scheduled_messages')
+          .update({
+            status: 'failed',
+            last_error: 'No recipients found',
+            attempts: (msg.attempts || 0) + 1,
+          })
+          .eq('id', id)
+        failedCount += 1
+        results.push({
+          id,
+          status: 'failed',
+          error: 'No recipients found',
+        })
+        continue
+      }
+
+      let recipientSuccessCount = 0
+      let recipientFailCount = 0
+      const now = new Date().toISOString()
+
+      // Send to all recipients
+      for (const recipient of recipients) {
+        try {
+          const { providerMessageId } = await sendViaGreenApi(
+            numberData.instance_id,
+            numberData.api_token,
+            recipient.phone_number,
+            text,
+            mediaUrl,
+            mediaFilename,
+          )
+
+          // Update recipient status if exists in table
+          if (recipient.id) {
+            await supabase
+              .from('scheduled_message_recipients')
+              .update({
+                status: 'sent',
+                sent_at: now,
+                provider_message_id: providerMessageId,
+              })
+              .eq('id', recipient.id)
+          }
+
+          recipientSuccessCount++
+        } catch (err: any) {
+          const errorMessage = err?.message || String(err)
+          console.error(`Error sending to ${recipient.phone_number} for message ${id}:`, errorMessage)
+          recipientFailCount++
+
+          // Update recipient status if exists in table
+          if (recipient.id) {
+            await supabase
+              .from('scheduled_message_recipients')
+              .update({
+                status: 'failed',
+                error_message: errorMessage,
+              })
+              .eq('id', recipient.id)
+          }
+        }
+      }
+
+      // Update message status based on recipient results
+      const allSent = recipientFailCount === 0
+      const someSent = recipientSuccessCount > 0
+
       try {
-        const { providerMessageId } = await sendViaGreenApi(
-          numberData.instance_id,
-          numberData.api_token,
-          toPhone,
-          text,
-          mediaUrl,
-          mediaFilename,
-        )
+        const updateData: any = {
+          sent_at: allSent ? now : null,
+          last_error: recipientFailCount > 0 ? `${recipientFailCount} recipients failed` : null,
+        }
+
+        if (allSent) {
+          updateData.status = 'sent'
+          updateData.provider_message_id = recipients[0]?.id ? null : 'multiple' // For backward compatibility
+        } else if (someSent) {
+          updateData.status = 'processing' // Some sent, some failed - keep processing
+        } else {
+          // All failed
+          const attempts: number = typeof msg.attempts === 'number' ? msg.attempts : 0
+          const nextAttempts = attempts + 1
+          updateData.status = nextAttempts < MAX_ATTEMPTS ? 'pending' : 'failed'
+          updateData.attempts = nextAttempts
+        }
 
         const { error: updateError } = await supabase
           .from('scheduled_messages')
-          .update({
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-            provider_message_id: providerMessageId,
-            last_error: null,
-          })
+          .update(updateData)
           .eq('id', id)
 
         if (updateError) {
           throw updateError
         }
 
-        // If recurring, reschedule for next occurrence
-        if (msg.is_recurring) {
+        // If recurring and all sent, reschedule for next occurrence
+        if (msg.is_recurring && allSent) {
           await supabase.rpc('reschedule_recurring_message', { p_message_id: id })
         }
 
-        sentCount += 1
-        results.push({ id, status: 'sent' })
+        if (allSent) {
+          sentCount += 1
+          results.push({ id, status: 'sent' })
+        } else if (someSent) {
+          retryCount += 1
+          results.push({ id, status: 'processing' })
+        } else {
+          const attempts: number = typeof msg.attempts === 'number' ? msg.attempts : 0
+          const nextStatus = attempts + 1 < MAX_ATTEMPTS ? 'pending' : 'failed'
+          if (nextStatus === 'pending') {
+            retryCount += 1
+          } else {
+            failedCount += 1
+          }
+          results.push({
+            id,
+            status: nextStatus,
+            error: `All ${recipients.length} recipients failed`,
+          })
+        }
       } catch (err: any) {
         const errorMessage = err?.message || String(err)
-        console.error(`Error sending scheduled message ${id}:`, errorMessage)
+        console.error(`Error updating scheduled message ${id}:`, errorMessage)
 
         const attempts: number = typeof msg.attempts === 'number' ? msg.attempts : 0
         const nextAttempts = attempts + 1
         const nextStatus = nextAttempts < MAX_ATTEMPTS ? 'pending' : 'failed'
 
-        const { error: updateError } = await supabase
+        await supabase
           .from('scheduled_messages')
           .update({
             attempts: nextAttempts,
@@ -276,10 +379,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             status: nextStatus,
           })
           .eq('id', id)
-
-        if (updateError) {
-          console.error('Error updating failed scheduled message row:', updateError)
-        }
 
         if (nextStatus === 'pending') {
           retryCount += 1

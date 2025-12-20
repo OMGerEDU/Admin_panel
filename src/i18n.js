@@ -331,7 +331,12 @@ const resources = {
                 "missing_credentials": "Missing number credentials",
                 "send_now_error": "Failed to send message",
                 "edit_desc": "Update your scheduled message details",
-                "create_desc": "Schedule a new WhatsApp message to be sent automatically"
+                "create_desc": "Schedule a new WhatsApp message to be sent automatically",
+                "recipients": "Recipients",
+                "recipient": "Recipient",
+                "recipients_count": "recipients",
+                "add_recipient": "Add Recipient",
+                "no_recipients": "No recipients"
             }
         }
     },
@@ -664,7 +669,12 @@ const resources = {
                 "missing_credentials": "חסרים פרטי מספר",
                 "send_now_error": "שליחת ההודעה נכשלה",
                 "edit_desc": "עדכן את פרטי ההודעה המתוזמנת שלך",
-                "create_desc": "תזמן הודעת WhatsApp חדשה לשליחה אוטומטית"
+                "create_desc": "תזמן הודעת WhatsApp חדשה לשליחה אוטומטית",
+                "recipients": "נמענים",
+                "recipient": "נמען",
+                "recipients_count": "נמענים",
+                "add_recipient": "הוסף נמען",
+                "no_recipients": "אין נמענים"
             }
         }
     }

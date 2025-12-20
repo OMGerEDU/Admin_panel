@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import {
     ArrowLeft,
     Loader2,
+    Plus,
+    X,
 } from 'lucide-react';
 
 // Days of week for recurring
@@ -28,7 +30,7 @@ export default function ScheduledMessageEdit() {
     // Form state
     const [formData, setFormData] = useState({
         number_id: '',
-        to_phone: '',
+        recipients: [''], // Array of phone numbers
         message: '',
         is_recurring: false,
         recurrence_type: 'daily',
@@ -44,85 +46,94 @@ export default function ScheduledMessageEdit() {
     });
 
     useEffect(() => {
-        if (user) {
-            fetchNumbers();
-            if (isEditing) {
-                fetchMessage();
-            } else {
-                // Set defaults for new message
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                setFormData({
-                    ...formData,
-                    scheduled_date: tomorrow.toISOString().split('T')[0],
-                    scheduled_time: '09:00',
-                });
+        if (!user) {
+            return;
+        }
+        
+        const loadData = async () => {
+            try {
+                // Fetch numbers
+                const { data: numbersData } = await supabase
+                    .from('numbers')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                setNumbers(numbersData || []);
+                
+                if (isEditing && id) {
+                    // Fetch message
+                    const { data: messageData, error } = await supabase
+                        .from('scheduled_messages')
+                        .select('*')
+                        .eq('id', id)
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (error) throw error;
+                    if (!messageData) {
+                        navigate('/app/scheduled');
+                        return;
+                    }
+
+                    // Fetch recipients
+                    const { data: recipientsData } = await supabase
+                        .from('scheduled_message_recipients')
+                        .select('phone_number')
+                        .eq('scheduled_message_id', id)
+                        .order('created_at', { ascending: true });
+
+                    const recipients = recipientsData && recipientsData.length > 0
+                        ? recipientsData.map(r => r.phone_number)
+                        : (messageData.to_phone ? [messageData.to_phone] : ['']); // Fallback to old to_phone for backward compatibility
+
+                    const scheduledAt = new Date(messageData.scheduled_at);
+                    setFormData({
+                        number_id: messageData.number_id || '',
+                        recipients: recipients,
+                        message: messageData.message || '',
+                        is_recurring: messageData.is_recurring || false,
+                        recurrence_type: messageData.recurrence_type || 'daily',
+                        day_of_week: messageData.day_of_week || 0,
+                        scheduled_date: scheduledAt.toISOString().split('T')[0],
+                        scheduled_time: scheduledAt.toTimeString().slice(0, 5),
+                        media_url: messageData.media_url || '',
+                        media_type: messageData.media_type || '',
+                        media_filename: messageData.media_filename || '',
+                        is_community_template: messageData.is_community_template || false,
+                        template_name: messageData.template_name || '',
+                        template_description: messageData.template_description || '',
+                    });
+                } else {
+                    // Set defaults for new message
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    setFormData(prev => ({
+                        ...prev,
+                        scheduled_date: tomorrow.toISOString().split('T')[0],
+                        scheduled_time: '09:00',
+                        number_id: numbersData?.[0]?.id || '',
+                    }));
+                }
+            } catch (err) {
+                console.error('Error loading data:', err);
+                alert('Failed to load data. Redirecting...');
+                navigate('/app/scheduled');
+            } finally {
                 setLoading(false);
             }
-        }
-    }, [user, id]);
+        };
 
-    const fetchNumbers = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('numbers')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setNumbers(data || []);
-            if (data && data.length > 0 && !isEditing) {
-                setFormData(prev => ({ ...prev, number_id: data[0]?.id || '' }));
-            }
-        } catch (err) {
-            console.error('Error fetching numbers:', err);
-        }
-    };
-
-    const fetchMessage = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('scheduled_messages')
-                .select('*')
-                .eq('id', id)
-                .eq('user_id', user.id)
-                .single();
-
-            if (error) throw error;
-            if (!data) {
-                navigate('/app/scheduled');
-                return;
-            }
-
-            const scheduledAt = new Date(data.scheduled_at);
-            setFormData({
-                number_id: data.number_id || '',
-                to_phone: data.to_phone || '',
-                message: data.message || '',
-                is_recurring: data.is_recurring || false,
-                recurrence_type: data.recurrence_type || 'daily',
-                day_of_week: data.day_of_week || 0,
-                scheduled_date: scheduledAt.toISOString().split('T')[0],
-                scheduled_time: scheduledAt.toTimeString().slice(0, 5),
-                media_url: data.media_url || '',
-                media_type: data.media_type || '',
-                media_filename: data.media_filename || '',
-                is_community_template: data.is_community_template || false,
-                template_name: data.template_name || '',
-                template_description: data.template_description || '',
-            });
-        } catch (err) {
-            console.error('Error fetching scheduled message:', err);
-            navigate('/app/scheduled');
-        } finally {
-            setLoading(false);
-        }
-    };
+        loadData();
+    }, [user, id, isEditing, navigate]);
 
     const handleSave = async (e) => {
         e.preventDefault();
-        if (!user || !formData.number_id || !formData.to_phone || !formData.message) return;
+        // Filter out empty recipients
+        const validRecipients = formData.recipients.filter(r => r.trim() !== '');
+        if (!user || !formData.number_id || validRecipients.length === 0 || !formData.message) {
+            alert('Please fill in all required fields including at least one recipient');
+            return;
+        }
 
         try {
             setSaving(true);
@@ -130,10 +141,11 @@ export default function ScheduledMessageEdit() {
             // Build scheduled_at from date + time
             const scheduledAt = new Date(`${formData.scheduled_date}T${formData.scheduled_time}:00`);
 
+            // Keep to_phone for backward compatibility (use first recipient)
             const payload = {
                 user_id: user.id,
                 number_id: formData.number_id,
-                to_phone: formData.to_phone,
+                to_phone: validRecipients[0], // Keep for backward compatibility
                 message: formData.message,
                 scheduled_at: scheduledAt.toISOString(),
                 is_recurring: formData.is_recurring,
@@ -149,18 +161,48 @@ export default function ScheduledMessageEdit() {
                 template_description: formData.is_community_template ? formData.template_description : null,
             };
 
+            let messageId;
             if (isEditing) {
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('scheduled_messages')
                     .update(payload)
-                    .eq('id', id);
+                    .eq('id', id)
+                    .select('id')
+                    .single();
                 if (error) throw error;
+                messageId = data.id;
             } else {
                 payload.status = 'pending';
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('scheduled_messages')
-                    .insert(payload);
+                    .insert(payload)
+                    .select('id')
+                    .single();
                 if (error) throw error;
+                messageId = data.id;
+            }
+
+            // Save recipients
+            // Delete old recipients if editing
+            if (isEditing) {
+                await supabase
+                    .from('scheduled_message_recipients')
+                    .delete()
+                    .eq('scheduled_message_id', messageId);
+            }
+
+            // Insert new recipients
+            const recipientsToInsert = validRecipients.map(phone => ({
+                scheduled_message_id: messageId,
+                phone_number: phone.trim(),
+                status: 'pending',
+            }));
+
+            if (recipientsToInsert.length > 0) {
+                const { error: recipientsError } = await supabase
+                    .from('scheduled_message_recipients')
+                    .insert(recipientsToInsert);
+                if (recipientsError) throw recipientsError;
             }
 
             navigate('/app/scheduled');
@@ -171,6 +213,16 @@ export default function ScheduledMessageEdit() {
             setSaving(false);
         }
     };
+
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <p className="text-muted-foreground">Please log in to continue</p>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -228,17 +280,54 @@ export default function ScheduledMessageEdit() {
                             </select>
                         </div>
 
-                        {/* Recipient Phone */}
+                        {/* Recipients */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                {t('scheduled.recipient') || 'Recipient Phone'} *
+                                {t('scheduled.recipients') || 'Recipients'} * 
+                                <span className="text-xs text-muted-foreground ml-2">
+                                    ({formData.recipients.filter(r => r.trim() !== '').length} {t('scheduled.recipients_count') || 'recipients'})
+                                </span>
                             </label>
-                            <Input
-                                value={formData.to_phone}
-                                onChange={(e) => setFormData({ ...formData, to_phone: e.target.value })}
-                                placeholder="+972501234567"
-                                required
-                            />
+                            <div className="space-y-2">
+                                {formData.recipients.map((recipient, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input
+                                            value={recipient}
+                                            onChange={(e) => {
+                                                const newRecipients = [...formData.recipients];
+                                                newRecipients[index] = e.target.value;
+                                                setFormData({ ...formData, recipients: newRecipients });
+                                            }}
+                                            placeholder="+972501234567"
+                                            className="flex-1"
+                                        />
+                                        {formData.recipients.length > 1 && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    const newRecipients = formData.recipients.filter((_, i) => i !== index);
+                                                    setFormData({ ...formData, recipients: newRecipients });
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setFormData({ ...formData, recipients: [...formData.recipients, ''] });
+                                    }}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {t('scheduled.add_recipient') || 'Add Recipient'}
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Message */}
@@ -421,4 +510,3 @@ export default function ScheduledMessageEdit() {
         </div>
     );
 }
-

@@ -94,7 +94,23 @@ export default function ScheduledMessages() {
                 .order('scheduled_at', { ascending: true });
 
             if (error) throw error;
-            setMessages(data || []);
+            
+            // Fetch recipient counts for each message
+            const messagesWithRecipients = await Promise.all(
+                (data || []).map(async (msg) => {
+                    const { count } = await supabase
+                        .from('scheduled_message_recipients')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('scheduled_message_id', msg.id);
+                    
+                    return {
+                        ...msg,
+                        recipient_count: count || (msg.to_phone ? 1 : 0), // Fallback to 1 if old format
+                    };
+                })
+            );
+            
+            setMessages(messagesWithRecipients);
         } catch (err) {
             console.error('Error fetching scheduled messages:', err);
         } finally {
@@ -140,7 +156,7 @@ export default function ScheduledMessages() {
         if (e) {
             e.stopPropagation();
         }
-        navigate(`/app/scheduled/${msg.id}/edit`);
+        navigate(`/app/scheduled/${msg.id}`);
     };
 
     const handleDelete = async (id, e) => {
@@ -185,12 +201,18 @@ export default function ScheduledMessages() {
                 scheduledAt.setDate(scheduledAt.getDate() + 1);
             }
 
+            // Fetch template recipients
+            const { data: templateRecipients } = await supabase
+                .from('scheduled_message_recipients')
+                .select('phone_number')
+                .eq('scheduled_message_id', template.id);
+
             const { data, error } = await supabase
                 .from('scheduled_messages')
                 .insert({
                     user_id: user.id,
                     number_id: numbers[0]?.id || null,
-                    to_phone: '',
+                    to_phone: templateRecipients?.[0]?.phone_number || template.to_phone || '', // Keep for backward compatibility
                     message: template.message,
                     scheduled_at: scheduledAt.toISOString(),
                     is_recurring: template.is_recurring,
@@ -207,6 +229,21 @@ export default function ScheduledMessages() {
                 })
                 .select()
                 .single();
+
+            if (error) throw error;
+
+            // Copy recipients if they exist
+            if (templateRecipients && templateRecipients.length > 0) {
+                const recipientsToInsert = templateRecipients.map(r => ({
+                    scheduled_message_id: data.id,
+                    phone_number: r.phone_number,
+                    status: 'pending',
+                }));
+
+                await supabase
+                    .from('scheduled_message_recipients')
+                    .insert(recipientsToInsert);
+            }
 
             if (error) throw error;
 
@@ -242,45 +279,100 @@ export default function ScheduledMessages() {
 
         try {
             setSendingNow(true);
-            const chatId = normalizePhoneToChatId(msg.to_phone);
-            const url = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendMessage/${msg.numbers.api_token}`;
+            
+            // Fetch all recipients
+            const { data: recipientsData } = await supabase
+                .from('scheduled_message_recipients')
+                .select('id, phone_number')
+                .eq('scheduled_message_id', msg.id)
+                .eq('status', 'pending');
 
-            // Send text message
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chatId, message: msg.message }),
-            });
+            // Fallback to old to_phone if no recipients table entries
+            const recipients = recipientsData && recipientsData.length > 0
+                ? recipientsData
+                : (msg.to_phone ? [{ id: null, phone_number: msg.to_phone }] : []);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`GreenAPI error: ${response.status} ${errorText}`);
+            if (recipients.length === 0) {
+                alert(t('scheduled.no_recipients') || 'No recipients found');
+                return;
             }
 
-            const data = await response.json();
-            const providerMessageId = data.idMessage || null;
+            let successCount = 0;
+            let failCount = 0;
+            const now = new Date().toISOString();
 
-            // If there's media, send it too
-            if (msg.media_url && msg.media_type) {
-                const mediaUrl = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendFileByUrl/${msg.numbers.api_token}`;
-                await fetch(mediaUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chatId,
-                        urlFile: msg.media_url,
-                        fileName: msg.media_filename || 'file',
-                        caption: msg.message,
-                    }),
-                });
+            // Send to all recipients
+            for (const recipient of recipients) {
+                try {
+                    const chatId = normalizePhoneToChatId(recipient.phone_number);
+                    const url = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendMessage/${msg.numbers.api_token}`;
+
+                    // Send text message
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chatId, message: msg.message }),
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`GreenAPI error: ${response.status} ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    const providerMessageId = data.idMessage || null;
+
+                    // If there's media, send it too
+                    if (msg.media_url && msg.media_type) {
+                        const mediaUrl = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendFileByUrl/${msg.numbers.api_token}`;
+                        await fetch(mediaUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chatId,
+                                urlFile: msg.media_url,
+                                fileName: msg.media_filename || 'file',
+                                caption: msg.message,
+                            }),
+                        });
+                    }
+
+                    // Update recipient status if exists in table
+                    if (recipient.id) {
+                        await supabase
+                            .from('scheduled_message_recipients')
+                            .update({
+                                status: 'sent',
+                                sent_at: now,
+                                provider_message_id: providerMessageId,
+                            })
+                            .eq('id', recipient.id);
+                    }
+
+                    successCount++;
+                } catch (err) {
+                    console.error(`Error sending to ${recipient.phone_number}:`, err);
+                    failCount++;
+                    
+                    // Update recipient status if exists in table
+                    if (recipient.id) {
+                        await supabase
+                            .from('scheduled_message_recipients')
+                            .update({
+                                status: 'failed',
+                                error_message: err.message,
+                            })
+                            .eq('id', recipient.id);
+                    }
+                }
             }
 
-            // Update scheduled message status to 'sent' first
+            // Update scheduled message status
+            const allSent = failCount === 0;
             const updateData = {
-                status: 'sent',
-                sent_at: new Date().toISOString(),
-                provider_message_id: providerMessageId,
-                last_error: null,
+                status: allSent ? 'sent' : (successCount > 0 ? 'processing' : 'failed'),
+                sent_at: allSent ? now : null,
+                last_error: failCount > 0 ? `${failCount} recipients failed` : null,
             };
 
             const { error: updateError } = await supabase
@@ -291,7 +383,7 @@ export default function ScheduledMessages() {
             if (updateError) throw updateError;
 
             // If recurring, reschedule for next occurrence (this will reset status to 'pending')
-            if (msg.is_recurring) {
+            if (msg.is_recurring && allSent) {
                 const { error: rpcError } = await supabase.rpc('reschedule_recurring_message', {
                     p_message_id: msg.id,
                 });
@@ -302,6 +394,10 @@ export default function ScheduledMessages() {
 
             setSendNowDialog(null);
             fetchMessages();
+            
+            if (failCount > 0) {
+                alert(`${successCount} sent, ${failCount} failed`);
+            }
         } catch (err) {
             console.error('Error sending message now:', err);
             alert(err.message || t('scheduled.send_now_error') || 'Failed to send message');
@@ -526,7 +622,9 @@ export default function ScheduledMessages() {
                                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Phone className="h-3 w-3" />
-                                                    {msg.to_phone}
+                                                    {msg.recipient_count > 1 
+                                                        ? `${msg.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
+                                                        : msg.to_phone || t('scheduled.no_recipients') || 'No recipients'}
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Send className="h-3 w-3" />
@@ -607,7 +705,7 @@ export default function ScheduledMessages() {
                         onClick={() => {
                             const msg = messages.find((m) => m.id === copiedToast);
                             if (msg) {
-                                navigate(`/app/scheduled/${msg.id}/edit`);
+                                navigate(`/app/scheduled/${msg.id}`);
                             }
                             setCopiedToast(null);
                         }}
@@ -640,7 +738,9 @@ export default function ScheduledMessages() {
                                 {t('scheduled.send_now_message') || 'Are you sure you want to send this message right now?'}
                                 <br />
                                 <span className="font-medium text-foreground">
-                                    {t('scheduled.recipient') || 'Recipient'}: {sendNowDialog.message.to_phone}
+                                    {sendNowDialog.message.recipient_count > 1
+                                        ? `${sendNowDialog.message.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
+                                        : `${t('scheduled.recipient') || 'Recipient'}: ${sendNowDialog.message.to_phone || t('scheduled.no_recipients') || 'No recipients'}`}
                                 </span>
                             </p>
 
