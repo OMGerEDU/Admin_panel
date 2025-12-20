@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Button } from '../components/ui/button';
 import { Smartphone, AlertTriangle, CheckCircle2, Activity, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import WelcomeModal from '../components/WelcomeModal';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -18,10 +19,60 @@ export default function Dashboard() {
         apiUsage: 0,
         recentActivity: []
     });
+    const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+    const [onboardingState, setOnboardingState] = useState({
+        hasNumbers: false,
+        hasScheduledMessages: false
+    });
 
     useEffect(() => {
         fetchDashboardData();
     }, [user]);
+
+    // Check if user should see onboarding modal
+    useEffect(() => {
+        if (!user || loading) return;
+
+        const checkOnboarding = async () => {
+            try {
+                // Check if onboarding was already completed
+                const onboardingCompleted = localStorage.getItem('onboarding_completed');
+                if (onboardingCompleted === 'true') {
+                    return;
+                }
+
+                // Check numbers count
+                const { count: numbersCount } = await supabase
+                    .from('numbers')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                // Check scheduled messages count
+                const { count: scheduledCount } = await supabase
+                    .from('scheduled_messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                const hasNumbers = (numbersCount || 0) > 0;
+                const hasScheduledMessages = (scheduledCount || 0) > 0;
+
+                setOnboardingState({
+                    hasNumbers,
+                    hasScheduledMessages
+                });
+
+                // Show modal if user hasn't completed onboarding
+                // (either no numbers or no scheduled messages)
+                if (!hasNumbers || !hasScheduledMessages) {
+                    setShowWelcomeModal(true);
+                }
+            } catch (error) {
+                console.error('Error checking onboarding status:', error);
+            }
+        };
+
+        checkOnboarding();
+    }, [user, loading]);
 
     const fetchDashboardData = async () => {
         if (!user) return;
@@ -71,6 +122,12 @@ export default function Dashboard() {
                 apiUsage: apiUsageCount || 0, // API calls approximated from log activity
                 recentActivity: recentLogs || []
             });
+
+            // Update onboarding state based on fetched data
+            setOnboardingState({
+                hasNumbers: totalNumbers > 0,
+                hasScheduledMessages: false // Will be updated separately if needed
+            });
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {
@@ -109,8 +166,42 @@ export default function Dashboard() {
         }
     ];
 
+    const handleOnboardingComplete = () => {
+        setShowWelcomeModal(false);
+        // Refresh onboarding state
+        const checkState = async () => {
+            if (!user) return;
+            try {
+                const { count: numbersCount } = await supabase
+                    .from('numbers')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                const { count: scheduledCount } = await supabase
+                    .from('scheduled_messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                setOnboardingState({
+                    hasNumbers: (numbersCount || 0) > 0,
+                    hasScheduledMessages: (scheduledCount || 0) > 0
+                });
+            } catch (error) {
+                console.error('Error refreshing onboarding state:', error);
+            }
+        };
+        checkState();
+    };
+
     return (
         <div className="space-y-6">
+            <WelcomeModal
+                isOpen={showWelcomeModal}
+                onClose={() => setShowWelcomeModal(false)}
+                hasNumbers={onboardingState.hasNumbers}
+                hasScheduledMessages={onboardingState.hasScheduledMessages}
+                onComplete={handleOnboardingComplete}
+            />
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">{t('dashboard')}</h2>
