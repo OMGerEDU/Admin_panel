@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -62,6 +63,7 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 
 export default function ScheduledMessages() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { user } = useAuth();
 
     // State
@@ -70,30 +72,9 @@ export default function ScheduledMessages() {
     const [communityTemplates, setCommunityTemplates] = useState([]);
     const [numbers, setNumbers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [editingMessage, setEditingMessage] = useState(null);
-    const [saving, setSaving] = useState(false);
     const [copiedToast, setCopiedToast] = useState(null);
     const [sendNowDialog, setSendNowDialog] = useState(null); // { message: msg, remember: false }
     const [sendingNow, setSendingNow] = useState(false);
-
-    // Form state
-    const [formData, setFormData] = useState({
-        number_id: '',
-        to_phone: '',
-        message: '',
-        is_recurring: false,
-        recurrence_type: 'daily',
-        day_of_week: 0,
-        scheduled_date: '',
-        scheduled_time: '',
-        media_url: '',
-        media_type: '',
-        media_filename: '',
-        is_community_template: false,
-        template_name: '',
-        template_description: '',
-    });
 
     useEffect(() => {
         if (user) {
@@ -152,105 +133,20 @@ export default function ScheduledMessages() {
     };
 
     const handleCreate = () => {
-        setEditingMessage(null);
-        setFormData({
-            number_id: numbers[0]?.id || '',
-            to_phone: '',
-            message: '',
-            is_recurring: false,
-            recurrence_type: 'daily',
-            day_of_week: 0,
-            scheduled_date: new Date().toISOString().split('T')[0],
-            scheduled_time: '09:00',
-            media_url: '',
-            media_type: '',
-            media_filename: '',
-            is_community_template: false,
-            template_name: '',
-            template_description: '',
-        });
-        setShowModal(true);
+        navigate('/app/scheduled/new');
     };
 
-    const handleEdit = (msg) => {
-        const scheduledAt = new Date(msg.scheduled_at);
-        setEditingMessage(msg);
-        setFormData({
-            number_id: msg.number_id || '',
-            to_phone: msg.to_phone || '',
-            message: msg.message || '',
-            is_recurring: msg.is_recurring || false,
-            recurrence_type: msg.recurrence_type || 'daily',
-            day_of_week: msg.day_of_week || 0,
-            scheduled_date: scheduledAt.toISOString().split('T')[0],
-            scheduled_time: scheduledAt.toTimeString().slice(0, 5),
-            media_url: msg.media_url || '',
-            media_type: msg.media_type || '',
-            media_filename: msg.media_filename || '',
-            is_community_template: msg.is_community_template || false,
-            template_name: msg.template_name || '',
-            template_description: msg.template_description || '',
-        });
-        setShowModal(true);
-    };
-
-    const handleSave = async (e) => {
-        e.preventDefault();
-        if (!user || !formData.number_id || !formData.to_phone || !formData.message) return;
-
-        try {
-            setSaving(true);
-
-            // Build scheduled_at from date + time
-            const scheduledAt = new Date(`${formData.scheduled_date}T${formData.scheduled_time}:00`);
-
-            const payload = {
-                user_id: user.id,
-                number_id: formData.number_id,
-                to_phone: formData.to_phone,
-                message: formData.message,
-                scheduled_at: scheduledAt.toISOString(),
-                is_recurring: formData.is_recurring,
-                recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
-                day_of_week: formData.is_recurring && formData.recurrence_type === 'weekly' ? formData.day_of_week : null,
-                time_of_day: formData.scheduled_time,
-                is_active: true,
-                media_url: formData.media_url || null,
-                media_type: formData.media_type || null,
-                media_filename: formData.media_filename || null,
-                is_community_template: formData.is_community_template,
-                template_name: formData.is_community_template ? formData.template_name : null,
-                template_description: formData.is_community_template ? formData.template_description : null,
-            };
-
-            if (editingMessage) {
-                const { error } = await supabase
-                    .from('scheduled_messages')
-                    .update(payload)
-                    .eq('id', editingMessage.id);
-                if (error) throw error;
-            } else {
-                payload.status = 'pending';
-                const { error } = await supabase
-                    .from('scheduled_messages')
-                    .insert(payload);
-                if (error) throw error;
-            }
-
-            setShowModal(false);
-            fetchMessages();
-            if (formData.is_community_template) {
-                fetchCommunityTemplates();
-            }
-        } catch (err) {
-            console.error('Error saving scheduled message:', err);
-            alert(err.message || 'Failed to save');
-        } finally {
-            setSaving(false);
+    const handleEdit = (msg, e) => {
+        if (e) {
+            e.stopPropagation();
         }
+        navigate(`/app/scheduled/${msg.id}/edit`);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
         if (!confirm(t('scheduled.confirm_delete') || 'Are you sure you want to delete this scheduled message?')) return;
 
         try {
@@ -265,7 +161,10 @@ export default function ScheduledMessages() {
         }
     };
 
-    const handleToggleActive = async (msg) => {
+    const handleToggleActive = async (msg, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
         try {
             const { error } = await supabase
                 .from('scheduled_messages')
@@ -412,7 +311,10 @@ export default function ScheduledMessages() {
     };
 
     // Handle Send Now button click
-    const handleSendNow = (msg) => {
+    const handleSendNow = (msg, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
         const rememberPreference = localStorage.getItem('scheduled_send_now_skip_confirm');
         if (rememberPreference === 'true') {
             // Skip confirmation if user chose to remember
@@ -586,7 +488,11 @@ export default function ScheduledMessages() {
                         </div>
                     ) : (
                         filteredMessages.map((msg) => (
-                            <Card key={msg.id} className={`relative ${!msg.is_active ? 'opacity-60' : ''}`}>
+                            <Card 
+                                key={msg.id} 
+                                className={`relative cursor-pointer transition-all hover:shadow-md ${!msg.is_active ? 'opacity-60' : ''}`}
+                                onClick={() => handleEdit(msg)}
+                            >
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0 space-y-2">
@@ -643,11 +549,11 @@ export default function ScheduledMessages() {
 
                                         {/* Actions */}
                                         <div className="flex items-center gap-1">
-                                            {msg.status === 'pending' && msg.is_active && (
+                                            {msg.is_active && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleSendNow(msg)}
+                                                    onClick={(e) => handleSendNow(msg, e)}
                                                     title={t('scheduled.send_now') || 'Send Now'}
                                                     className="text-green-600 hover:text-green-700 dark:text-green-400"
                                                 >
@@ -657,7 +563,7 @@ export default function ScheduledMessages() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => handleToggleActive(msg)}
+                                                onClick={(e) => handleToggleActive(msg, e)}
                                                 title={msg.is_active ? 'Deactivate' : 'Activate'}
                                             >
                                                 {msg.is_active ? (
@@ -669,14 +575,14 @@ export default function ScheduledMessages() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => handleEdit(msg)}
+                                                onClick={(e) => handleEdit(msg, e)}
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => handleDelete(msg.id)}
+                                                onClick={(e) => handleDelete(msg.id, e)}
                                             >
                                                 <Trash2 className="h-4 w-4 text-red-500" />
                                             </Button>
@@ -700,7 +606,9 @@ export default function ScheduledMessages() {
                         className="text-white hover:bg-green-700"
                         onClick={() => {
                             const msg = messages.find((m) => m.id === copiedToast);
-                            if (msg) handleEdit(msg);
+                            if (msg) {
+                                navigate(`/app/scheduled/${msg.id}/edit`);
+                            }
                             setCopiedToast(null);
                         }}
                     >
@@ -709,234 +617,6 @@ export default function ScheduledMessages() {
                     <button onClick={() => setCopiedToast(null)} className="hover:bg-green-700 p-1 rounded">
                         <X className="h-4 w-4" />
                     </button>
-                </div>
-            )}
-
-            {/* Create/Edit Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-card border rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto m-4">
-                        <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">
-                                {editingMessage
-                                    ? t('scheduled.edit') || 'Edit Scheduled Message'
-                                    : t('scheduled.create') || 'Create Scheduled Message'}
-                            </h3>
-                            <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSave} className="p-6 space-y-4">
-                            {/* Source Number */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {t('scheduled.source_number') || 'Source Number'} *
-                                </label>
-                                <select
-                                    value={formData.number_id}
-                                    onChange={(e) => setFormData({ ...formData, number_id: e.target.value })}
-                                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                                    required
-                                >
-                                    <option value="">{t('scheduled.select_number') || 'Select a number'}</option>
-                                    {numbers.map((num) => (
-                                        <option key={num.id} value={num.id}>
-                                            {num.phone_number}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Recipient Phone */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {t('scheduled.recipient') || 'Recipient Phone'} *
-                                </label>
-                                <Input
-                                    value={formData.to_phone}
-                                    onChange={(e) => setFormData({ ...formData, to_phone: e.target.value })}
-                                    placeholder="+972501234567"
-                                    required
-                                />
-                            </div>
-
-                            {/* Message */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {t('scheduled.message') || 'Message'} *
-                                </label>
-                                <textarea
-                                    value={formData.message}
-                                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[100px] resize-y"
-                                    placeholder={t('scheduled.message_placeholder') || 'Enter your message...'}
-                                    required
-                                />
-                            </div>
-
-                            {/* Media URL */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {t('scheduled.media_url') || 'Media URL (optional)'}
-                                </label>
-                                <Input
-                                    value={formData.media_url}
-                                    onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
-                                    placeholder="https://example.com/image.jpg"
-                                />
-                                {formData.media_url && (
-                                    <div className="flex gap-2">
-                                        <select
-                                            value={formData.media_type}
-                                            onChange={(e) => setFormData({ ...formData, media_type: e.target.value })}
-                                            className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
-                                        >
-                                            <option value="">{t('scheduled.media_type') || 'Media type'}</option>
-                                            <option value="image">{t('scheduled.image') || 'Image'}</option>
-                                            <option value="video">{t('scheduled.video') || 'Video'}</option>
-                                            <option value="audio">{t('scheduled.audio') || 'Audio'}</option>
-                                            <option value="document">{t('scheduled.document') || 'Document'}</option>
-                                        </select>
-                                        <Input
-                                            value={formData.media_filename}
-                                            onChange={(e) => setFormData({ ...formData, media_filename: e.target.value })}
-                                            placeholder={t('scheduled.filename') || 'Filename'}
-                                            className="flex-1"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Schedule Type */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {t('scheduled.schedule_type') || 'Schedule Type'}
-                                </label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            checked={!formData.is_recurring}
-                                            onChange={() => setFormData({ ...formData, is_recurring: false })}
-                                            className="text-primary"
-                                        />
-                                        <span className="text-sm">{t('scheduled.one_time') || 'One-time'}</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            checked={formData.is_recurring}
-                                            onChange={() => setFormData({ ...formData, is_recurring: true })}
-                                            className="text-primary"
-                                        />
-                                        <span className="text-sm">{t('scheduled.recurring') || 'Recurring'}</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Recurrence Options */}
-                            {formData.is_recurring && (
-                                <div className="space-y-2 pl-4 border-l-2 border-primary/20">
-                                    <select
-                                        value={formData.recurrence_type}
-                                        onChange={(e) => setFormData({ ...formData, recurrence_type: e.target.value })}
-                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                                    >
-                                        <option value="daily">{t('scheduled.daily') || 'Daily'}</option>
-                                        <option value="weekly">{t('scheduled.weekly') || 'Weekly'}</option>
-                                        <option value="monthly">{t('scheduled.monthly') || 'Monthly'}</option>
-                                    </select>
-
-                                    {formData.recurrence_type === 'weekly' && (
-                                        <select
-                                            value={formData.day_of_week}
-                                            onChange={(e) => setFormData({ ...formData, day_of_week: parseInt(e.target.value) })}
-                                            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                                        >
-                                            {DAYS_OF_WEEK.map((day, index) => (
-                                                <option key={index} value={index}>
-                                                    {day}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Date & Time */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        {formData.is_recurring
-                                            ? t('scheduled.start_date') || 'Start Date'
-                                            : t('scheduled.date') || 'Date'} *
-                                    </label>
-                                    <Input
-                                        type="date"
-                                        value={formData.scheduled_date}
-                                        onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        {t('scheduled.time') || 'Time'} *
-                                    </label>
-                                    <Input
-                                        type="time"
-                                        value={formData.scheduled_time}
-                                        onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Publish to Community */}
-                            <div className="space-y-2 pt-4 border-t">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.is_community_template}
-                                        onChange={(e) => setFormData({ ...formData, is_community_template: e.target.checked })}
-                                        className="text-primary"
-                                    />
-                                    <span className="text-sm font-medium">
-                                        {t('scheduled.publish_community') || 'Publish to Community Templates'}
-                                    </span>
-                                </label>
-
-                                {formData.is_community_template && (
-                                    <div className="space-y-2 pl-6">
-                                        <Input
-                                            value={formData.template_name}
-                                            onChange={(e) => setFormData({ ...formData, template_name: e.target.value })}
-                                            placeholder={t('scheduled.template_name') || 'Template name'}
-                                        />
-                                        <textarea
-                                            value={formData.template_description}
-                                            onChange={(e) => setFormData({ ...formData, template_description: e.target.value })}
-                                            className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[60px] resize-y"
-                                            placeholder={t('scheduled.template_description') || 'Describe this template...'}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Submit */}
-                            <div className="flex justify-end gap-2 pt-4">
-                                <Button type="button" variant="outline" onClick={() => setShowModal(false)}>
-                                    {t('common.cancel') || 'Cancel'}
-                                </Button>
-                                <Button type="submit" disabled={saving}>
-                                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {editingMessage
-                                        ? t('common.save') || 'Save'
-                                        : t('scheduled.create') || 'Create'}
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             )}
 

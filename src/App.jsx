@@ -20,6 +20,7 @@ import OrganizationSettings from './pages/OrganizationSettings'
 import OrganizationOverview from './pages/OrganizationOverview'
 import Plans from './pages/Plans'
 import ScheduledMessages from './pages/ScheduledMessages'
+import ScheduledMessageEdit from './pages/ScheduledMessageEdit'
 import './index.css'
 
 function App() {
@@ -48,6 +49,8 @@ function App() {
                   <Route path="chats" element={<Chats />} />
                   <Route path="numbers" element={<Numbers />} />
                   <Route path="scheduled" element={<ScheduledMessages />} />
+                  <Route path="scheduled/new" element={<ScheduledMessageEdit />} />
+                  <Route path="scheduled/:id" element={<ScheduledMessageEdit />} />
                   <Route path="webhooks" element={<Webhooks />} />
                   <Route path="logs" element={<Logs />} />
                   <Route path="automation" element={<Automation />} />

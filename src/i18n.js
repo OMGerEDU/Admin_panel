@@ -37,7 +37,7 @@ const resources = {
             "synced_successfully": "synced successfully",
             "ago": "ago",
             "chart_placeholder": "Chart Placeholder",
-            "common": {
+                "common": {
                 "name": "Name",
                 "actions": "Actions",
                 "filter": "Filter",
@@ -59,7 +59,8 @@ const resources = {
                 "confirm_delete": "Are you sure you want to delete this item?",
                 "sync": "Sync",
                 "syncing": "Syncing...",
-                "replace": "Change / החלף 🔁"
+                "replace": "Change / החלף 🔁",
+                "back": "Back"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -328,7 +329,9 @@ const resources = {
                 "remember_option": "Remember this option (skip confirmation next time)",
                 "send_now_confirm": "Send Now ⚡",
                 "missing_credentials": "Missing number credentials",
-                "send_now_error": "Failed to send message"
+                "send_now_error": "Failed to send message",
+                "edit_desc": "Update your scheduled message details",
+                "create_desc": "Schedule a new WhatsApp message to be sent automatically"
             }
         }
     },
@@ -389,7 +392,8 @@ const resources = {
                 "confirm_delete": "האם אתה בטוח שברצונך למחוק פריט זה?",
                 "sync": "סנכרן",
                 "syncing": "מסנכרן...",
-                "replace": "Change / החלף 🔁"
+                "replace": "Change / החלף 🔁",
+                "back": "חזרה"
             },
             "numbers_page": {
                 "title": "מספרים",
@@ -658,7 +662,9 @@ const resources = {
                 "remember_option": "זכור את האפשרות הזו (דלג על אישור בפעם הבאה)",
                 "send_now_confirm": "שלח עכשיו ⚡",
                 "missing_credentials": "חסרים פרטי מספר",
-                "send_now_error": "שליחת ההודעה נכשלה"
+                "send_now_error": "שליחת ההודעה נכשלה",
+                "edit_desc": "עדכן את פרטי ההודעה המתוזמנת שלך",
+                "create_desc": "תזמן הודעת WhatsApp חדשה לשליחה אוטומטית"
             }
         }
     }
