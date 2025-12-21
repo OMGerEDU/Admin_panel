@@ -1064,3 +1064,57 @@ select
 --      $$ ... (same as above) $$
 --    );
 
+-- ============================================================================
+-- STORAGE BUCKET POLICIES FOR GREENBUILDERS BUCKET
+-- ============================================================================
+-- These policies allow users to upload, read, and delete their own files
+-- in the GreenBuilders bucket for scheduled messages.
+
+-- Note: The bucket must be created in Supabase Dashboard first:
+-- Storage > Create Bucket > Name: GreenBuilders > Public: Yes (recommended)
+
+-- Policy: Users can upload files to their own folder
+-- Files are stored as: {user_id}/{timestamp}_{random}.{ext}
+drop policy if exists "Users can upload to GreenBuilders" on storage.objects;
+create policy "Users can upload to GreenBuilders" on storage.objects
+  for insert
+  with check (
+    bucket_id = 'GreenBuilders'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Policy: Users can read their own files
+drop policy if exists "Users can read own files from GreenBuilders" on storage.objects;
+create policy "Users can read own files from GreenBuilders" on storage.objects
+  for select
+  using (
+    bucket_id = 'GreenBuilders'
+    and (
+      -- Users can read their own files
+      (storage.foldername(name))[1] = auth.uid()::text
+      -- Or if bucket is public, anyone can read
+      or exists (
+        select 1 from storage.buckets
+        where id = 'GreenBuilders' and public = true
+      )
+    )
+  );
+
+-- Policy: Users can delete their own files
+drop policy if exists "Users can delete own files from GreenBuilders" on storage.objects;
+create policy "Users can delete own files from GreenBuilders" on storage.objects
+  for delete
+  using (
+    bucket_id = 'GreenBuilders'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Policy: Users can update their own files (for replacing files)
+drop policy if exists "Users can update own files in GreenBuilders" on storage.objects;
+create policy "Users can update own files in GreenBuilders" on storage.objects
+  for update
+  using (
+    bucket_id = 'GreenBuilders'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+

@@ -122,8 +122,16 @@ async function sendViaGreenApi(
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const startTime = Date.now()
+  console.log(`[DISPATCH] ${new Date().toISOString()} - Request received:`, {
+    method: req.method,
+    hasAuth: !!req.headers.authorization,
+    userAgent: req.headers['user-agent'],
+  })
+
   try {
     if (req.method !== 'POST') {
+      console.log(`[DISPATCH] Method not allowed: ${req.method}`)
       res.setHeader('Allow', 'POST')
       return res.status(405).json({ error: 'Method not allowed' })
     }
@@ -132,13 +140,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       (req.headers.Authorization as string | undefined)) as string | undefined
 
     if (!authHeader) {
+      console.log('[DISPATCH] Missing Authorization header')
       return res.status(401).json({ error: 'Missing Authorization header' })
     }
 
     const expected = `Bearer ${CRON_SECRET}`
     if (authHeader !== expected) {
+      console.log('[DISPATCH] Invalid Authorization token', {
+        received: authHeader.substring(0, 20) + '...',
+        expectedPrefix: expected.substring(0, 20) + '...',
+      })
       return res.status(403).json({ error: 'Invalid Authorization token' })
     }
+
+    console.log('[DISPATCH] Authentication successful, claiming messages...')
 
     // Atomically claim due messages
     const { data: claimed, error: claimError } = await supabase.rpc(
@@ -153,7 +168,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const messages: any[] = claimed || []
 
+    console.log(`[DISPATCH] Claimed ${messages.length} messages`)
+
     if (messages.length === 0) {
+      const duration = Date.now() - startTime
+      console.log(`[DISPATCH] No messages to process (${duration}ms)`)
       return res.status(200).json({
         claimed_count: 0,
         sent_count: 0,
@@ -394,16 +413,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    return res.status(200).json({
+    const duration = Date.now() - startTime
+    const summary = {
       claimed_count: messages.length,
       sent_count: sentCount,
       failed_count: failedCount,
       retry_count: retryCount,
+      duration_ms: duration,
       results,
+    }
+
+    console.log(`[DISPATCH] Completed in ${duration}ms:`, {
+      claimed: messages.length,
+      sent: sentCount,
+      failed: failedCount,
+      retry: retryCount,
     })
+
+    return res.status(200).json(summary)
   } catch (err: any) {
-    console.error('Unexpected error in /api/dispatch:', err)
-    return res.status(500).json({ error: err?.message || 'Internal server error' })
+    const duration = Date.now() - startTime
+    console.error(`[DISPATCH] Unexpected error after ${duration}ms:`, err)
+    return res.status(500).json({ 
+      error: err?.message || 'Internal server error',
+      duration_ms: duration,
+    })
   }
 }
 

@@ -11,10 +11,65 @@ import {
     Loader2,
     Plus,
     X,
+    Upload,
+    Image as ImageIcon,
+    Clock,
 } from 'lucide-react';
 
 // Days of week for recurring
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// Helper function to convert Israel/Jerusalem time to UTC
+function convertIsraelTimeToUTC(year, month, day, hour, minute) {
+    // We need to find a UTC date that, when displayed in Israel timezone, equals our target
+    // Strategy: try UTC dates and check what they become in Israel timezone
+    
+    // Start with UTC+2 offset (winter time in Israel)
+    let testUTC = new Date(Date.UTC(year, month - 1, day, hour - 2, minute, 0));
+    
+    // Check what this UTC time is in Israel
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
+    
+    const parts = formatter.formatToParts(testUTC);
+    const israelYear = parseInt(parts.find(p => p.type === 'year').value);
+    const israelMonth = parseInt(parts.find(p => p.type === 'month').value);
+    const israelDay = parseInt(parts.find(p => p.type === 'day').value);
+    const israelHour = parseInt(parts.find(p => p.type === 'hour').value);
+    const israelMinute = parseInt(parts.find(p => p.type === 'minute').value);
+    
+    // If it matches, return it
+    if (israelYear === year && israelMonth === month && israelDay === day && israelHour === hour && israelMinute === minute) {
+        return testUTC;
+    }
+    
+    // Try UTC+3 (summer/DST)
+    testUTC = new Date(Date.UTC(year, month - 1, day, hour - 3, minute, 0));
+    const parts3 = formatter.formatToParts(testUTC);
+    const israelYear3 = parseInt(parts3.find(p => p.type === 'year').value);
+    const israelMonth3 = parseInt(parts3.find(p => p.type === 'month').value);
+    const israelDay3 = parseInt(parts3.find(p => p.type === 'day').value);
+    const israelHour3 = parseInt(parts3.find(p => p.type === 'hour').value);
+    const israelMinute3 = parseInt(parts3.find(p => p.type === 'minute').value);
+    
+    if (israelYear3 === year && israelMonth3 === month && israelDay3 === day && israelHour3 === hour && israelMinute3 === minute) {
+        return testUTC;
+    }
+    
+    // If still no match, fine-tune by adjusting
+    const diffHours = hour - israelHour3;
+    const diffMinutes = minute - israelMinute3;
+    testUTC = new Date(testUTC.getTime() + diffHours * 3600000 + diffMinutes * 60000);
+    
+    return testUTC;
+}
 
 export default function ScheduledMessageEdit() {
     const { t } = useTranslation();
@@ -26,6 +81,9 @@ export default function ScheduledMessageEdit() {
     const [numbers, setNumbers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [currentTime, setCurrentTime] = useState('');
 
     // Form state
     const [formData, setFormData] = useState({
@@ -86,7 +144,22 @@ export default function ScheduledMessageEdit() {
                         ? recipientsData.map(r => r.phone_number)
                         : (messageData.to_phone ? [messageData.to_phone] : ['']); // Fallback to old to_phone for backward compatibility
 
-                    const scheduledAt = new Date(messageData.scheduled_at);
+                    // Convert UTC scheduled_at to Israel/Jerusalem timezone
+                    const scheduledAtUTC = new Date(messageData.scheduled_at);
+                    // Format in Israel timezone
+                    const israelDate = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Jerusalem',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    }).format(scheduledAtUTC);
+                    const israelTime = new Intl.DateTimeFormat('en-GB', {
+                        timeZone: 'Asia/Jerusalem',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                    }).format(scheduledAtUTC);
+                    
                     setFormData({
                         number_id: messageData.number_id || '',
                         recipients: recipients,
@@ -94,8 +167,8 @@ export default function ScheduledMessageEdit() {
                         is_recurring: messageData.is_recurring || false,
                         recurrence_type: messageData.recurrence_type || 'daily',
                         day_of_week: messageData.day_of_week || 0,
-                        scheduled_date: scheduledAt.toISOString().split('T')[0],
-                        scheduled_time: scheduledAt.toTimeString().slice(0, 5),
+                        scheduled_date: israelDate,
+                        scheduled_time: israelTime,
                         media_url: messageData.media_url || '',
                         media_type: messageData.media_type || '',
                         media_filename: messageData.media_filename || '',
@@ -104,12 +177,22 @@ export default function ScheduledMessageEdit() {
                         template_description: messageData.template_description || '',
                     });
                 } else {
-                    // Set defaults for new message
-                    const tomorrow = new Date();
+                    // Set defaults for new message in Israel/Jerusalem timezone
+                    const now = new Date();
+                    const tomorrow = new Date(now);
                     tomorrow.setDate(tomorrow.getDate() + 1);
+                    
+                    // Format in Israel timezone
+                    const israelDate = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Jerusalem',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    }).format(tomorrow);
+                    
                     setFormData(prev => ({
                         ...prev,
-                        scheduled_date: tomorrow.toISOString().split('T')[0],
+                        scheduled_date: israelDate,
                         scheduled_time: '09:00',
                         number_id: numbersData?.[0]?.id || '',
                     }));
@@ -126,6 +209,108 @@ export default function ScheduledMessageEdit() {
         loadData();
     }, [user, id, isEditing, navigate]);
 
+    // Update current time display every second
+    useEffect(() => {
+        const updateCurrentTime = () => {
+            const now = new Date();
+            const israelTime = new Intl.DateTimeFormat('he-IL', {
+                timeZone: 'Asia/Jerusalem',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            }).format(now);
+            setCurrentTime(israelTime);
+        };
+
+        updateCurrentTime();
+        const interval = setInterval(updateCurrentTime, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setUploading(true);
+            
+            // Generate unique filename
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            
+            // Upload to GreenBuilders bucket
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('GreenBuilders')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('GreenBuilders')
+                .getPublicUrl(fileName);
+
+            if (!urlData?.publicUrl) {
+                throw new Error('Failed to get public URL');
+            }
+
+            // Auto-detect media type
+            let mediaType = 'document';
+            if (file.type.startsWith('image/')) {
+                mediaType = 'image';
+            } else if (file.type.startsWith('video/')) {
+                mediaType = 'video';
+            } else if (file.type.startsWith('audio/')) {
+                mediaType = 'audio';
+            }
+
+            // Update form data
+            setFormData({
+                ...formData,
+                media_url: urlData.publicUrl,
+                media_type: mediaType,
+                media_filename: file.name,
+            });
+
+            setUploadedFile({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                url: urlData.publicUrl,
+            });
+
+            console.log('File uploaded successfully:', {
+                fileName,
+                publicUrl: urlData.publicUrl,
+                mediaType,
+            });
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert(`Failed to upload file: ${error.message}`);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setFormData({
+            ...formData,
+            media_url: '',
+            media_type: '',
+            media_filename: '',
+        });
+        setUploadedFile(null);
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
         // Filter out empty recipients
@@ -138,8 +323,13 @@ export default function ScheduledMessageEdit() {
         try {
             setSaving(true);
 
-            // Build scheduled_at from date + time
-            const scheduledAt = new Date(`${formData.scheduled_date}T${formData.scheduled_time}:00`);
+            // Build scheduled_at from date + time in Israel/Jerusalem timezone
+            // Convert Israel time to UTC for storage
+            const [year, month, day] = formData.scheduled_date.split('-').map(Number);
+            const [hour, minute] = formData.scheduled_time.split(':').map(Number);
+            
+            // Convert Israel time to UTC
+            const scheduledAt = convertIsraelTimeToUTC(year, month, day, hour, minute);
 
             // Keep to_phone for backward compatibility (use first recipient)
             const payload = {
@@ -344,35 +534,97 @@ export default function ScheduledMessageEdit() {
                             />
                         </div>
 
-                        {/* Media URL */}
+                        {/* Media Upload */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                {t('scheduled.media_url') || 'Media URL (optional)'}
+                                {t('scheduled.media_url') || 'Media (optional)'}
                             </label>
-                            <Input
-                                value={formData.media_url}
-                                onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
-                                placeholder="https://example.com/image.jpg"
-                            />
-                            {formData.media_url && (
-                                <div className="flex gap-2">
-                                    <select
-                                        value={formData.media_type}
-                                        onChange={(e) => setFormData({ ...formData, media_type: e.target.value })}
-                                        className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
-                                    >
-                                        <option value="">{t('scheduled.media_type') || 'Media type'}</option>
-                                        <option value="image">{t('scheduled.image') || 'Image'}</option>
-                                        <option value="video">{t('scheduled.video') || 'Video'}</option>
-                                        <option value="audio">{t('scheduled.audio') || 'Audio'}</option>
-                                        <option value="document">{t('scheduled.document') || 'Document'}</option>
-                                    </select>
-                                    <Input
-                                        value={formData.media_filename}
-                                        onChange={(e) => setFormData({ ...formData, media_filename: e.target.value })}
-                                        placeholder={t('scheduled.filename') || 'Filename'}
-                                        className="flex-1"
+                            
+                            {!formData.media_url && !uploadedFile ? (
+                                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                                    <input
+                                        type="file"
+                                        id="media-upload"
+                                        onChange={handleFileUpload}
+                                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                                        className="hidden"
+                                        disabled={uploading}
                                     />
+                                    <label
+                                        htmlFor="media-upload"
+                                        className={`flex flex-col items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {uploading ? (
+                                            <>
+                                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                                <span className="text-sm text-muted-foreground">Uploading...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                                <span className="text-sm text-muted-foreground">
+                                                    Click to upload or drag and drop
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Images, Videos, Audio, Documents
+                                                </span>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {uploadedFile && (
+                                        <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
+                                            {formData.media_type === 'image' && (
+                                                <ImageIcon className="h-5 w-5 text-primary" />
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">{uploadedFile.name}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {(uploadedFile.size / 1024).toFixed(2)} KB
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleRemoveFile}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex gap-2">
+                                        <select
+                                            value={formData.media_type}
+                                            onChange={(e) => setFormData({ ...formData, media_type: e.target.value })}
+                                            className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+                                        >
+                                            <option value="">{t('scheduled.media_type') || 'Media type'}</option>
+                                            <option value="image">{t('scheduled.image') || 'Image'}</option>
+                                            <option value="video">{t('scheduled.video') || 'Video'}</option>
+                                            <option value="audio">{t('scheduled.audio') || 'Audio'}</option>
+                                            <option value="document">{t('scheduled.document') || 'Document'}</option>
+                                        </select>
+                                        <Input
+                                            value={formData.media_filename}
+                                            onChange={(e) => setFormData({ ...formData, media_filename: e.target.value })}
+                                            placeholder={t('scheduled.filename') || 'Filename'}
+                                            className="flex-1"
+                                        />
+                                    </div>
+                                    
+                                    <Input
+                                        value={formData.media_url}
+                                        onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
+                                        placeholder="https://example.com/image.jpg"
+                                        className="text-xs"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        Or enter a URL manually above
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -434,30 +686,38 @@ export default function ScheduledMessageEdit() {
                         )}
 
                         {/* Date & Time */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {formData.is_recurring
-                                        ? t('scheduled.start_date') || 'Start Date'
-                                        : t('scheduled.date') || 'Date'} *
-                                </label>
-                                <Input
-                                    type="date"
-                                    value={formData.scheduled_date}
-                                    onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                                    required
-                                />
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                    שעה נוכחית (ישראל): {currentTime}
+                                </span>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    {t('scheduled.time') || 'Time'} *
-                                </label>
-                                <Input
-                                    type="time"
-                                    value={formData.scheduled_time}
-                                    onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
-                                    required
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        {formData.is_recurring
+                                            ? t('scheduled.start_date') || 'Start Date'
+                                            : t('scheduled.date') || 'Date'} *
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={formData.scheduled_date}
+                                        onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        {t('scheduled.time') || 'Time'} *
+                                    </label>
+                                    <Input
+                                        type="time"
+                                        value={formData.scheduled_time}
+                                        onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
+                                        required
+                                    />
+                                </div>
                             </div>
                         </div>
 
