@@ -330,6 +330,21 @@ export default function ScheduledMessageEdit() {
             
             // Convert Israel time to UTC
             const scheduledAt = convertIsraelTimeToUTC(year, month, day, hour, minute);
+            
+            // Debug logging
+            console.log('[SCHEDULE] Converting time:', {
+                input: `${formData.scheduled_date} ${formData.scheduled_time} (Israel)`,
+                utc: scheduledAt.toISOString(),
+                israelCheck: new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'Asia/Jerusalem',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                }).format(scheduledAt),
+            });
 
             // Keep to_phone for backward compatibility (use first recipient)
             const payload = {
