@@ -277,6 +277,19 @@ const resources = {
                 "list_title": "Connected Accounts",
                 "list_desc": "List of all your Green-API accounts and instances"
             },
+            "onboarding": {
+                "welcome_title": "Welcome to GreenManager! 🎉",
+                "welcome_description": "Let's get you started in 2 simple steps",
+                "step1_title": "Add WhatsApp Number 📱",
+                "step1_description": "Connect your WhatsApp number to start sending messages",
+                "step2_title": "Schedule Your First Message 📅",
+                "step2_description": "Create your first scheduled message and experience the power of automation",
+                "add_number_cta": "Add WhatsApp Number 📱",
+                "schedule_message_cta": "Schedule Your First Message 📅",
+                "skip": "Skip for now",
+                "complete": "Got it! ✅",
+                "progress": "Progress 📊"
+            },
             "scheduled": {
                 "title": "Scheduled Messages",
                 "subtitle": "Schedule WhatsApp messages to be sent automatically",
@@ -336,20 +349,7 @@ const resources = {
                 "recipient": "Recipient",
                 "recipients_count": "recipients",
                 "add_recipient": "Add Recipient",
-                "no_recipients": "No recipients",
-                "onboarding": {
-                    "welcome_title": "Welcome to GreenManager! 🎉",
-                    "welcome_description": "Let's get you started in 2 simple steps",
-                    "step1_title": "Add WhatsApp Number",
-                    "step1_description": "Connect your WhatsApp number to start sending messages",
-                    "step2_title": "Schedule Your First Message",
-                    "step2_description": "Create your first scheduled message and experience the power of automation",
-                    "add_number_cta": "Add WhatsApp Number",
-                    "schedule_message_cta": "Schedule Your First Message",
-                    "skip": "Skip for now",
-                    "complete": "Got it!",
-                    "progress": "Progress"
-                }
+                "no_recipients": "No recipients"
             }
         }
     },
@@ -628,6 +628,19 @@ const resources = {
                 "list_title": "חשבונות מחוברים",
                 "list_desc": "רשימת כל חשבונות ו-מופעי ה-Green-API שלך"
             },
+            "onboarding": {
+                "welcome_title": "ברוכים הבאים ל-GreenManager! 🎉",
+                "welcome_description": "בואו נתחיל ב-2 צעדים פשוטים",
+                "step1_title": "הוסף מספר WhatsApp 📱",
+                "step1_description": "חבר את מספר ה-WhatsApp שלך כדי להתחיל לשלוח הודעות",
+                "step2_title": "תזמן את ההודעה הראשונה שלך 📅",
+                "step2_description": "צור את ההודעה המתוזמנת הראשונה שלך וחווה את כוח האוטומציה",
+                "add_number_cta": "הוסף מספר WhatsApp 📱",
+                "schedule_message_cta": "תזמן את ההודעה הראשונה שלך 📅",
+                "skip": "דלג לעת עתה",
+                "complete": "הבנתי! ✅",
+                "progress": "התקדמות 📊"
+            },
             "scheduled": {
                 "title": "הודעות מתוזמנות",
                 "subtitle": "תזמן הודעות WhatsApp לשליחה אוטומטית",
@@ -687,20 +700,7 @@ const resources = {
                 "recipient": "נמען",
                 "recipients_count": "נמענים",
                 "add_recipient": "הוסף נמען",
-                "no_recipients": "אין נמענים",
-                "onboarding": {
-                    "welcome_title": "ברוכים הבאים ל-GreenManager! 🎉",
-                    "welcome_description": "בואו נתחיל ב-2 צעדים פשוטים",
-                    "step1_title": "הוסף מספר WhatsApp",
-                    "step1_description": "חבר את מספר ה-WhatsApp שלך כדי להתחיל לשלוח הודעות",
-                    "step2_title": "תזמן את ההודעה הראשונה שלך",
-                    "step2_description": "צור את ההודעה המתוזמנת הראשונה שלך וחווה את כוח האוטומציה",
-                    "add_number_cta": "הוסף מספר WhatsApp",
-                    "schedule_message_cta": "תזמן את ההודעה הראשונה שלך",
-                    "skip": "דלג לעת עתה",
-                    "complete": "הבנתי!",
-                    "progress": "התקדמות"
-                }
+                "no_recipients": "אין נמענים"
             }
         }
     }
