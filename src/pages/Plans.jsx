@@ -55,12 +55,18 @@ export default function Plans() {
     else setPlans(data || [])
   }
 
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .select('*, plans(*)')
-    .eq('user_id', session.user.id)
-    .limit(1)
-    .maybeSingle()
+  const fetchSubscription = async () => {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*, plans(*)')
+      .eq('user_id', session.user.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (error) console.error('Error fetching sub:', error)
+    else setCurrentSubscription(data)
+    setLoading(false)
+  }
 
   if (error) console.error('Error fetching sub:', error)
   else setCurrentSubscription(data)
@@ -180,28 +186,6 @@ export default function Plans() {
         <h2 className="text-3xl font-bold tracking-tight">{t('landing.plans.select')}</h2>
         <p className="text-muted-foreground">{t('landing.pricing')}</p>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mt-6">
-          <div className="relative bg-muted p-1 rounded-lg inline-flex items-center">
-            <button
-              onClick={() => setBillingInterval('month')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'month' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {t('landing.plans.monthly') || 'Monthly'}
-            </button>
-            <button
-              onClick={() => setBillingInterval('year')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'year' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {t('landing.plans.yearly') || 'Yearly'}
-            </button>
-
-            {/* Discount Badge */}
-            <span className="absolute -top-3 -right-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
-              SAVE 25%
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Current plan & usage */}
@@ -317,6 +301,28 @@ export default function Plans() {
           </Card>
         )
       }
+
+      <div className="flex justify-center mb-6">
+        <div className="relative bg-muted p-1 rounded-lg inline-flex items-center">
+          <button
+            onClick={() => setBillingInterval('month')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'month' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            {t('landing.plans.monthly') || 'Monthly'}
+          </button>
+          <button
+            onClick={() => setBillingInterval('year')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'year' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            {t('landing.plans.yearly') || 'Yearly'}
+          </button>
+
+          {/* Discount Badge */}
+          <span className="absolute -top-3 -right-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
+            SAVE 25%
+          </span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map(plan => {
