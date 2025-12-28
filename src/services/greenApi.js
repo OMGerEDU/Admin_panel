@@ -57,7 +57,7 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
       const data = await response.json();
       return { success: true, data };
     } catch (error) {
-      console.error('Green API error:', error);
+      console.error('WhatsApp API error:', error);
       if (retries <= 1) {
         await logger.error('Green API request failed after retries', {
           endpoint,
@@ -186,38 +186,38 @@ export function normalizePhoneNumber(phone) {
 // Phone normalization function from extension (for API calls)
 export function normalizePhoneForAPI(raw) {
   if (!raw) return "";
-  
+
   let input = String(raw);
-  
+
   // ניקוי תווים לא רלוונטיים
   input = input.replace(/[^0-9+]/g, "");
-  
+
   // אם מתחיל עם +
   if (input.startsWith("+")) {
     input = input.substring(1);
   }
-  
+
   // אם מתחיל עם 0 → ישראל (ממיר ל-972)
   if (input.startsWith("0")) {
     input = "972" + input.substring(1);
   }
-  
+
   // אם מתחיל עם 972 → השאר
   if (!input.startsWith("972")) {
     // מניח שישראל ברירת מחדל
     input = "972" + input;
   }
-  
+
   return input;
 }
 
 // Get last incoming messages (like extension)
 export async function getLastIncomingMessages(instanceId, token, minutes = 1440) {
   const url = `${GREEN_API_BASE}/waInstance${instanceId}/lastIncomingMessages/${token}?minutes=${minutes}`;
-  
+
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       await logger.error('Failed to fetch last incoming messages', {
@@ -226,7 +226,7 @@ export async function getLastIncomingMessages(instanceId, token, minutes = 1440)
       });
       return { success: false, error: `HTTP ${response.status}: ${errorText}` };
     }
-    
+
     const data = await response.json();
     return { success: true, data };
   } catch (error) {
@@ -238,10 +238,10 @@ export async function getLastIncomingMessages(instanceId, token, minutes = 1440)
 // Get last outgoing messages (like extension)
 export async function getLastOutgoingMessages(instanceId, token) {
   const url = `${GREEN_API_BASE}/waInstance${instanceId}/lastOutgoingMessages/${token}`;
-  
+
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       await logger.error('Failed to fetch last outgoing messages', {
@@ -250,7 +250,7 @@ export async function getLastOutgoingMessages(instanceId, token) {
       });
       return { success: false, error: `HTTP ${response.status}: ${errorText}` };
     }
-    
+
     const data = await response.json();
     return { success: true, data };
   } catch (error) {

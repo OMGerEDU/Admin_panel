@@ -44,7 +44,7 @@ export default function Extension() {
                         <div className="border rounded-lg p-4 shadow-xl bg-background max-w-[300px] mx-auto">
                             {/* Mock Extension UI */}
                             <div className="flex items-center justify-between border-b pb-2 mb-2">
-                                <span className="font-bold text-sm text-primary">GreenManager</span>
+                                <span className="font-bold text-sm text-primary">Ferns</span>
                                 <div className="h-2 w-2 rounded-full bg-green-500"></div>
                             </div>
                             <div className="space-y-2">

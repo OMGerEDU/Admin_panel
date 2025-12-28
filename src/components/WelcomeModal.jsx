@@ -118,7 +118,7 @@ export default function WelcomeModal({
                                 <Sparkles className="h-5 w-5 text-primary" />
                             </div>
                             <h2 className="text-2xl font-bold">
-                                {t('onboarding.welcome_title') || 'Welcome to GreenManager!'}
+                                {t('onboarding.welcome_title') || 'Welcome to Ferns!'}
                             </h2>
                         </div>
                         <button

@@ -51,7 +51,7 @@ export default function Chats() {
     const [chatAvatars, setChatAvatars] = useState(new Map()); // Map<chatId, avatarUrl>
 
     // Tags Integration
-    const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id);
+    const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id, user?.id);
     const [showTagsManager, setShowTagsManager] = useState(false);
     const [currentChatTagsId, setCurrentChatTagsId] = useState(null); // chatId for selector dialog
 

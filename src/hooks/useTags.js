@@ -1,24 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export function useTags(organizationId, instanceId) {
+export function useTags(organizationId, instanceId, userId) { // Added userId
     const [tags, setTags] = useState([]);
     const [chatTags, setChatTags] = useState({}); // { [chatJid]: [tagId, ...] }
 
     // Fetch Tags
     const fetchTags = useCallback(async () => {
-        if (!organizationId) return;
-        const { data, error } = await supabase
-            .from('tags')
-            .select('*')
-            .eq('organization_id', organizationId);
+        if (!organizationId && !userId) return; // Need at least one
+
+        let query = supabase.from('tags').select('*');
+
+        if (organizationId) {
+            query = query.eq('organization_id', organizationId);
+        } else {
+            query = query.eq('user_id', userId).is('organization_id', null);
+        }
+
+        const { data, error } = await query;
 
         if (!error) {
             setTags(data || []);
         } else {
             console.error('Error fetching tags:', error);
         }
-    }, [organizationId]);
+    }, [organizationId, userId]);
 
     // Fetch Chat Tags
     const fetchChatTags = useCallback(async () => {
@@ -46,17 +52,23 @@ export function useTags(organizationId, instanceId) {
         fetchChatTags();
 
         // Subscribe to realtime changes
+        // For organization, filter by organization_id. For personal, user_id.
+        const filter = organizationId
+            ? `organization_id=eq.${organizationId}`
+            : (userId ? `user_id=eq.${userId}` : null);
+
+        if (!filter) return;
+
         const tagsSubscription = supabase
             .channel('public:tags')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'tags' }, payload => {
-                // We could handle this more granularly, but refetching is safer/easier for now
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'tags', filter: filter }, payload => {
                 fetchTags();
             })
             .subscribe();
 
         const chatTagsSubscription = supabase
             .channel('public:chat_tags')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_tags' }, payload => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_tags', filter: `instance_id=eq.${instanceId}` }, payload => {
                 fetchChatTags();
             })
             .subscribe();
@@ -65,21 +77,26 @@ export function useTags(organizationId, instanceId) {
             supabase.removeChannel(tagsSubscription);
             supabase.removeChannel(chatTagsSubscription);
         };
-    }, [fetchTags, fetchChatTags]);
+    }, [fetchTags, fetchChatTags, organizationId, userId, instanceId]);
 
     // Add Tag
     const createTag = async (name, color) => {
-        if (!organizationId) return;
+        if (!organizationId && !userId) return;
 
         // Optimistic Update
         const tempId = 'temp_' + Date.now().toString();
-        const newTag = { id: tempId, name, color, organization_id: organizationId };
+        const newTag = { id: tempId, name, color, organization_id: organizationId || null, user_id: organizationId ? null : userId };
 
         setTags(prev => [...prev, newTag]);
 
         const { data, error } = await supabase
             .from('tags')
-            .insert({ name, color, organization_id: organizationId })
+            .insert({
+                name,
+                color,
+                organization_id: organizationId || null,
+                user_id: organizationId ? null : userId
+            })
             .select()
             .single();
 

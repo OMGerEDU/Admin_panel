@@ -437,7 +437,7 @@ export default function Numbers() {
                                         type="password"
                                         value={formData.api_token}
                                         onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
-                                        placeholder="Green-API token"
+                                        placeholder="API token"
                                         required
                                     />
                                 </div>

@@ -68,7 +68,7 @@ const resources = {
             },
             "numbers_page": {
                 "title": "Numbers",
-                "subtitle": "Manage your Green-API instances.",
+                "subtitle": "Manage your WhatsApp instances via Ferns.",
                 "list_title": "Instances",
                 "list_desc": "List of all connected WhatsApp instances.",
                 "search_placeholder": "Filter instances...",
@@ -131,7 +131,7 @@ const resources = {
                 "invite_code_help": "Ask an admin to send you an invite link or code. Leave empty to sign up without an organization."
             },
             "landing": {
-                "hero_title": "Manage Green-API Numbers in One Place",
+                "hero_title": "Manage WhatsApp Numbers in One Place",
                 "hero_subtitle": "Enterprise-grade dashboard for monitoring, logging, and automating your WhatsApp infrastructure.",
                 "get_started": "Get Started",
                 "features": "Features",
@@ -282,18 +282,18 @@ const resources = {
                 "step4": "Click 'Load unpacked' and select the extension folder"
             },
             "accounts_management": {
-                "title": "Green-API Accounts",
-                "subtitle": "Manage your Green-API account connections",
+                "title": "Connected Accounts",
+                "subtitle": "Manage your Ferns account connections",
                 "list_title": "Connected Accounts",
                 "list_desc": "List of all your Green-API accounts and instances"
             },
             "onboarding": {
-                "welcome_title": "Welcome to GreenManager! 🎉",
+                "welcome_title": "Welcome to Ferns! 🎉",
                 "welcome_description": "Let's get you started in 2 simple steps",
                 "step1_title": "Add WhatsApp Number 📱",
                 "step1_title": "Add WhatsApp Number 📱",
                 "step1_description": "Connect your WhatsApp number to start sending messages",
-                "step1_desc": "Enter your Green API credentials to connect your first number.",
+                "step1_desc": "Enter your Ferns credentials to connect your first number.",
                 "step2_title": "Schedule Your First Message 📅",
                 "step2_description": "Create your first scheduled message and experience the power of automation",
                 "add_number_cta": "Add WhatsApp Number 📱",
@@ -446,7 +446,7 @@ const resources = {
             },
             "numbers_page": {
                 "title": "מספרים",
-                "subtitle": "נהל את מופעי ה-Green-API שלך.",
+                "subtitle": "נהל את מופעי ה-WhatsApp שלך דרך Ferns.",
                 "list_title": "מופעים",
                 "list_desc": "רשימת כל מופעי ה-WhatsApp המחוברים.",
                 "search_placeholder": "סנן מופעים...",
@@ -509,7 +509,7 @@ const resources = {
                 "invite_code_help": "בקש ממנהל הארגון לשלוח לך לינק או קוד הזמנה. אפשר להשאיר ריק כדי להירשם בלי ארגון."
             },
             "landing": {
-                "hero_title": "נהל מספרי Green-API במקום אחד",
+                "hero_title": "נהל מספרי WhatsApp במקום אחד",
                 "hero_subtitle": "מערכת ארגונית לניטור, לוגים ואוטומציה של תשתיות ה-WhatsApp שלך.",
                 "get_started": "התחל עכשיו",
                 "features": "פיצ'רים",
@@ -660,18 +660,18 @@ const resources = {
                 "step4": "לחץ על 'טען לא ארוז' ובחר את תיקיית התוסף"
             },
             "accounts_management": {
-                "title": "חשבונות Green-API",
-                "subtitle": "נהל את חיבורי חשבונות ה-Green-API שלך",
+                "title": "חשבונות מחוברים",
+                "subtitle": "נהל את חיבורי חשבונות ה-Ferns שלך",
                 "list_title": "חשבונות מחוברים",
                 "list_desc": "רשימת כל חשבונות ו-מופעי ה-Green-API שלך"
             },
             "onboarding": {
-                "welcome_title": "ברוכים הבאים ל-GreenManager! 🎉",
+                "welcome_title": "ברוכים הבאים ל-Ferns! 🎉",
                 "welcome_description": "בואו נתחיל ב-2 צעדים פשוטים",
                 "step1_title": "הוסף מספר WhatsApp 📱",
                 "step1_title": "הוסף מספר WhatsApp 📱",
                 "step1_description": "חבר את מספר ה-WhatsApp שלך כדי להתחיל לשלוח הודעות",
-                "step1_desc": "הזמן את פרטי ה-Green API שלך כדי לחבר את המספר הראשון שלך.",
+                "step1_desc": "הזמן את פרטי ה-Ferns שלך כדי לחבר את המספר הראשון שלך.",
                 "step2_title": "תזמן את ההודעה הראשונה שלך 📅",
                 "step2_description": "צור את ההודעה המתוזמנת הראשונה שלך וחווה את כוח האוטומציה",
                 "add_number_cta": "הוסף מספר WhatsApp 📱",

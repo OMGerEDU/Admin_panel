@@ -1118,3 +1118,130 @@ create policy "Users can update own files in GreenBuilders" on storage.objects
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
+
+-- Tags Table
+create table if not exists public.tags (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  name text not null,
+  color text,
+  organization_id uuid references public.organizations(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete cascade,
+  constraint tags_org_or_user check (organization_id is not null or user_id is not null)
+);
+
+-- Chat Tags Table
+create table if not exists public.chat_tags (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  tag_id uuid references public.tags(id) on delete cascade not null,
+  chat_jid text not null,
+  instance_id text not null,
+  unique(tag_id, chat_jid, instance_id)
+);
+
+-- RLS for Tags
+alter table public.tags enable row level security;
+
+create policy "Users can view tags for their org or themselves"
+  on public.tags for select
+  using (
+    (organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    ))
+    or
+    (user_id = auth.uid())
+  );
+
+create policy "Users can insert tags for their org or themselves"
+  on public.tags for insert
+  with check (
+    (organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    ))
+    or
+    (user_id = auth.uid())
+  );
+
+create policy "Users can update tags for their org or themselves"
+  on public.tags for update
+  using (
+    (organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    ))
+    or
+    (user_id = auth.uid())
+  );
+
+create policy "Users can delete tags for their org or themselves"
+  on public.tags for delete
+  using (
+    (organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    ))
+    or
+    (user_id = auth.uid())
+  );
+
+-- RLS for Chat Tags
+alter table public.chat_tags enable row level security;
+
+create policy "Users can view chat tags for their org or themselves"
+  on public.chat_tags for select
+  using (
+    exists (
+      select 1 from public.tags
+      where tags.id = chat_tags.tag_id
+      and (
+        tags.organization_id in (
+          select organization_id from public.organization_members
+          where user_id = auth.uid()
+        )
+        or
+        tags.user_id = auth.uid()
+      )
+    )
+  );
+
+create policy "Users can insert chat tags"
+  on public.chat_tags for insert
+  with check (
+    exists (
+      select 1 from public.tags
+      where tags.id = tag_id
+      and (
+        tags.organization_id in (
+          select organization_id from public.organization_members
+          where user_id = auth.uid()
+        )
+        or
+        tags.user_id = auth.uid()
+      )
+    )
+  );
+
+create policy "Users can delete chat tags"
+  on public.chat_tags for delete
+  using (
+    exists (
+      select 1 from public.tags
+      where tags.id = chat_tags.tag_id
+      and (
+        tags.organization_id in (
+          select organization_id from public.organization_members
+          where user_id = auth.uid()
+        )
+        or
+        tags.user_id = auth.uid()
+      )
+    )
+  );
+
+-- Realtime
+alter publication supabase_realtime add table public.tags;
+alter publication supabase_realtime add table public.chat_tags;
+
