@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Check, Sparkles, Crown, Building2, Loader2 } from 'lucide-react'
+import { Check, Sparkles, Crown, Building2, Loader2, X } from 'lucide-react'
 import { getNumbersUsage, getInstancesUsage, getOrgMembersUsage } from '../lib/planLimits'
 import { startPlanCheckout } from '../services/billing'
 
@@ -355,16 +355,30 @@ export default function Plans() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
-                    {plan.instances_limit === -1 ? t('landing.plans.unlimited') : plan.instances_limit} {t('numbers')}
+                    {plan.numbers_limit === -1 ? t('landing.plans.unlimited') : plan.numbers_limit} {t('landing.plans.numbers')}
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
                     {plan.invites_limit === -1 ? t('landing.plans.unlimited') : plan.invites_limit} {t('landing.plans.team_members')}
                   </li>
+                  <li className="flex items-center gap-2">
+                    {plan.name === 'Free' ? (
+                      <X className="h-4 w-4 text-muted-foreground/50" />
+                    ) : (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                    <span className={plan.name === 'Free' ? 'text-muted-foreground' : ''}>
+                      {t('landing.plans.scheduled_messages')}
+                    </span>
+                  </li>
                   {plan.name !== 'Free' && (
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />
-                      <span className="font-medium text-primary">Scheduled Messages</span>
+                      <span>
+                        {plan.name === 'Organization' || plan.name === 'Agency'
+                          ? t('landing.plans.priority_support')
+                          : t('landing.plans.customer_support')}
+                      </span>
                     </li>
                   )}
                 </ul>
