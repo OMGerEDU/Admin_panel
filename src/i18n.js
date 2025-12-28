@@ -361,7 +361,10 @@ const resources = {
                 "recipient": "Recipient",
                 "recipients_count": "recipients",
                 "add_recipient": "Add Recipient",
-                "no_recipients": "No recipients"
+                "add_recipient": "Add Recipient",
+                "no_recipients": "No recipients",
+                "upgrade_title": "Upgrade to Schedule Messages",
+                "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!"
             }
         }
     },
@@ -724,7 +727,10 @@ const resources = {
                 "recipient": "נמען",
                 "recipients_count": "נמענים",
                 "add_recipient": "הוסף נמען",
-                "no_recipients": "אין נמענים"
+                "add_recipient": "הוסף נמען",
+                "no_recipients": "אין נמענים",
+                "upgrade_title": "שדרג כדי לתזמן הודעות",
+                "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!"
             }
         }
     }
