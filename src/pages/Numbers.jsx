@@ -62,13 +62,27 @@ export default function Numbers() {
 
     const fetchNumbers = async () => {
         if (!user) return;
-        
+
         try {
             setLoading(true);
+
+            // Check if user is a member of an organization
+            const { data: memberData } = await supabase
+                .from('organization_members')
+                .select('organization_id, organizations(owner_id)')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            const ownerId = memberData?.organizations?.owner_id;
+            const userIds = [user.id];
+            if (ownerId && ownerId !== user.id) {
+                userIds.push(ownerId);
+            }
+
             const { data, error } = await supabase
                 .from('numbers')
                 .select('*')
-                .eq('user_id', user.id)
+                .in('user_id', userIds)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -99,20 +113,9 @@ export default function Numbers() {
                 planName: plan?.name || null,
             });
 
-            const {
-                used: instancesUsed,
-                limit: instancesLimit,
-                error: instancesError,
-            } = await getInstancesUsage(supabase, user.id);
+            // Instances usage is redundant/same as numbers for now
+            setInstancesUsage({ used: 0, limit: -1 });
 
-            if (instancesError) {
-                console.error('Error loading instances usage:', instancesError);
-            }
-
-            setInstancesUsage({
-                used: instancesUsed || 0,
-                limit: typeof instancesLimit === 'number' ? instancesLimit : -1,
-            });
         } catch (err) {
             console.error('Error in fetchNumbersUsage:', err);
         }
@@ -144,19 +147,7 @@ export default function Numbers() {
                 alert(t('plans_limits.numbers_reached'));
                 return;
             }
-
-            // Enforce instances per plan (only if this is a new instance_id)
-            const isNewInstance = !numbers.some(
-                (n) => n.instance_id === formData.instance_id,
-            );
-            if (
-                isNewInstance &&
-                instancesUsage.limit !== -1 &&
-                instancesUsage.used >= instancesUsage.limit
-            ) {
-                alert(t('plans_limits.instances_reached'));
-                return;
-            }
+            // "Instances" check removed/merged into numbers check
         }
 
         try {
@@ -174,7 +165,7 @@ export default function Numbers() {
                     .eq('id', editingNumber.id);
 
                 if (error) throw error;
-                
+
                 await logger.info(
                     `Number updated: ${formData.phone_number || formData.instance_id}`,
                     { number_id: editingNumber.id },
@@ -193,13 +184,13 @@ export default function Numbers() {
                     });
 
                 if (error) throw error;
-                
+
                 await logger.info(
                     `New number added: ${formData.phone_number || formData.instance_id}`,
                     { instance_id: formData.instance_id }
                 );
             }
-            
+
             setShowModal(false);
             setEditingNumber(null);
             setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
@@ -230,15 +221,6 @@ export default function Numbers() {
 
         if (numbersUsage.limit !== -1 && numbersUsage.used >= numbersUsage.limit) {
             alert(t('plans_limits.numbers_reached'));
-            return;
-        }
-
-        const isAtInstanceLimit =
-            instancesUsage.limit !== -1 &&
-            instancesUsage.used >= instancesUsage.limit;
-
-        if (isAtInstanceLimit) {
-            alert(t('plans_limits.instances_reached'));
             return;
         }
 
@@ -285,11 +267,6 @@ export default function Numbers() {
                         {numbersUsage.planName
                             ? ` · ${numbersUsage.planName} ${t('landing.plans.features')}`
                             : ''}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        {instancesUsage.limit === -1
-                            ? `${instancesUsage.used} ${t('numbers_page.instances_in_use_unlimited')}`
-                            : `${instancesUsage.used} / ${instancesUsage.limit} ${t('numbers_page.instances_in_use')}`}
                     </p>
                 </div>
                 <Button onClick={handleOpenAddModal}>
@@ -351,24 +328,24 @@ export default function Numbers() {
                                             <TableCell>{formatLastSeen(number.last_seen)}</TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Button 
-                                                        variant="ghost" 
+                                                    <Button
+                                                        variant="ghost"
                                                         size="icon"
                                                         onClick={fetchNumbers}
                                                         title={t('numbers_page.refresh')}
                                                     >
                                                         <RefreshCw className="h-4 w-4" />
                                                     </Button>
-                                                    <Button 
-                                                        variant="ghost" 
+                                                    <Button
+                                                        variant="ghost"
                                                         size="icon"
                                                         onClick={() => handleEditNumber(number)}
                                                         title={t('common.edit')}
                                                     >
                                                         <Edit className="h-4 w-4" />
                                                     </Button>
-                                                    <Button 
-                                                        variant="ghost" 
+                                                    <Button
+                                                        variant="ghost"
                                                         size="icon"
                                                         onClick={() => setShowDeleteConfirm(number.id)}
                                                         title={t('common.delete')}
