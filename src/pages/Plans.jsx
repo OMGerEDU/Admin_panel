@@ -315,7 +315,7 @@ export default function Plans() {
           </button>
 
           {/* Discount Badge */}
-          <span className="absolute -top-3 -right-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
+          <span className="absolute -top-3 -right-6 rtl:right-auto rtl:-left-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
             SAVE 25%
           </span>
         </div>
@@ -335,12 +335,20 @@ export default function Plans() {
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   </div>
                   <div className="text-right">
-                    <div className="text-4xl font-bold">
-                      ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
-                      <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
+                    <div className="text-4xl font-bold flex flex-col items-end">
+                      {billingInterval === 'year' && plan.price_monthly > 0 && (
+                        <span className="text-lg font-normal text-muted-foreground line-through mb-[-4px]">
+                          ${plan.price_monthly}
+                        </span>
+                      )}
+                      <div>
+                        ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
+                        <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
+                      </div>
                     </div>
                     {billingInterval === 'year' && plan.price_monthly > 0 && (
                       <div className="text-xs text-muted-foreground mt-1">
+                        <span className="line-through opacity-70 mr-1">${plan.price_monthly * 12}</span>
                         ${plan.price_yearly} {t('landing.plans.billed_yearly') || 'billed yearly'}
                       </div>
                     )}
