@@ -6,8 +6,9 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { CheckCircle2, Smartphone, CalendarClock, X, Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Smartphone, CalendarClock, X, Sparkles, Loader2, ArrowRight, HelpCircle } from 'lucide-react';
 import { logger } from '../lib/logger';
+import GreenApiHelpModal from './GreenApiHelpModal';
 
 export default function WelcomeModal({
     isOpen,
@@ -22,6 +23,7 @@ export default function WelcomeModal({
 
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [formData, setFormData] = useState({
         phone_number: '',
         instance_id: '',
@@ -136,6 +138,8 @@ export default function WelcomeModal({
 
                     {step === 1 && (
                         <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                            <GreenApiHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+
                             <div className="space-y-2">
                                 <h3 className="text-lg font-semibold flex items-center gap-2">
                                     <Smartphone className="h-5 w-5 text-primary" />
@@ -157,8 +161,20 @@ export default function WelcomeModal({
                                         className="bg-background"
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium">{t('common.instance_id')}</label>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium">{t('common.instance_id')}</label>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-auto p-0 text-xs text-primary hover:bg-transparent"
+                                            onClick={() => setShowHelpModal(true)}
+                                        >
+                                            <HelpCircle className="mr-1 h-3 w-3" />
+                                            {t('common.where_to_find') || 'Where to find?'}
+                                        </Button>
+                                    </div>
                                     <Input
                                         value={formData.instance_id}
                                         onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}

@@ -60,7 +60,11 @@ const resources = {
                 "sync": "Sync",
                 "syncing": "Syncing...",
                 "replace": "Change / החלף 🔁",
-                "back": "Back"
+                "back": "Back",
+                "connect_continue": "Connect & Continue",
+                "connect_start_chatting": "Connect & Start Chatting",
+                "connecting": "Connecting...",
+                "where_to_find": "Where to find?"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -287,7 +291,9 @@ const resources = {
                 "welcome_title": "Welcome to GreenManager! 🎉",
                 "welcome_description": "Let's get you started in 2 simple steps",
                 "step1_title": "Add WhatsApp Number 📱",
+                "step1_title": "Add WhatsApp Number 📱",
                 "step1_description": "Connect your WhatsApp number to start sending messages",
+                "step1_desc": "Enter your Green API credentials to connect your first number.",
                 "step2_title": "Schedule Your First Message 📅",
                 "step2_description": "Create your first scheduled message and experience the power of automation",
                 "add_number_cta": "Add WhatsApp Number 📱",
@@ -417,7 +423,11 @@ const resources = {
                 "sync": "סנכרן",
                 "syncing": "מסנכרן...",
                 "replace": "Change / החלף 🔁",
-                "back": "חזרה"
+                "back": "חזרה",
+                "connect_continue": "התחבר והמשך",
+                "connect_start_chatting": "התחבר והתחל לצ'אט",
+                "connecting": "מתחבר...",
+                "where_to_find": "איפה למצוא?"
             },
             "numbers_page": {
                 "title": "מספרים",
@@ -644,7 +654,9 @@ const resources = {
                 "welcome_title": "ברוכים הבאים ל-GreenManager! 🎉",
                 "welcome_description": "בואו נתחיל ב-2 צעדים פשוטים",
                 "step1_title": "הוסף מספר WhatsApp 📱",
+                "step1_title": "הוסף מספר WhatsApp 📱",
                 "step1_description": "חבר את מספר ה-WhatsApp שלך כדי להתחיל לשלוח הודעות",
+                "step1_desc": "הזמן את פרטי ה-Green API שלך כדי לחבר את המספר הראשון שלך.",
                 "step2_title": "תזמן את ההודעה הראשונה שלך 📅",
                 "step2_description": "צור את ההודעה המתוזמנת הראשונה שלך וחווה את כוח האוטומציה",
                 "add_number_cta": "הוסף מספר WhatsApp 📱",
