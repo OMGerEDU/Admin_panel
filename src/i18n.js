@@ -365,6 +365,18 @@ const resources = {
                 "no_recipients": "No recipients",
                 "upgrade_title": "Upgrade to Schedule Messages",
                 "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!"
+            },
+            "tags": {
+                "assign_tags": "Assign Tags",
+                "no_tags_defined": "No tags defined yet.",
+                "create_first_tag": "Create Tag",
+                "labels": "Labels",
+                "manage_tags": "Manage Tags",
+                "create_new": "Create New Tag",
+                "tag_name": "Tag Name",
+                "existing_tags": "Existing Tags",
+                "no_tags_yet": "No tags created yet.",
+                "confirm_delete": "Delete this tag?"
             }
         }
     },
@@ -731,6 +743,18 @@ const resources = {
                 "no_recipients": "אין נמענים",
                 "upgrade_title": "שדרג כדי לתזמן הודעות",
                 "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!"
+            },
+            "tags": {
+                "assign_tags": "שייך תגיות",
+                "no_tags_defined": "עדיין לא הוגדרו תגיות.",
+                "create_first_tag": "צור תגית",
+                "labels": "תוויות",
+                "manage_tags": "ניהול תגיות",
+                "create_new": "צור תגית חדשה",
+                "tag_name": "שם התגית",
+                "existing_tags": "תגיות קיימות",
+                "no_tags_yet": "עדיין לא נוצרו תגיות.",
+                "confirm_delete": "למחוק את התגית הזו?"
             }
         }
     }
