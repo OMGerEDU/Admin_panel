@@ -150,6 +150,20 @@ export default function Numbers() {
             // "Instances" check removed/merged into numbers check
         }
 
+        // Validation
+        const instanceId = formData.instance_id.trim();
+        const apiToken = formData.api_token.trim();
+
+        if (instanceId.length !== 10 || !/^\d+$/.test(instanceId)) {
+            alert(t('validation.instance_id_format') || 'Instance ID must be exactly 10 digits.');
+            return;
+        }
+
+        if (apiToken.length !== 50) {
+            alert(t('validation.api_token_format') || 'API Token must be exactly 50 characters.');
+            return;
+        }
+
         try {
             setSaving(true);
             if (editingNumber) {
