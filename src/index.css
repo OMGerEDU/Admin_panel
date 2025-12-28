@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Assistant';
+  src: url('./assets/fonts/Assistant-VariableFont_wght.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     /* WhatsApp-like light theme */
