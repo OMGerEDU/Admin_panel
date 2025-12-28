@@ -55,17 +55,16 @@ export default function Plans() {
     else setPlans(data || [])
   }
 
-  const fetchSubscription = async () => {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*, plans(*)')
-      .eq('user_id', session.user.id)
-      .single()
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*, plans(*)')
+    .eq('user_id', session.user.id)
+    .limit(1)
+    .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') console.error('Error fetching sub:', error)
-    else setCurrentSubscription(data)
-    setLoading(false)
-  }
+  if (error) console.error('Error fetching sub:', error)
+  else setCurrentSubscription(data)
+  setLoading(false)
 
   const fetchUsage = async () => {
     if (!session?.user?.id) return
