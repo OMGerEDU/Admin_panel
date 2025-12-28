@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
 import {
     Plus,
     Calendar,
@@ -75,14 +76,26 @@ export default function ScheduledMessages() {
     const [copiedToast, setCopiedToast] = useState(null);
     const [sendNowDialog, setSendNowDialog] = useState(null); // { message: msg, remember: false }
     const [sendingNow, setSendingNow] = useState(false);
+    const [hasPermission, setHasPermission] = useState(null);
 
     useEffect(() => {
         if (user) {
+            checkPermissions();
+        }
+    }, [user]);
+
+    const checkPermissions = async () => {
+        const { plan } = await fetchCurrentSubscriptionAndPlan(supabase, user.id);
+        const allowed = canUseScheduledMessages(plan);
+        setHasPermission(allowed);
+        if (allowed) {
             fetchMessages();
             fetchNumbers();
             fetchCommunityTemplates();
+        } else {
+            setLoading(false);
         }
-    }, [user]);
+    };
 
     const fetchMessages = async () => {
         try {
@@ -94,7 +107,7 @@ export default function ScheduledMessages() {
                 .order('scheduled_at', { ascending: true });
 
             if (error) throw error;
-            
+
             // Fetch recipient counts for each message
             const messagesWithRecipients = await Promise.all(
                 (data || []).map(async (msg) => {
@@ -102,14 +115,14 @@ export default function ScheduledMessages() {
                         .from('scheduled_message_recipients')
                         .select('*', { count: 'exact', head: true })
                         .eq('scheduled_message_id', msg.id);
-                    
+
                     return {
                         ...msg,
                         recipient_count: count || (msg.to_phone ? 1 : 0), // Fallback to 1 if old format
                     };
                 })
             );
-            
+
             setMessages(messagesWithRecipients);
         } catch (err) {
             console.error('Error fetching scheduled messages:', err);
@@ -279,7 +292,7 @@ export default function ScheduledMessages() {
 
         try {
             setSendingNow(true);
-            
+
             // Fetch all recipients
             const { data: recipientsData } = await supabase
                 .from('scheduled_message_recipients')
@@ -353,7 +366,7 @@ export default function ScheduledMessages() {
                 } catch (err) {
                     console.error(`Error sending to ${recipient.phone_number}:`, err);
                     failCount++;
-                    
+
                     // Update recipient status if exists in table
                     if (recipient.id) {
                         await supabase
@@ -394,7 +407,7 @@ export default function ScheduledMessages() {
 
             setSendNowDialog(null);
             fetchMessages();
-            
+
             if (failCount > 0) {
                 alert(`${successCount} sent, ${failCount} failed`);
             }
@@ -477,11 +490,10 @@ export default function ScheduledMessages() {
             <div className="flex gap-2 border-b">
                 <button
                     onClick={() => setActiveTab('active')}
-                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === 'active'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'active'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
                 >
                     <Play className="inline-block mr-1 h-4 w-4" />
                     {t('scheduled.tab_active') || 'Active'}
@@ -491,11 +503,10 @@ export default function ScheduledMessages() {
                 </button>
                 <button
                     onClick={() => setActiveTab('inactive')}
-                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === 'inactive'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'inactive'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
                 >
                     <Pause className="inline-block mr-1 h-4 w-4" />
                     {t('scheduled.tab_inactive') || 'Inactive'}
@@ -505,11 +516,10 @@ export default function ScheduledMessages() {
                 </button>
                 <button
                     onClick={() => setActiveTab('community')}
-                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === 'community'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'community'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
                 >
                     <Users className="inline-block mr-1 h-4 w-4" />
                     {t('scheduled.tab_community') || 'Community Templates'}
@@ -520,7 +530,24 @@ export default function ScheduledMessages() {
             </div>
 
             {/* Content */}
-            {loading ? (
+            {hasPermission === false ? (
+                <Card className="border-dashed border-2">
+                    <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Clock className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold">{t('scheduled.upgrade_title') || 'Scheduled Messages is a Pro Feature'}</h3>
+                            <p className="text-muted-foreground max-w-md mx-auto">
+                                {t('scheduled.upgrade_desc') || 'Upgrade to Pro or Organization plan to schedule unlimited messages, recurring campaigns, and more.'}
+                            </p>
+                        </div>
+                        <Button onClick={() => navigate('/app/plans')} className="mt-4">
+                            {t('common.upgrade') || 'Upgrade Now'}
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : loading ? (
                 <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
@@ -584,8 +611,8 @@ export default function ScheduledMessages() {
                         </div>
                     ) : (
                         filteredMessages.map((msg) => (
-                            <Card 
-                                key={msg.id} 
+                            <Card
+                                key={msg.id}
                                 className={`relative cursor-pointer transition-all hover:shadow-md ${!msg.is_active ? 'opacity-60' : ''}`}
                                 onClick={() => handleEdit(msg)}
                             >
@@ -622,7 +649,7 @@ export default function ScheduledMessages() {
                                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Phone className="h-3 w-3" />
-                                                    {msg.recipient_count > 1 
+                                                    {msg.recipient_count > 1
                                                         ? `${msg.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
                                                         : msg.to_phone || t('scheduled.no_recipients') || 'No recipients'}
                                                 </span>
@@ -691,102 +718,107 @@ export default function ScheduledMessages() {
                         ))
                     )}
                 </div>
-            )}
+            )
+            }
 
             {/* Copied Toast */}
-            {copiedToast && (
-                <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-5">
-                    <Check className="h-5 w-5" />
-                    <span>{t('scheduled.copied_success') || 'Template copied!'}</span>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-white hover:bg-green-700"
-                        onClick={() => {
-                            const msg = messages.find((m) => m.id === copiedToast);
-                            if (msg) {
-                                navigate(`/app/scheduled/${msg.id}`);
-                            }
-                            setCopiedToast(null);
-                        }}
-                    >
-                        {t('scheduled.go_to_template') || 'Go to Template'}
-                    </Button>
-                    <button onClick={() => setCopiedToast(null)} className="hover:bg-green-700 p-1 rounded">
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-            )}
+            {
+                copiedToast && (
+                    <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-5">
+                        <Check className="h-5 w-5" />
+                        <span>{t('scheduled.copied_success') || 'Template copied!'}</span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white hover:bg-green-700"
+                            onClick={() => {
+                                const msg = messages.find((m) => m.id === copiedToast);
+                                if (msg) {
+                                    navigate(`/app/scheduled/${msg.id}`);
+                                }
+                                setCopiedToast(null);
+                            }}
+                        >
+                            {t('scheduled.go_to_template') || 'Go to Template'}
+                        </Button>
+                        <button onClick={() => setCopiedToast(null)} className="hover:bg-green-700 p-1 rounded">
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                )
+            }
 
             {/* Send Now Confirmation Dialog */}
-            {sendNowDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-card border rounded-lg shadow-xl w-full max-w-md m-4 animate-in zoom-in-95">
-                        <div className="p-6 space-y-4">
-                            {/* Cute header */}
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                                    <Zap className="h-5 w-5 text-green-600 dark:text-green-400" />
+            {
+                sendNowDialog && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                        <div className="bg-card border rounded-lg shadow-xl w-full max-w-md m-4 animate-in zoom-in-95">
+                            <div className="p-6 space-y-4">
+                                {/* Cute header */}
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                                        <Zap className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold">
+                                        {t('scheduled.send_now_title') || 'Send Message Now?'}
+                                    </h3>
                                 </div>
-                                <h3 className="text-lg font-semibold">
-                                    {t('scheduled.send_now_title') || 'Send Message Now?'}
-                                </h3>
-                            </div>
 
-                            {/* Message */}
-                            <p className="text-sm text-muted-foreground">
-                                {t('scheduled.send_now_message') || 'Are you sure you want to send this message right now?'}
-                                <br />
-                                <span className="font-medium text-foreground">
-                                    {sendNowDialog.message.recipient_count > 1
-                                        ? `${sendNowDialog.message.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
-                                        : `${t('scheduled.recipient') || 'Recipient'}: ${sendNowDialog.message.to_phone || t('scheduled.no_recipients') || 'No recipients'}`}
-                                </span>
-                            </p>
+                                {/* Message */}
+                                <p className="text-sm text-muted-foreground">
+                                    {t('scheduled.send_now_message') || 'Are you sure you want to send this message right now?'}
+                                    <br />
+                                    <span className="font-medium text-foreground">
+                                        {sendNowDialog.message.recipient_count > 1
+                                            ? `${sendNowDialog.message.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
+                                            : `${t('scheduled.recipient') || 'Recipient'}: ${sendNowDialog.message.to_phone || t('scheduled.no_recipients') || 'No recipients'}`}
+                                    </span>
+                                </p>
 
-                            {/* Message preview */}
-                            <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                                <p className="line-clamp-3">{sendNowDialog.message.message}</p>
-                            </div>
+                                {/* Message preview */}
+                                <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                                    <p className="line-clamp-3">{sendNowDialog.message.message}</p>
+                                </div>
 
-                            {/* Remember option */}
-                            <label className="flex items-center gap-2 cursor-pointer pt-2">
-                                <input
-                                    type="checkbox"
-                                    checked={sendNowDialog.remember}
-                                    onChange={(e) => setSendNowDialog({ ...sendNowDialog, remember: e.target.checked })}
-                                    className="text-primary rounded"
-                                />
-                                <span className="text-sm text-muted-foreground">
-                                    {t('scheduled.remember_option') || 'Remember this option (skip confirmation next time)'}
-                                </span>
-                            </label>
+                                {/* Remember option */}
+                                <label className="flex items-center gap-2 cursor-pointer pt-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={sendNowDialog.remember}
+                                        onChange={(e) => setSendNowDialog({ ...sendNowDialog, remember: e.target.checked })}
+                                        className="text-primary rounded"
+                                    />
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('scheduled.remember_option') || 'Remember this option (skip confirmation next time)'}
+                                    </span>
+                                </label>
 
-                            {/* Actions */}
-                            <div className="flex justify-end gap-2 pt-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setSendNowDialog(null)}
-                                    disabled={sendingNow}
-                                >
-                                    {t('common.cancel') || 'Cancel'}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    onClick={handleConfirmSendNow}
-                                    disabled={sendingNow}
-                                    className="bg-green-600 hover:bg-green-700 text-white"
-                                >
-                                    {sendingNow && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {t('scheduled.send_now_confirm') || 'Send Now'}
-                                </Button>
+                                {/* Actions */}
+                                <div className="flex justify-end gap-2 pt-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setSendNowDialog(null)}
+                                        disabled={sendingNow}
+                                    >
+                                        {t('common.cancel') || 'Cancel'}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleConfirmSendNow}
+                                        disabled={sendingNow}
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                        {sendingNow && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {t('scheduled.send_now_confirm') || 'Send Now'}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
 

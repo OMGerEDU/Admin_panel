@@ -14,7 +14,9 @@ import {
     Upload,
     Image as ImageIcon,
     Clock,
+    AlertCircle,
 } from 'lucide-react';
+import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
 
 // Days of week for recurring
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -23,10 +25,10 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 function convertIsraelTimeToUTC(year, month, day, hour, minute) {
     // We need to find a UTC date that, when displayed in Israel timezone, equals our target
     // Strategy: try UTC dates and check what they become in Israel timezone
-    
+
     // Start with UTC+2 offset (winter time in Israel)
     let testUTC = new Date(Date.UTC(year, month - 1, day, hour - 2, minute, 0));
-    
+
     // Check what this UTC time is in Israel
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: 'Asia/Jerusalem',
@@ -37,19 +39,19 @@ function convertIsraelTimeToUTC(year, month, day, hour, minute) {
         minute: '2-digit',
         hour12: false,
     });
-    
+
     const parts = formatter.formatToParts(testUTC);
     const israelYear = parseInt(parts.find(p => p.type === 'year').value);
     const israelMonth = parseInt(parts.find(p => p.type === 'month').value);
     const israelDay = parseInt(parts.find(p => p.type === 'day').value);
     const israelHour = parseInt(parts.find(p => p.type === 'hour').value);
     const israelMinute = parseInt(parts.find(p => p.type === 'minute').value);
-    
+
     // If it matches, return it
     if (israelYear === year && israelMonth === month && israelDay === day && israelHour === hour && israelMinute === minute) {
         return testUTC;
     }
-    
+
     // Try UTC+3 (summer/DST)
     testUTC = new Date(Date.UTC(year, month - 1, day, hour - 3, minute, 0));
     const parts3 = formatter.formatToParts(testUTC);
@@ -58,16 +60,16 @@ function convertIsraelTimeToUTC(year, month, day, hour, minute) {
     const israelDay3 = parseInt(parts3.find(p => p.type === 'day').value);
     const israelHour3 = parseInt(parts3.find(p => p.type === 'hour').value);
     const israelMinute3 = parseInt(parts3.find(p => p.type === 'minute').value);
-    
+
     if (israelYear3 === year && israelMonth3 === month && israelDay3 === day && israelHour3 === hour && israelMinute3 === minute) {
         return testUTC;
     }
-    
+
     // If still no match, fine-tune by adjusting
     const diffHours = hour - israelHour3;
     const diffMinutes = minute - israelMinute3;
     testUTC = new Date(testUTC.getTime() + diffHours * 3600000 + diffMinutes * 60000);
-    
+
     return testUTC;
 }
 
@@ -101,13 +103,14 @@ export default function ScheduledMessageEdit() {
         is_community_template: false,
         template_name: '',
         template_description: '',
+        delay_seconds: 0, // Delay between messages in seconds
     });
 
     useEffect(() => {
         if (!user) {
             return;
         }
-        
+
         const loadData = async () => {
             try {
                 // Fetch numbers
@@ -115,9 +118,9 @@ export default function ScheduledMessageEdit() {
                     .from('numbers')
                     .select('*')
                     .order('created_at', { ascending: false });
-                
+
                 setNumbers(numbersData || []);
-                
+
                 if (isEditing && id) {
                     // Fetch message
                     const { data: messageData, error } = await supabase
@@ -144,6 +147,14 @@ export default function ScheduledMessageEdit() {
                         ? recipientsData.map(r => r.phone_number)
                         : (messageData.to_phone ? [messageData.to_phone] : ['']); // Fallback to old to_phone for backward compatibility
 
+                    // Check permissions
+                    const { plan } = await fetchCurrentSubscriptionAndPlan(supabase, user.id);
+                    if (!canUseScheduledMessages(plan)) {
+                        alert(t('scheduled.no_permission') || 'You do not have permission to access scheduled messages.');
+                        navigate('/app/dashboard');
+                        return;
+                    }
+
                     // Convert UTC scheduled_at to Israel/Jerusalem timezone
                     const scheduledAtUTC = new Date(messageData.scheduled_at);
                     // Format in Israel timezone
@@ -159,7 +170,7 @@ export default function ScheduledMessageEdit() {
                         minute: '2-digit',
                         hour12: false,
                     }).format(scheduledAtUTC);
-                    
+
                     setFormData({
                         number_id: messageData.number_id || '',
                         recipients: recipients,
@@ -181,7 +192,7 @@ export default function ScheduledMessageEdit() {
                     const now = new Date();
                     const tomorrow = new Date(now);
                     tomorrow.setDate(tomorrow.getDate() + 1);
-                    
+
                     // Format in Israel timezone
                     const israelDate = new Intl.DateTimeFormat('en-CA', {
                         timeZone: 'Asia/Jerusalem',
@@ -189,13 +200,21 @@ export default function ScheduledMessageEdit() {
                         month: '2-digit',
                         day: '2-digit',
                     }).format(tomorrow);
-                    
+
                     setFormData(prev => ({
                         ...prev,
                         scheduled_date: israelDate,
                         scheduled_time: '09:00',
                         number_id: numbersData?.[0]?.id || '',
                     }));
+
+                    // Check permissions for new
+                    const { plan } = await fetchCurrentSubscriptionAndPlan(supabase, user.id);
+                    if (!canUseScheduledMessages(plan)) {
+                        alert(t('scheduled.no_permission') || 'You do not have permission to access scheduled messages.');
+                        navigate('/app/dashboard');
+                        return;
+                    }
                 }
             } catch (err) {
                 console.error('Error loading data:', err);
@@ -237,11 +256,11 @@ export default function ScheduledMessageEdit() {
 
         try {
             setUploading(true);
-            
+
             // Generate unique filename
             const fileExt = file.name.split('.').pop();
             const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-            
+
             // Upload to GreenBuilders bucket
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('GreenBuilders')
@@ -327,10 +346,10 @@ export default function ScheduledMessageEdit() {
             // Convert Israel time to UTC for storage
             const [year, month, day] = formData.scheduled_date.split('-').map(Number);
             const [hour, minute] = formData.scheduled_time.split(':').map(Number);
-            
+
             // Convert Israel time to UTC
             const scheduledAt = convertIsraelTimeToUTC(year, month, day, hour, minute);
-            
+
             // Debug logging
             console.log('[SCHEDULE] Converting time:', {
                 input: `${formData.scheduled_date} ${formData.scheduled_time} (Israel)`,
@@ -366,6 +385,67 @@ export default function ScheduledMessageEdit() {
                 template_description: formData.is_community_template ? formData.template_description : null,
             };
 
+            // Handle staggering/delay if multiple recipients and delay > 0
+            // This splits the single request into multiple scheduled messages
+            if (validRecipients.length > 1 && formData.delay_seconds > 0) {
+                if (isEditing) {
+                    // If editing and switching to staggered, we might need to warn that this will split the message
+                    if (!confirm(t('scheduled.confirm_stagger') || 'This will split this message into multiple individual scheduled messages. Continue?')) {
+                        setSaving(false);
+                        return;
+                    }
+                    // Delete the original message (it gets replaced by new ones)
+                    await supabase.from('scheduled_messages').delete().eq('id', id);
+                }
+
+                // Create a message for each recipient with incrementing schedule time
+                let savedCount = 0;
+                for (let i = 0; i < validRecipients.length; i++) {
+                    const recipient = validRecipients[i];
+                    const delayMs = i * formData.delay_seconds * 1000;
+                    const staggeredTime = new Date(scheduledAt.getTime() + delayMs);
+
+                    // Helper formatting for Israel time (not strictly needed for storage but good for consistency/debug)
+                    const staggeredIsraelTime = new Intl.DateTimeFormat('en-GB', {
+                        timeZone: 'Asia/Jerusalem',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                    }).format(staggeredTime);
+
+                    const singlePayload = {
+                        ...payload,
+                        to_phone: recipient,
+                        scheduled_at: staggeredTime.toISOString(),
+                        time_of_day: staggeredIsraelTime, // Update visual time
+                        status: 'pending'
+                    };
+
+                    const { data, error } = await supabase
+                        .from('scheduled_messages')
+                        .insert(singlePayload)
+                        .select('id')
+                        .single();
+
+                    if (error) {
+                        console.error(`Error saving staggered message for ${recipient}:`, error);
+                    } else {
+                        // Insert recipient record for this single message
+                        await supabase.from('scheduled_message_recipients').insert({
+                            scheduled_message_id: data.id,
+                            phone_number: recipient,
+                            status: 'pending'
+                        });
+                        savedCount++;
+                    }
+                }
+
+                // Done
+                navigate('/app/scheduled');
+                return;
+            }
+
+            // Standard save (one message, multiple recipients in table)
             let messageId;
             if (isEditing) {
                 const { data, error } = await supabase
@@ -488,7 +568,7 @@ export default function ScheduledMessageEdit() {
                         {/* Recipients */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                {t('scheduled.recipients') || 'Recipients'} * 
+                                {t('scheduled.recipients') || 'Recipients'} *
                                 <span className="text-xs text-muted-foreground ml-2">
                                     ({formData.recipients.filter(r => r.trim() !== '').length} {t('scheduled.recipients_count') || 'recipients'})
                                 </span>
@@ -535,6 +615,41 @@ export default function ScheduledMessageEdit() {
                             </div>
                         </div>
 
+                        {/* Staggering / Delay & Spam Warning */}
+                        {formData.recipients.filter(r => r.trim()).length > 1 && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium flex items-center gap-2">
+                                        {t('scheduled.delay_seconds') || 'Delay between messages (seconds)'}
+                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        value={formData.delay_seconds}
+                                        onChange={(e) => setFormData({ ...formData, delay_seconds: parseInt(e.target.value) || 0 })}
+                                        placeholder="0"
+                                        className="max-w-[150px]"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('scheduled.delay_desc') || 'Adding a delay helps prevent number blocking by spreading out the sending time.'}
+                                    </p>
+                                </div>
+
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded-md p-4 flex items-start gap-3">
+                                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+                                    <div className="text-sm">
+                                        <p className="font-medium text-yellow-800 dark:text-yellow-400">
+                                            {t('scheduled.spam_warning_title') || 'Avoid Number Blocking'}
+                                        </p>
+                                        <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                                            {t('scheduled.spam_warning_desc') || 'Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Message */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
@@ -554,7 +669,7 @@ export default function ScheduledMessageEdit() {
                             <label className="text-sm font-medium">
                                 {t('scheduled.media_url') || 'Media (optional)'}
                             </label>
-                            
+
                             {!formData.media_url && !uploadedFile ? (
                                 <div className="border-2 border-dashed rounded-lg p-6 text-center">
                                     <input
@@ -610,7 +725,7 @@ export default function ScheduledMessageEdit() {
                                             </Button>
                                         </div>
                                     )}
-                                    
+
                                     <div className="flex gap-2">
                                         <select
                                             value={formData.media_type}
@@ -630,7 +745,7 @@ export default function ScheduledMessageEdit() {
                                             className="flex-1"
                                         />
                                     </div>
-                                    
+
                                     <Input
                                         value={formData.media_url}
                                         onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}

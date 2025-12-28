@@ -207,4 +207,26 @@ export async function getOrgMembersUsage(
     }
 }
 
+/**
+ * Check if the user plan allows scheduled messages.
+ * Only 'pro' and 'agency'/'organization' plans allow this.
+ * 'free' plan does not.
+ */
+export function canUseScheduledMessages(plan) {
+    if (!plan) return false
+
+    // Check by name (normalized)
+    const name = (plan.name || '').toLowerCase().trim()
+    if (name === 'free') return false
+
+    // Check by features JSON if available (future proofing)
+    if (plan.features && Array.isArray(plan.features)) {
+        if (plan.features.includes('Scheduled Messages')) return true
+    }
+
+    // Default: assume paid plans have it, free doesn't
+    return name !== 'free'
+}
+
+
 

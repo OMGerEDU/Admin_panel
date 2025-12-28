@@ -325,6 +325,12 @@ export default function Plans() {
                     <Check className="h-4 w-4 text-green-500" />
                     {plan.invites_limit === -1 ? t('landing.plans.unlimited') : plan.invites_limit} {t('landing.plans.team_members')}
                   </li>
+                  {plan.name !== 'Free' && (
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500" />
+                      <span className="font-medium text-primary">Scheduled Messages</span>
+                    </li>
+                  )}
                 </ul>
 
                 <Button
