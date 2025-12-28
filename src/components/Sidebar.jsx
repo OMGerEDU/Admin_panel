@@ -35,7 +35,7 @@ export function Sidebar({ className }) {
         { href: '/app/plans', label: t('landing.plans.select'), icon: LayoutDashboard },
         { href: '/app/webhooks', label: t('webhooks'), icon: Webhook },
         { href: '/app/logs', label: t('logs'), icon: FileText },
-        { href: '/app/automation', label: t('automation'), icon: Bot },
+
     ];
 
     const isSettingsRoute = settingsChildren.some((link) =>
@@ -66,12 +66,12 @@ export function Sidebar({ className }) {
                             <NavLink
                                 key={link.href}
                                 to={link.href}
-                            className={({ isActive }) =>
-                                cn(
-                                    "flex items-center border-b border-border/40 last:border-b-0 px-4 py-2.5 text-[15px] font-medium hover:bg-accent/70 hover:text-accent-foreground transition-all",
-                                    isActive ? "bg-accent text-accent-foreground shadow-sm" : "bg-transparent"
-                                )
-                            }
+                                className={({ isActive }) =>
+                                    cn(
+                                        "flex items-center border-b border-border/40 last:border-b-0 px-4 py-2.5 text-[15px] font-medium hover:bg-accent/70 hover:text-accent-foreground transition-all",
+                                        isActive ? "bg-accent text-accent-foreground shadow-sm" : "bg-transparent"
+                                    )
+                                }
                             >
                                 <link.icon className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
                                 <span>{link.label}</span>

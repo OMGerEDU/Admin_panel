@@ -334,15 +334,17 @@ export default function Plans() {
                     {icon}
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   </div>
-                  <div className="text-4xl font-bold">
-                    ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
-                    <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
-                  </div>
-                  {billingInterval === 'year' && plan.price_monthly > 0 && (
-                    <div className="text-xs text-muted-foreground text-right mt-1">
-                      ${plan.price_yearly} {t('landing.plans.billed_yearly') || 'billed yearly'}
+                  <div className="text-right">
+                    <div className="text-4xl font-bold">
+                      ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
+                      <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
                     </div>
-                  )}
+                    {billingInterval === 'year' && plan.price_monthly > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        ${plan.price_yearly} {t('landing.plans.billed_yearly') || 'billed yearly'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
