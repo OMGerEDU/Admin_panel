@@ -68,9 +68,6 @@ export default function Plans() {
     setLoading(false)
   }
 
-  if (error) console.error('Error fetching sub:', error)
-  else setCurrentSubscription(data)
-  setLoading(false)
 
   const fetchUsage = async () => {
     if (!session?.user?.id) return
