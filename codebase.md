@@ -1,9 +1,38 @@
 # .cursor\debug.log
 
 ```log
-{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H2","location":"OrganizationSettings.jsx:createInviteLink","message":"Created organization invite token","data":{"hasOrgId":true,"tokenPreview":"6d9d2e33-5ce"},"timestamp":1766079845992}
-{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H1","location":"Signup.jsx:handleSignup:beforeSignUp","message":"Computed invite token before signUp","data":{"urlInvitePresent":true,"inviteCodePresent":true,"inviteLocked":true,"inviteTokenPreview":"6d9d2e33-5ce"},"timestamp":1766079864315}
-{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H3","location":"Signup.jsx:handleSignup:afterSignUp","message":"Result of supabase.auth.signUp","data":{"hasUser":true,"hasSession":true,"usedInviteToken":true},"timestamp":1766079864876}
+{"location":"ScheduledMessageEdit.jsx:25","message":"Component render start","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","isEditing":true,"hasUser":true,"userId":"26a458ce-8cae-4cc2-83f4-13a780bf9339"},"timestamp":1766247081668,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"ScheduledMessageEdit.jsx:49","message":"useEffect entry","data":{"hasUser":true,"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","isEditing":true},"timestamp":1766247081683,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"ScheduledMessageEdit.jsx:30","message":"Initial state","data":{"loading":true,"numbersCount":0},"timestamp":1766247081669,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:58","message":"Calling fetchMessage","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3"},"timestamp":1766247081684,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:85","message":"fetchMessage entry","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","hasUser":true},"timestamp":1766247081685,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:88","message":"Set loading to true","data":{},"timestamp":1766247081686,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:96","message":"Before supabase query","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","userId":"26a458ce-8cae-4cc2-83f4-13a780bf9339"},"timestamp":1766247081686,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:49","message":"useEffect entry","data":{"hasUser":true,"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","isEditing":true},"timestamp":1766247081688,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"ScheduledMessageEdit.jsx:58","message":"Calling fetchMessage","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3"},"timestamp":1766247081689,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:85","message":"fetchMessage entry","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","hasUser":true},"timestamp":1766247081689,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:88","message":"Set loading to true","data":{},"timestamp":1766247081689,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:96","message":"Before supabase query","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","userId":"26a458ce-8cae-4cc2-83f4-13a780bf9339"},"timestamp":1766247081690,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:195","message":"Before render checks","data":{"hasUser":true,"loading":true},"timestamp":1766247081669,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:210","message":"Rendering loading spinner","data":{},"timestamp":1766247081670,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:25","message":"Component render start","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","isEditing":true,"hasUser":true,"userId":"26a458ce-8cae-4cc2-83f4-13a780bf9339"},"timestamp":1766247081671,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"ScheduledMessageEdit.jsx:30","message":"Initial state","data":{"loading":true,"numbersCount":0},"timestamp":1766247081671,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:195","message":"Before render checks","data":{"hasUser":true,"loading":true},"timestamp":1766247081672,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:210","message":"Rendering loading spinner","data":{},"timestamp":1766247081672,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:25","message":"Component render start","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","isEditing":true,"hasUser":true,"userId":"26a458ce-8cae-4cc2-83f4-13a780bf9339"},"timestamp":1766247081706,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"ScheduledMessageEdit.jsx:30","message":"Initial state","data":{"loading":true,"numbersCount":0},"timestamp":1766247081707,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:195","message":"Before render checks","data":{"hasUser":true,"loading":true},"timestamp":1766247081707,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:210","message":"Rendering loading spinner","data":{},"timestamp":1766247081707,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:25","message":"Component render start","data":{"id":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","isEditing":true,"hasUser":true,"userId":"26a458ce-8cae-4cc2-83f4-13a780bf9339"},"timestamp":1766247081708,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"ScheduledMessageEdit.jsx:30","message":"Initial state","data":{"loading":true,"numbersCount":0},"timestamp":1766247081709,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:195","message":"Before render checks","data":{"hasUser":true,"loading":true},"timestamp":1766247081709,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:210","message":"Rendering loading spinner","data":{},"timestamp":1766247081709,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:104","message":"After supabase query","data":{"hasData":true,"hasError":false},"timestamp":1766247082158,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:120","message":"Data found - setting formData","data":{"messageId":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","hasMessage":true},"timestamp":1766247082158,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:147","message":"Set loading to false (fetchMessage done)","data":{},"timestamp":1766247082158,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"ScheduledMessageEdit.jsx:104","message":"After supabase query","data":{"hasData":true,"hasError":false},"timestamp":1766247082339,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:120","message":"Data found - setting formData","data":{"messageId":"28e2abc4-8a55-4468-8d3c-ec893d1353d3","hasMessage":true},"timestamp":1766247082339,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ScheduledMessageEdit.jsx:147","message":"Set loading to false (fetchMessage done)","data":{},"timestamp":1766247082340,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
 
 ```
 
@@ -15567,11 +15596,10 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 const CRON_SECRET = process.env.CRON_SECRET as string
-const GREENAPI_BASE_URL = process.env.GREENAPI_INSTANCE_URL as string
-const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN as string
 
 const BATCH_SIZE = 50
 const MAX_ATTEMPTS = 5
+const GREEN_API_BASE = 'https://api.green-api.com'
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing Supabase service configuration')
@@ -15581,21 +15609,48 @@ const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROL
   auth: { persistSession: false },
 })
 
-// Minimal GreenAPI send wrapper (adjust endpoint/payload to your actual GreenAPI setup)
-async function sendViaGreenApi(toPhone: string, message: string) {
-  const base = (GREENAPI_BASE_URL || '').replace(/\/+$/, '')
-  const url = `${base}/sendMessage`
+// Normalize phone number to GreenAPI chatId format (e.g., "972501234567@c.us")
+function normalizePhoneToChatId(phone: string): string {
+  // Remove all non-digit characters except +
+  let cleaned = phone.replace(/[^\d+]/g, '')
+
+  // Remove + if present
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.substring(1)
+  }
+
+  // If starts with 0, replace with 972 (Israeli number)
+  if (cleaned.startsWith('0')) {
+    cleaned = '972' + cleaned.substring(1)
+  }
+
+  // If doesn't start with 972, prepend it (assume Israeli number)
+  if (!cleaned.startsWith('972')) {
+    cleaned = '972' + cleaned
+  }
+
+  // Return in chatId format
+  return `${cleaned}@c.us`
+}
+
+// GreenAPI send text message
+async function sendTextMessage(
+  instanceId: string,
+  apiToken: string,
+  toPhone: string,
+  message: string,
+) {
+  if (!instanceId || !apiToken) {
+    throw new Error('Missing GreenAPI credentials (instance_id or api_token)')
+  }
+
+  const chatId = normalizePhoneToChatId(toPhone)
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/sendMessage/${apiToken}`
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${GREENAPI_TOKEN}`,
-    },
-    body: JSON.stringify({
-      to: toPhone,
-      message,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chatId, message }),
   })
 
   if (!res.ok) {
@@ -15604,14 +15659,71 @@ async function sendViaGreenApi(toPhone: string, message: string) {
   }
 
   const data = (await res.json().catch(() => ({}))) as { idMessage?: string }
-  return {
-    providerMessageId: data.idMessage ?? null,
+  return { providerMessageId: data.idMessage ?? null }
+}
+
+// GreenAPI send media via URL
+async function sendMediaMessage(
+  instanceId: string,
+  apiToken: string,
+  toPhone: string,
+  mediaUrl: string,
+  mediaFilename: string,
+  caption: string,
+) {
+  if (!instanceId || !apiToken) {
+    throw new Error('Missing GreenAPI credentials (instance_id or api_token)')
   }
+
+  const chatId = normalizePhoneToChatId(toPhone)
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/sendFileByUrl/${apiToken}`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatId,
+      urlFile: mediaUrl,
+      fileName: mediaFilename || 'file',
+      caption: caption || '',
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`GreenAPI media error: ${res.status} ${res.statusText} ${text}`.trim())
+  }
+
+  const data = (await res.json().catch(() => ({}))) as { idMessage?: string }
+  return { providerMessageId: data.idMessage ?? null }
+}
+
+// Combined send function - handles both text and media
+async function sendViaGreenApi(
+  instanceId: string,
+  apiToken: string,
+  toPhone: string,
+  message: string,
+  mediaUrl?: string | null,
+  mediaFilename?: string | null,
+) {
+  if (mediaUrl) {
+    return sendMediaMessage(instanceId, apiToken, toPhone, mediaUrl, mediaFilename || 'file', message)
+  }
+  return sendTextMessage(instanceId, apiToken, toPhone, message)
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const startTime = Date.now()
+  console.log(`[DISPATCH] ${new Date().toISOString()} - Request received:`, {
+    method: req.method,
+    hasAuth: !!req.headers.authorization,
+    userAgent: req.headers['user-agent'],
+  })
+
   try {
     if (req.method !== 'POST') {
+      console.log(`[DISPATCH] Method not allowed: ${req.method}`)
       res.setHeader('Allow', 'POST')
       return res.status(405).json({ error: 'Method not allowed' })
     }
@@ -15620,13 +15732,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       (req.headers.Authorization as string | undefined)) as string | undefined
 
     if (!authHeader) {
+      console.log('[DISPATCH] Missing Authorization header')
       return res.status(401).json({ error: 'Missing Authorization header' })
     }
 
     const expected = `Bearer ${CRON_SECRET}`
     if (authHeader !== expected) {
+      console.log('[DISPATCH] Invalid Authorization token', {
+        received: authHeader.substring(0, 20) + '...',
+        expectedPrefix: expected.substring(0, 20) + '...',
+      })
       return res.status(403).json({ error: 'Invalid Authorization token' })
     }
+
+    console.log('[DISPATCH] Authentication successful, claiming messages...')
 
     // Atomically claim due messages
     const { data: claimed, error: claimError } = await supabase.rpc(
@@ -15641,7 +15760,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const messages: any[] = claimed || []
 
+    console.log(`[DISPATCH] Claimed ${messages.length} messages`)
+
     if (messages.length === 0) {
+      const duration = Date.now() - startTime
+      console.log(`[DISPATCH] No messages to process (${duration}ms)`)
       return res.status(200).json({
         claimed_count: 0,
         sent_count: 0,
@@ -15659,37 +15782,207 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     for (const msg of messages) {
       const id: string = msg.id
-      const toPhone: string = msg.to_phone
+      const numberId: string = msg.number_id
       const text: string = msg.message
+      const mediaUrl: string | null = msg.media_url || null
+      const mediaFilename: string | null = msg.media_filename || null
+
+      // Fetch the number's credentials
+      const { data: numberData, error: numberError } = await supabase
+        .from('numbers')
+        .select('instance_id, api_token')
+        .eq('id', numberId)
+        .single()
+
+      if (numberError || !numberData) {
+        const errorMessage = numberError?.message || 'Number not found'
+        console.error(`Error fetching number ${numberId} for message ${id}:`, errorMessage)
+
+        // Mark as failed
+        await supabase
+          .from('scheduled_messages')
+          .update({
+            status: 'failed',
+            last_error: `Failed to fetch number credentials: ${errorMessage}`,
+            attempts: (msg.attempts || 0) + 1,
+          })
+          .eq('id', id)
+
+        failedCount += 1
+        results.push({
+          id,
+          status: 'failed',
+          error: errorMessage,
+        })
+        continue
+      }
+
+      if (!numberData.instance_id || !numberData.api_token) {
+        const errorMessage = 'Number missing instance_id or api_token'
+        console.error(`Number ${numberId} missing credentials for message ${id}`)
+
+        await supabase
+          .from('scheduled_messages')
+          .update({
+            status: 'failed',
+            last_error: errorMessage,
+            attempts: (msg.attempts || 0) + 1,
+          })
+          .eq('id', id)
+
+        failedCount += 1
+        results.push({
+          id,
+          status: 'failed',
+          error: errorMessage,
+        })
+        continue
+      }
+
+      // Fetch all recipients for this message
+      const { data: recipientsData } = await supabase
+        .from('scheduled_message_recipients')
+        .select('id, phone_number')
+        .eq('scheduled_message_id', id)
+        .eq('status', 'pending')
+
+      // Fallback to old to_phone if no recipients table entries
+      const recipients = recipientsData && recipientsData.length > 0
+        ? recipientsData
+        : (msg.to_phone ? [{ id: null, phone_number: msg.to_phone }] : [])
+
+      if (recipients.length === 0) {
+        console.error(`No recipients found for message ${id}`)
+        await supabase
+          .from('scheduled_messages')
+          .update({
+            status: 'failed',
+            last_error: 'No recipients found',
+            attempts: (msg.attempts || 0) + 1,
+          })
+          .eq('id', id)
+        failedCount += 1
+        results.push({
+          id,
+          status: 'failed',
+          error: 'No recipients found',
+        })
+        continue
+      }
+
+      let recipientSuccessCount = 0
+      let recipientFailCount = 0
+      const now = new Date().toISOString()
+
+      // Send to all recipients
+      for (const recipient of recipients) {
+        try {
+          const { providerMessageId } = await sendViaGreenApi(
+            numberData.instance_id,
+            numberData.api_token,
+            recipient.phone_number,
+            text,
+            mediaUrl,
+            mediaFilename,
+          )
+
+          // Update recipient status if exists in table
+          if (recipient.id) {
+            await supabase
+              .from('scheduled_message_recipients')
+              .update({
+                status: 'sent',
+                sent_at: now,
+                provider_message_id: providerMessageId,
+              })
+              .eq('id', recipient.id)
+          }
+
+          recipientSuccessCount++
+        } catch (err: any) {
+          const errorMessage = err?.message || String(err)
+          console.error(`Error sending to ${recipient.phone_number} for message ${id}:`, errorMessage)
+          recipientFailCount++
+
+          // Update recipient status if exists in table
+          if (recipient.id) {
+            await supabase
+              .from('scheduled_message_recipients')
+              .update({
+                status: 'failed',
+                error_message: errorMessage,
+              })
+              .eq('id', recipient.id)
+          }
+        }
+      }
+
+      // Update message status based on recipient results
+      const allSent = recipientFailCount === 0
+      const someSent = recipientSuccessCount > 0
 
       try {
-        const { providerMessageId } = await sendViaGreenApi(toPhone, text)
+        const updateData: any = {
+          sent_at: allSent ? now : null,
+          last_error: recipientFailCount > 0 ? `${recipientFailCount} recipients failed` : null,
+        }
+
+        if (allSent) {
+          updateData.status = 'sent'
+          updateData.provider_message_id = recipients[0]?.id ? null : 'multiple' // For backward compatibility
+        } else if (someSent) {
+          updateData.status = 'processing' // Some sent, some failed - keep processing
+        } else {
+          // All failed
+          const attempts: number = typeof msg.attempts === 'number' ? msg.attempts : 0
+          const nextAttempts = attempts + 1
+          updateData.status = nextAttempts < MAX_ATTEMPTS ? 'pending' : 'failed'
+          updateData.attempts = nextAttempts
+        }
 
         const { error: updateError } = await supabase
           .from('scheduled_messages')
-          .update({
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-            provider_message_id: providerMessageId,
-            last_error: null,
-          })
+          .update(updateData)
           .eq('id', id)
 
         if (updateError) {
           throw updateError
         }
 
-        sentCount += 1
-        results.push({ id, status: 'sent' })
+        // If recurring and all sent, reschedule for next occurrence
+        if (msg.is_recurring && allSent) {
+          await supabase.rpc('reschedule_recurring_message', { p_message_id: id })
+        }
+
+        if (allSent) {
+          sentCount += 1
+          results.push({ id, status: 'sent' })
+        } else if (someSent) {
+          retryCount += 1
+          results.push({ id, status: 'processing' })
+        } else {
+          const attempts: number = typeof msg.attempts === 'number' ? msg.attempts : 0
+          const nextStatus = attempts + 1 < MAX_ATTEMPTS ? 'pending' : 'failed'
+          if (nextStatus === 'pending') {
+            retryCount += 1
+          } else {
+            failedCount += 1
+          }
+          results.push({
+            id,
+            status: nextStatus,
+            error: `All ${recipients.length} recipients failed`,
+          })
+        }
       } catch (err: any) {
         const errorMessage = err?.message || String(err)
-        console.error(`Error sending scheduled message ${id}:`, errorMessage)
+        console.error(`Error updating scheduled message ${id}:`, errorMessage)
 
         const attempts: number = typeof msg.attempts === 'number' ? msg.attempts : 0
         const nextAttempts = attempts + 1
         const nextStatus = nextAttempts < MAX_ATTEMPTS ? 'pending' : 'failed'
 
-        const { error: updateError } = await supabase
+        await supabase
           .from('scheduled_messages')
           .update({
             attempts: nextAttempts,
@@ -15697,10 +15990,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             status: nextStatus,
           })
           .eq('id', id)
-
-        if (updateError) {
-          console.error('Error updating failed scheduled message row:', updateError)
-        }
 
         if (nextStatus === 'pending') {
           retryCount += 1
@@ -15716,16 +16005,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    return res.status(200).json({
+    const duration = Date.now() - startTime
+    const summary = {
       claimed_count: messages.length,
       sent_count: sentCount,
       failed_count: failedCount,
       retry_count: retryCount,
+      duration_ms: duration,
       results,
+    }
+
+    console.log(`[DISPATCH] Completed in ${duration}ms:`, {
+      claimed: messages.length,
+      sent: sentCount,
+      failed: failedCount,
+      retry: retryCount,
     })
+
+    return res.status(200).json(summary)
   } catch (err: any) {
-    console.error('Unexpected error in /api/dispatch:', err)
-    return res.status(500).json({ error: err?.message || 'Internal server error' })
+    const duration = Date.now() - startTime
+    console.error(`[DISPATCH] Unexpected error after ${duration}ms:`, err)
+    return res.status(500).json({ 
+      error: err?.message || 'Internal server error',
+      duration_ms: duration,
+    })
   }
 }
 
@@ -15733,9 +16037,293 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 ```
 
+# Assistant\Assistant-VariableFont_wght.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\OFL.txt
+
+```txt
+Copyright 2020 The Assistant Project Authors (https://github.com/hafontia/Assistant).
+Copyright 2010 The Source Sans Pro Authors (https://github.com/adobe-fonts/source-sans-pro), with Reserved Font Name 'Source'.
+Source is a trademark of Adobe Systems Incorporated in the United States and/or other countries.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://openfontlicense.org
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+
+```
+
+# Assistant\README.txt
+
+```txt
+Assistant Variable Font
+=======================
+
+This download contains Assistant as both a variable font and static fonts.
+
+Assistant is a variable font with this axis:
+  wght
+
+This means all the styles are contained in a single file:
+  Assistant-VariableFont_wght.ttf
+
+If your app fully supports variable fonts, you can now pick intermediate styles
+that aren’t available as static fonts. Not all apps support variable fonts, and
+in those cases you can use the static font files for Assistant:
+  static/Assistant-ExtraLight.ttf
+  static/Assistant-Light.ttf
+  static/Assistant-Regular.ttf
+  static/Assistant-Medium.ttf
+  static/Assistant-SemiBold.ttf
+  static/Assistant-Bold.ttf
+  static/Assistant-ExtraBold.ttf
+
+Get started
+-----------
+
+1. Install the font files you want to use
+
+2. Use your app's font picker to view the font family and all the
+available styles
+
+Learn more about variable fonts
+-------------------------------
+
+  https://developers.google.com/web/fundamentals/design-and-ux/typography/variable-fonts
+  https://variablefonts.typenetwork.com
+  https://medium.com/variable-fonts
+
+In desktop apps
+
+  https://theblog.adobe.com/can-variable-fonts-illustrator-cc
+  https://helpx.adobe.com/nz/photoshop/using/fonts.html#variable_fonts
+
+Online
+
+  https://developers.google.com/fonts/docs/getting_started
+  https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide
+  https://developer.microsoft.com/en-us/microsoft-edge/testdrive/demos/variable-fonts
+
+Installing fonts
+
+  MacOS: https://support.apple.com/en-us/HT201749
+  Linux: https://www.google.com/search?q=how+to+install+a+font+on+gnu%2Blinux
+  Windows: https://support.microsoft.com/en-us/help/314960/how-to-install-or-remove-a-font-in-windows
+
+Android Apps
+
+  https://developers.google.com/fonts/docs/android
+  https://developer.android.com/guide/topics/ui/look-and-feel/downloadable-fonts
+
+License
+-------
+Please read the full license text (OFL.txt) to understand the permissions,
+restrictions and requirements for usage, redistribution, and modification.
+
+You can use them in your products & projects – print or digital,
+commercial or otherwise.
+
+This isn't legal advice, please consider consulting a lawyer and see the full
+license for all details.
+
+```
+
+# Assistant\static\Assistant-Bold.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\static\Assistant-ExtraBold.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\static\Assistant-ExtraLight.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\static\Assistant-Light.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\static\Assistant-Medium.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\static\Assistant-Regular.ttf
+
+This is a binary file of the type: Binary
+
+# Assistant\static\Assistant-SemiBold.ttf
+
+This is a binary file of the type: Binary
+
 # bgImage.jpg
 
 This is a binary file of the type: Image
+
+# CHECK_RECIPIENTS.sql
+
+```sql
+-- בדוק recipients להודעה המתוזמנת
+SELECT 
+  sm.id as message_id,
+  sm.message,
+  sm.status,
+  sm.scheduled_at,
+  sm.to_phone as old_to_phone,
+  COUNT(smr.id) as recipient_count,
+  STRING_AGG(smr.phone_number, ', ') as recipients
+FROM scheduled_messages sm
+LEFT JOIN scheduled_message_recipients smr ON smr.scheduled_message_id = sm.id
+WHERE sm.id = '9826edd9-0410-4854-86c7-f37120dd3ec4'
+GROUP BY sm.id, sm.message, sm.status, sm.scheduled_at, sm.to_phone;
+
+-- בדוק את כל ה-recipients
+SELECT * FROM scheduled_message_recipients 
+WHERE scheduled_message_id = '9826edd9-0410-4854-86c7-f37120dd3ec4';
+
+-- בדוק את ה-number credentials
+SELECT 
+  sm.id as message_id,
+  n.id as number_id,
+  n.phone_number,
+  n.instance_id,
+  n.api_token,
+  CASE 
+    WHEN n.instance_id IS NULL THEN '❌ Missing instance_id'
+    WHEN n.api_token IS NULL THEN '❌ Missing api_token'
+    ELSE '✅ OK'
+  END as credentials_status
+FROM scheduled_messages sm
+INNER JOIN numbers n ON n.id = sm.number_id
+WHERE sm.id = '9826edd9-0410-4854-86c7-f37120dd3ec4';
+
+
+```
+
+# create_feedback_table.sql
+
+```sql
+-- Create Feedback table
+CREATE TABLE IF NOT EXISTS feedback (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id),
+    rating INTEGER NOT NULL,
+    comment TEXT,
+    source TEXT DEFAULT 'manual', -- 'manual', 'prompt_7_days'
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+
+-- Authenticated users can insert their own feedback
+CREATE POLICY "Users can insert their own feedback" 
+ON feedback FOR INSERT 
+TO authenticated 
+WITH CHECK (auth.uid() = user_id);
+
+-- Users can read their own feedback (optional, but good practice)
+CREATE POLICY "Users can read their own feedback" 
+ON feedback FOR SELECT 
+TO authenticated 
+USING (auth.uid() = user_id);
+
+-- Admins/Service role can read all (implicit for service_role, explicit if needed for admin users logic)
+-- Assuming typical Supabase setup where service_role bypasses RLS.
+
+```
 
 # deploy_schema.bat
 
@@ -21276,6 +21864,170 @@ const SUPABASE_CONFIG = {
 
 ```
 
+# FIX_SCHEDULED.md
+
+```md
+# פתרון מהיר - Scheduled Messages לא נשלחות
+
+## הבעיה
+ה-cron job רץ ומחזיר "1 row", אבל ההודעה עדיין ב-pending ולא נשלחת.
+
+## בדיקה מהירה
+
+הרץ את זה ב-Supabase SQL Editor:
+
+\`\`\`sql
+-- 1. בדוק recipients
+SELECT 
+  sm.id,
+  sm.to_phone,
+  COUNT(smr.id) as recipient_count,
+  STRING_AGG(smr.phone_number, ', ') as recipients
+FROM scheduled_messages sm
+LEFT JOIN scheduled_message_recipients smr ON smr.scheduled_message_id = sm.id
+WHERE sm.status = 'pending'
+GROUP BY sm.id, sm.to_phone;
+
+-- 2. בדוק number credentials
+SELECT 
+  sm.id,
+  n.instance_id,
+  n.api_token,
+  CASE 
+    WHEN n.instance_id IS NULL THEN '❌ Missing instance_id'
+    WHEN n.api_token IS NULL THEN '❌ Missing api_token'
+    ELSE '✅ OK'
+  END as status
+FROM scheduled_messages sm
+INNER JOIN numbers n ON n.id = sm.number_id
+WHERE sm.status = 'pending';
+
+-- 3. בדוק את ה-claim function
+SELECT * FROM claim_due_scheduled_messages(50);
+\`\`\`
+
+## פתרונות לפי הבעיה
+
+### אם אין recipients (recipient_count = 0)
+
+**הבעיה:** ההודעה נשמרה אבל לא נשמרו recipients.
+
+**פתרון:**
+\`\`\`sql
+-- הוסף recipient מהשדה to_phone
+INSERT INTO scheduled_message_recipients (scheduled_message_id, phone_number, status)
+SELECT id, to_phone, 'pending'
+FROM scheduled_messages
+WHERE id = '9826edd9-0410-4854-86c7-f37120dd3ec4'
+  AND to_phone IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM scheduled_message_recipients 
+    WHERE scheduled_message_id = scheduled_messages.id
+  );
+\`\`\`
+
+### אם אין number credentials
+
+**הבעיה:** ה-number לא מוגדר נכון.
+
+**פתרון:**
+- לך ל-Numbers page
+- עדכן את ה-number עם instance_id ו-api_token
+
+### אם ה-claim function מחזיר רשימה ריקה
+
+**הבעיה:** ה-function לא מוצא הודעות.
+
+**פתרון:**
+\`\`\`sql
+-- בדוק למה ה-function לא מוצא
+SELECT 
+  id,
+  status,
+  is_active,
+  scheduled_at,
+  NOW() as current_time,
+  scheduled_at <= NOW() as is_due,
+  status = 'pending' as is_pending,
+  is_active = true as is_active_check
+FROM scheduled_messages
+WHERE id = '9826edd9-0410-4854-86c7-f37120dd3ec4';
+\`\`\`
+
+אם `is_due = true` אבל ה-function לא מוצא:
+- אולי ה-status כבר לא 'pending' (אולי 'processing'?)
+- בדוק: `SELECT status FROM scheduled_messages WHERE id = '...';`
+
+## בדיקת ה-API
+
+אם הכל נראה תקין, בדוק את ה-API:
+
+1. לך ל-Vercel Dashboard
+2. Deployments > בחר deployment אחרון
+3. Functions > `/api/dispatch` > Logs
+4. חפש הודעות עם `[DISPATCH]`
+
+**מה לחפש:**
+- `[DISPATCH] Claimed X messages` - כמה הודעות נטענו
+- `Error fetching number` - בעיה ב-credentials
+- `No recipients found` - אין recipients
+- `Error sending` - בעיה בשליחת ההודעה
+
+## פתרון מהיר - Force Send
+
+אם אתה רוצה לשלוח את ההודעה עכשיו:
+
+\`\`\`sql
+-- שנה status ל-processing כדי שה-API יטען אותה
+UPDATE scheduled_messages
+SET status = 'processing'
+WHERE id = '9826edd9-0410-4854-86c7-f37120dd3ec4';
+
+-- או תזמן מחדש לעוד דקה
+UPDATE scheduled_messages
+SET scheduled_at = NOW() + INTERVAL '1 minute',
+    status = 'pending'
+WHERE id = '9826edd9-0410-4854-86c7-f37120dd3ec4';
+\`\`\`
+
+ואז קרא ל-API ידנית:
+\`\`\`bash
+curl -X POST https://admin-panel-788h.vercel.app/api/dispatch \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -H "Content-Type: application/json"
+\`\`\`
+
+## בדיקה מקיפה
+
+הרץ את זה כדי לראות הכל:
+
+\`\`\`sql
+SELECT 
+  'Message Status' as check_type,
+  status as value
+FROM scheduled_messages
+WHERE id = '9826edd9-0410-4854-86c7-f37120dd3ec4'
+UNION ALL
+SELECT 
+  'Recipients Count',
+  COUNT(*)::text
+FROM scheduled_message_recipients
+WHERE scheduled_message_id = '9826edd9-0410-4854-86c7-f37120dd3ec4'
+UNION ALL
+SELECT 
+  'Number Credentials',
+  CASE 
+    WHEN n.instance_id IS NULL OR n.api_token IS NULL THEN 'Missing'
+    ELSE 'OK'
+  END
+FROM scheduled_messages sm
+INNER JOIN numbers n ON n.id = sm.number_id
+WHERE sm.id = '9826edd9-0410-4854-86c7-f37120dd3ec4';
+\`\`\`
+
+
+```
+
 # generated_supabase_schema.txt
 
 ```txt
@@ -22061,7 +22813,15 @@ export default {
 
 ```
 
+# public\bgImage copy.jpg
+
+This is a binary file of the type: Image
+
 # public\bgImage.jpg
+
+This is a binary file of the type: Image
+
+# public\greenApiGuide.png
 
 This is a binary file of the type: Image
 
@@ -22084,6 +22844,132 @@ git push origin main
 
 echo Done!
 pause
+
+```
+
+# QUICK_CHECK.md
+
+```md
+# בדיקה מהירה - למה ההודעות לא נשלחות?
+
+## שלב 1: בדוק ב-Supabase SQL Editor
+
+הרץ את זה:
+
+\`\`\`sql
+-- 1. בדוק אם יש הודעות pending
+SELECT 
+  id,
+  LEFT(message, 50) as message_preview,
+  scheduled_at,
+  status,
+  is_active,
+  NOW() as current_utc,
+  scheduled_at <= NOW() as is_due,
+  -- מה זה ב-Israel timezone
+  scheduled_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jerusalem' as israel_time
+FROM scheduled_messages
+WHERE status = 'pending'
+  AND is_active = true
+ORDER BY scheduled_at;
+\`\`\`
+
+**אם `is_due = false`:**
+- ההודעה עדיין לא הגיעה לשעה המתוזמנת
+- בדוק את ה-`israel_time` - האם זה תואם למה שהזנת?
+
+**אם `is_due = true` אבל ההודעה לא נשלחת:**
+- המשך לשלב 2
+
+## שלב 2: בדוק את ה-Cron Job
+
+\`\`\`sql
+-- בדוק אם ה-cron job קיים
+SELECT * FROM cron.job WHERE jobname = 'dispatch_scheduled_messages';
+
+-- בדוק את ה-execution history (10 הרצות אחרונות)
+SELECT 
+  status,
+  return_message,
+  start_time,
+  end_time
+FROM cron.job_run_details
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'dispatch_scheduled_messages')
+ORDER BY start_time DESC
+LIMIT 10;
+\`\`\`
+
+**אם אין cron job:**
+- ❌ **זו הבעיה!** צריך ליצור את ה-cron job
+- ראה `SUPABASE_CRON_SETUP.md` לפרטים
+
+**אם יש cron job אבל `status = 'failed'`:**
+- בדוק את ה-`return_message` - מה השגיאה?
+- אם זה "Invalid Authorization token" - ה-CRON_SECRET לא נכון
+- אם זה "Connection refused" - ה-URL לא נכון
+
+**אם `status = 'succeeded'` אבל אין הודעות:**
+- המשך לשלב 3
+
+## שלב 3: בדוק את ה-API ידנית
+
+\`\`\`bash
+curl -X POST https://your-domain.vercel.app/api/dispatch \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -H "Content-Type: application/json"
+\`\`\`
+
+**אם זה מחזיר שגיאה:**
+- בדוק את ה-logs ב-Vercel
+- בדוק שה-CRON_SECRET נכון
+
+**אם זה מחזיר `claimed_count: 0`:**
+- בדוק את שלב 1 שוב - האם יש הודעות due?
+
+## שלב 4: בדוק את ה-Function
+
+\`\`\`sql
+-- זה אמור להחזיר הודעות שצריכות להישלח
+SELECT * FROM claim_due_scheduled_messages(50);
+\`\`\`
+
+**אם זה מחזיר רשימה ריקה:**
+- אבל יש הודעות עם `is_due = true`?
+- יש בעיה ב-function - בדוק את ה-SQL
+
+## שלב 5: בדוק Recipients
+
+\`\`\`sql
+SELECT 
+  sm.id,
+  sm.message,
+  COUNT(smr.id) as recipient_count
+FROM scheduled_messages sm
+LEFT JOIN scheduled_message_recipients smr ON smr.scheduled_message_id = sm.id
+WHERE sm.status = 'pending'
+  AND sm.is_active = true
+GROUP BY sm.id, sm.message;
+\`\`\`
+
+**אם `recipient_count = 0`:**
+- ❌ **זו הבעיה!** אין recipients
+- צריך להוסיף recipients ל-`scheduled_message_recipients` table
+
+## סיכום - מה לבדוק
+
+1. ✅ יש הודעות ב-pending?
+2. ✅ ה-scheduled_at עבר (is_due = true)?
+3. ✅ ה-cron job קיים?
+4. ✅ ה-cron job רץ (יש execution history)?
+5. ✅ אין שגיאות ב-return_message?
+6. ✅ יש recipients?
+
+## אם הכל נראה תקין אבל עדיין לא עובד
+
+1. הרץ את `node scripts/debug_scheduled.js`
+2. שתף את התוצאות
+3. בדוק את ה-logs ב-Vercel: Deployments > Functions > /api/dispatch > Logs
+
 
 ```
 
@@ -22161,6 +23047,299 @@ admin-panel/
 
 ```ps1
  
+```
+
+# scripts\check_cron.sql
+
+```sql
+-- ============================================================================
+-- Supabase Cron Job Management SQL
+-- ============================================================================
+-- Run these queries in Supabase SQL Editor to manage the cron job
+
+-- 1. Check if cron job exists
+SELECT * FROM cron.job WHERE jobname = 'dispatch_scheduled_messages';
+
+-- 2. Check cron job execution history (last 50 runs)
+SELECT 
+  jobid,
+  runid,
+  job_pid,
+  database,
+  username,
+  command,
+  status,
+  return_message,
+  start_time,
+  end_time
+FROM cron.job_run_details 
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'dispatch_scheduled_messages')
+ORDER BY start_time DESC 
+LIMIT 50;
+
+-- 3. Create/Update the cron job
+-- IMPORTANT: Replace <YOUR_DOMAIN> with your actual Vercel domain
+-- IMPORTANT: Replace YOUR_CRON_SECRET with your actual CRON_SECRET
+-- 
+-- First, unschedule if exists:
+SELECT cron.unschedule('dispatch_scheduled_messages');
+
+-- Then, schedule the new job:
+SELECT cron.schedule(
+  'dispatch_scheduled_messages',
+  '* * * * *',  -- Every minute
+  $$
+    SELECT net.http_post(
+      url := 'https://<YOUR_DOMAIN>/api/dispatch',
+      headers := jsonb_build_object(
+        'authorization', 'Bearer YOUR_CRON_SECRET',
+        'content-type', 'application/json'
+      ),
+      body := '{}'::jsonb
+    );
+  $$
+);
+
+-- 4. Unschedule the cron job (if needed)
+SELECT cron.unschedule('dispatch_scheduled_messages');
+
+-- 5. Check for pending scheduled messages
+SELECT 
+  id,
+  user_id,
+  number_id,
+  message,
+  scheduled_at,
+  status,
+  is_active,
+  created_at,
+  NOW() as current_time,
+  scheduled_at <= NOW() as is_due
+FROM scheduled_messages
+WHERE status = 'pending'
+  AND is_active = true
+ORDER BY scheduled_at ASC
+LIMIT 20;
+
+-- 6. Check if messages are being claimed correctly
+-- This should return messages that are due and ready to be sent
+SELECT * FROM claim_due_scheduled_messages(50);
+
+-- 7. Check recent cron job runs with details
+SELECT 
+  j.jobname,
+  j.schedule,
+  j.command,
+  jr.status,
+  jr.return_message,
+  jr.start_time,
+  jr.end_time,
+  EXTRACT(EPOCH FROM (jr.end_time - jr.start_time)) as duration_seconds
+FROM cron.job j
+LEFT JOIN cron.job_run_details jr ON j.jobid = jr.jobid
+WHERE j.jobname = 'dispatch_scheduled_messages'
+ORDER BY jr.start_time DESC
+LIMIT 10;
+
+
+```
+
+# scripts\debug_scheduled.js
+
+```js
+/**
+ * Debug script for scheduled messages
+ * Run with: node scripts/debug_scheduled.js
+ */
+
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase environment variables!');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: { persistSession: false },
+});
+
+async function debugScheduled() {
+  console.log('🔍 Debugging Scheduled Messages\n');
+  console.log('='.repeat(80));
+
+  // 1. Check current time in UTC and Israel
+  const now = new Date();
+  const utcNow = now.toISOString();
+  const israelNow = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Jerusalem',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(now);
+
+  console.log('\n1. Current Time:');
+  console.log('   UTC:', utcNow);
+  console.log('   Israel:', israelNow);
+
+  // 2. Check all scheduled messages
+  console.log('\n2. All Scheduled Messages:');
+  const { data: allMessages, error: allError } = await supabase
+    .from('scheduled_messages')
+    .select('id, message, scheduled_at, status, is_active, created_at')
+    .order('scheduled_at', { ascending: true })
+    .limit(20);
+
+  if (allError) {
+    console.error('   Error:', allError);
+  } else {
+    console.log(`   Found ${allMessages.length} messages:`);
+    allMessages.forEach((msg, i) => {
+      const scheduledDate = new Date(msg.scheduled_at);
+      const israelScheduled = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(scheduledDate);
+      
+      const isDue = scheduledDate <= now;
+      const status = isDue ? '✅ DUE' : '⏳ PENDING';
+      
+      console.log(`   ${i + 1}. ${status} | Status: ${msg.status} | Active: ${msg.is_active}`);
+      console.log(`      Scheduled (UTC): ${msg.scheduled_at}`);
+      console.log(`      Scheduled (Israel): ${israelScheduled}`);
+      console.log(`      Message: ${msg.message.substring(0, 50)}...`);
+    });
+  }
+
+  // 3. Check pending messages
+  console.log('\n3. Pending Messages:');
+  const { data: pendingMessages, error: pendingError } = await supabase
+    .from('scheduled_messages')
+    .select('id, message, scheduled_at, status, is_active')
+    .eq('status', 'pending')
+    .eq('is_active', true)
+    .order('scheduled_at', { ascending: true })
+    .limit(20);
+
+  if (pendingError) {
+    console.error('   Error:', pendingError);
+  } else {
+    console.log(`   Found ${pendingMessages.length} pending messages:`);
+    pendingMessages.forEach((msg, i) => {
+      const scheduledDate = new Date(msg.scheduled_at);
+      const isDue = scheduledDate <= now;
+      const israelScheduled = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(scheduledDate);
+      
+      console.log(`   ${i + 1}. ${isDue ? '✅ DUE NOW' : '⏳ NOT DUE'} | Scheduled: ${israelScheduled} (Israel) / ${msg.scheduled_at} (UTC)`);
+      console.log(`      Message: ${msg.message.substring(0, 50)}...`);
+    });
+  }
+
+  // 4. Test the claim function
+  console.log('\n4. Testing claim_due_scheduled_messages function:');
+  const { data: claimed, error: claimError } = await supabase.rpc(
+    'claim_due_scheduled_messages',
+    { max_batch: 50 }
+  );
+
+  if (claimError) {
+    console.error('   Error:', claimError);
+  } else {
+    console.log(`   Claimed ${claimed.length} messages`);
+    if (claimed.length > 0) {
+      claimed.forEach((msg, i) => {
+        console.log(`   ${i + 1}. ID: ${msg.id} | Message: ${msg.message.substring(0, 50)}...`);
+      });
+    }
+  }
+
+  // 5. Check cron job
+  console.log('\n5. Checking Cron Job:');
+  try {
+    const { data: cronJobs, error: cronError } = await supabase
+      .from('cron.job')
+      .select('*')
+      .eq('jobname', 'dispatch_scheduled_messages');
+
+    if (cronError) {
+      console.log('   ⚠️  Could not check cron jobs (might need to use SQL directly)');
+      console.log('   Run this SQL: SELECT * FROM cron.job WHERE jobname = \'dispatch_scheduled_messages\';');
+    } else if (cronJobs && cronJobs.length > 0) {
+      console.log('   ✅ Cron job exists');
+      console.log('   Job ID:', cronJobs[0].jobid);
+      console.log('   Schedule:', cronJobs[0].schedule);
+    } else {
+      console.log('   ❌ Cron job NOT FOUND!');
+      console.log('   You need to create it. See SUPABASE_CRON_SETUP.md');
+    }
+  } catch (error) {
+    console.log('   ⚠️  Could not check cron jobs:', error.message);
+  }
+
+  // 6. Check recipients
+  if (pendingMessages && pendingMessages.length > 0) {
+    console.log('\n6. Checking Recipients:');
+    for (const msg of pendingMessages.slice(0, 5)) {
+      const { data: recipients, error: recError } = await supabase
+        .from('scheduled_message_recipients')
+        .select('*')
+        .eq('scheduled_message_id', msg.id);
+
+      if (recError) {
+        console.log(`   Message ${msg.id}: Error - ${recError.message}`);
+      } else {
+        console.log(`   Message ${msg.id}: ${recipients.length} recipients`);
+        if (recipients.length === 0) {
+          console.log(`      ⚠️  No recipients! Using old to_phone: ${msg.to_phone || 'NONE'}`);
+        }
+      }
+    }
+  }
+
+  console.log('\n' + '='.repeat(80));
+  console.log('\n✅ Debug complete!');
+  console.log('\nNext steps:');
+  console.log('1. If cron job not found, create it (see SUPABASE_CRON_SETUP.md)');
+  console.log('2. If messages are due but not claimed, check the claim function');
+  console.log('3. If no recipients, check scheduled_message_recipients table');
+  console.log('4. Check Vercel logs for /api/dispatch to see if it\'s being called');
+}
+
+debugScheduled().catch(error => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
+
+
 ```
 
 # scripts\deploy_schema.js
@@ -22331,6 +23510,566 @@ pushSchema();
 
 ```
 
+# scripts\setup_cron.js
+
+```js
+/**
+ * Script to setup Supabase Cron Job for scheduled messages
+ * Run with: node scripts/setup_cron.js
+ * 
+ * This script will:
+ * 1. Check if the cron job exists
+ * 2. Create it if it doesn't exist
+ * 3. Verify it's working
+ */
+
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const vercelDomain = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || '';
+const cronSecret = process.env.CRON_SECRET || '';
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase environment variables!');
+  console.error('Please set VITE_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
+
+if (!vercelDomain && !process.env.VERCEL_DOMAIN) {
+  console.error('❌ Missing Vercel domain!');
+  console.error('Please set VERCEL_DOMAIN environment variable or provide it as argument');
+  console.error('Usage: node scripts/setup_cron.js <your-vercel-domain>');
+  process.exit(1);
+}
+
+if (!cronSecret) {
+  console.error('❌ Missing CRON_SECRET!');
+  console.error('Please set CRON_SECRET environment variable');
+  process.exit(1);
+}
+
+const domain = process.env.VERCEL_DOMAIN || process.argv[2] || vercelDomain;
+const dispatchUrl = `https://${domain}/api/dispatch`;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: { persistSession: false },
+});
+
+async function checkCronJob() {
+  console.log('🔍 Checking for existing cron job...\n');
+
+  try {
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql: "SELECT jobid, schedule, command FROM cron.job WHERE jobname = 'dispatch_scheduled_messages';"
+    });
+
+    // Alternative: direct query
+    const { data: jobs, error: jobsError } = await supabase
+      .from('cron.job')
+      .select('*')
+      .eq('jobname', 'dispatch_scheduled_messages');
+
+    if (jobsError && !jobsError.message.includes('relation "cron.job" does not exist')) {
+      // Try using SQL directly
+      const { data: sqlResult, error: sqlError } = await supabase
+        .rpc('exec_sql', {
+          query: "SELECT * FROM cron.job WHERE jobname = 'dispatch_scheduled_messages';"
+        });
+
+      if (sqlError) {
+        console.log('⚠️  Could not check cron jobs directly. Will try to create anyway.\n');
+        return null;
+      }
+    }
+
+    if (jobs && jobs.length > 0) {
+      console.log('✅ Cron job already exists!');
+      console.log('   Job ID:', jobs[0].jobid);
+      console.log('   Schedule:', jobs[0].schedule);
+      return jobs[0];
+    }
+
+    console.log('❌ Cron job not found. Need to create it.\n');
+    return null;
+  } catch (error) {
+    console.log('⚠️  Could not check cron jobs:', error.message);
+    console.log('   Will try to create anyway.\n');
+    return null;
+  }
+}
+
+async function createCronJob() {
+  console.log('📝 Creating cron job...\n');
+  console.log('   URL:', dispatchUrl);
+  console.log('   Schedule: * * * * * (every minute)\n');
+
+  const sql = `
+    SELECT cron.schedule(
+      'dispatch_scheduled_messages',
+      '* * * * *',
+      $$
+        SELECT net.http_post(
+          url := '${dispatchUrl}',
+          headers := jsonb_build_object(
+            'authorization', 'Bearer ${cronSecret}',
+            'content-type', 'application/json'
+          ),
+          body := '{}'::jsonb
+        );
+      $$
+    );
+  `;
+
+  try {
+    // Try to execute via SQL
+    const { data, error } = await supabase.rpc('exec_sql', { sql });
+
+    if (error) {
+      // If exec_sql doesn't work, provide manual instructions
+      console.log('⚠️  Could not create cron job automatically.');
+      console.log('   You need to run this SQL manually in Supabase SQL Editor:\n');
+      console.log('─'.repeat(80));
+      console.log(sql);
+      console.log('─'.repeat(80));
+      return false;
+    }
+
+    console.log('✅ Cron job created successfully!');
+    return true;
+  } catch (error) {
+    console.error('❌ Error creating cron job:', error.message);
+    console.log('\n📋 Please run this SQL manually in Supabase SQL Editor:\n');
+    console.log('─'.repeat(80));
+    console.log(sql);
+    console.log('─'.repeat(80));
+    return false;
+  }
+}
+
+async function checkCronHistory() {
+  console.log('\n📊 Checking cron job execution history...\n');
+
+  try {
+    const { data, error } = await supabase
+      .from('cron.job_run_details')
+      .select('*')
+      .eq('jobid', (await checkCronJob())?.jobid || 0)
+      .order('start_time', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.log('⚠️  Could not fetch execution history:', error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      console.log('Recent executions:');
+      data.forEach((run, i) => {
+        const status = run.status === 'succeeded' ? '✅' : '❌';
+        console.log(`   ${i + 1}. ${status} ${new Date(run.start_time).toLocaleString()}`);
+        if (run.status === 'failed') {
+          console.log(`      Error: ${run.return_message || 'Unknown'}`);
+        }
+      });
+    } else {
+      console.log('   No execution history yet. Wait a minute and check again.');
+    }
+  } catch (error) {
+    console.log('⚠️  Could not check execution history:', error.message);
+  }
+}
+
+async function testDispatchEndpoint() {
+  console.log('\n🧪 Testing dispatch endpoint...\n');
+
+  try {
+    const response = await fetch(dispatchUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${cronSecret}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('✅ Dispatch endpoint is working!');
+      console.log('   Response:', JSON.stringify(data, null, 2));
+      return true;
+    } else {
+      console.error('❌ Dispatch endpoint returned error:');
+      console.error('   Status:', response.status);
+      console.error('   Response:', JSON.stringify(data, null, 2));
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Failed to test dispatch endpoint:');
+    console.error('   Error:', error.message);
+    return false;
+  }
+}
+
+async function main() {
+  console.log('🚀 Supabase Cron Job Setup\n');
+  console.log('='.repeat(80));
+  console.log('Configuration:');
+  console.log('   Supabase URL:', supabaseUrl);
+  console.log('   Dispatch URL:', dispatchUrl);
+  console.log('   Cron Secret:', cronSecret ? '***' + cronSecret.slice(-4) : 'NOT SET');
+  console.log('='.repeat(80));
+  console.log();
+
+  // Check if cron job exists
+  const existingJob = await checkCronJob();
+
+  if (!existingJob) {
+    // Create cron job
+    const created = await createCronJob();
+    if (!created) {
+      console.log('\n⚠️  Please create the cron job manually using the SQL above.');
+      process.exit(1);
+    }
+  }
+
+  // Test the endpoint
+  await testDispatchEndpoint();
+
+  // Check execution history
+  await checkCronHistory();
+
+  console.log('\n✅ Setup complete!');
+  console.log('\n📋 Next steps:');
+  console.log('   1. Wait 1-2 minutes');
+  console.log('   2. Check cron execution history in Supabase:');
+  console.log('      SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;');
+  console.log('   3. Create a test scheduled message');
+  console.log('   4. Verify it gets sent at the scheduled time');
+}
+
+main().catch(error => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
+
+
+```
+
+# scripts\test_bucket.js
+
+```js
+/**
+ * Test script to verify GreenBuilders bucket connection
+ * Run with: node scripts/test_bucket.js
+ */
+
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Missing Supabase environment variables!');
+  console.error('Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+async function testBucket() {
+  console.log('🔍 Testing GreenBuilders bucket connection...\n');
+
+  try {
+    // 1. List buckets to see if GreenBuilders exists
+    console.log('1. Checking if GreenBuilders bucket exists...');
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error('❌ Error listing buckets:', bucketsError.message);
+      return false;
+    }
+
+    const greenBuildersBucket = buckets.find(b => b.name === 'GreenBuilders');
+    
+    if (!greenBuildersBucket) {
+      console.error('❌ GreenBuilders bucket not found!');
+      console.log('Available buckets:', buckets.map(b => b.name).join(', '));
+      console.log('\n💡 You need to create the bucket in Supabase Dashboard:');
+      console.log('   Storage > Create Bucket > Name: GreenBuilders');
+      return false;
+    }
+
+    console.log('✅ GreenBuilders bucket found!');
+    console.log('   - Name:', greenBuildersBucket.name);
+    console.log('   - Public:', greenBuildersBucket.public ? 'Yes' : 'No');
+    console.log('   - Created:', greenBuildersBucket.created_at);
+
+    // 2. Test file upload
+    console.log('\n2. Testing file upload...');
+    const testFileName = `test_${Date.now()}.txt`;
+    const testContent = 'This is a test file for GreenBuilders bucket';
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('GreenBuilders')
+      .upload(testFileName, testContent, {
+        contentType: 'text/plain',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('❌ Upload failed:', uploadError.message);
+      console.error('   Error details:', uploadError);
+      
+      if (uploadError.message.includes('new row violates row-level security')) {
+        console.log('\n💡 You need to add storage policies:');
+        console.log('   Run the SQL in supabase_schema.sql or add policies in Supabase Dashboard');
+      }
+      return false;
+    }
+
+    console.log('✅ File uploaded successfully!');
+    console.log('   - Path:', uploadData.path);
+
+    // 3. Get public URL
+    console.log('\n3. Getting public URL...');
+    const { data: urlData } = supabase.storage
+      .from('GreenBuilders')
+      .getPublicUrl(testFileName);
+
+    if (urlData?.publicUrl) {
+      console.log('✅ Public URL generated:');
+      console.log('   ', urlData.publicUrl);
+    } else {
+      console.log('⚠️  Could not generate public URL (bucket might be private)');
+    }
+
+    // 4. Test file download/read
+    console.log('\n4. Testing file download...');
+    const { data: downloadData, error: downloadError } = await supabase.storage
+      .from('GreenBuilders')
+      .download(testFileName);
+
+    if (downloadError) {
+      console.error('❌ Download failed:', downloadError.message);
+    } else {
+      const text = await downloadData.text();
+      console.log('✅ File downloaded successfully!');
+      console.log('   - Content:', text);
+    }
+
+    // 5. Clean up test file
+    console.log('\n5. Cleaning up test file...');
+    const { error: deleteError } = await supabase.storage
+      .from('GreenBuilders')
+      .remove([testFileName]);
+
+    if (deleteError) {
+      console.error('⚠️  Failed to delete test file:', deleteError.message);
+    } else {
+      console.log('✅ Test file deleted');
+    }
+
+    console.log('\n🎉 All tests passed! GreenBuilders bucket is working correctly.');
+    return true;
+
+  } catch (error) {
+    console.error('❌ Unexpected error:', error);
+    return false;
+  }
+}
+
+// Run the test
+testBucket()
+  .then(success => {
+    process.exit(success ? 0 : 1);
+  })
+  .catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+
+
+```
+
+# scripts\test_dispatch.js
+
+```js
+/**
+ * Test the dispatch API manually
+ * Run with: node scripts/test_dispatch.js
+ */
+
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+const vercelDomain = process.env.VERCEL_DOMAIN || process.env.YOUR_DOMAIN?.replace('https://', '').replace('http://', '') || '';
+const cronSecret = process.env.CRON_SECRET || '';
+
+if (!vercelDomain || !cronSecret) {
+  console.error('❌ Missing VERCEL_DOMAIN or CRON_SECRET!');
+  process.exit(1);
+}
+
+const dispatchUrl = `https://${vercelDomain}/api/dispatch`;
+
+async function testDispatch() {
+  console.log('🧪 Testing Dispatch API\n');
+  console.log('URL:', dispatchUrl);
+  console.log('Secret:', cronSecret.substring(0, 10) + '...\n');
+
+  try {
+    const response = await fetch(dispatchUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${cronSecret}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+
+    const data = await response.json();
+
+    console.log('Response Status:', response.status);
+    console.log('Response Data:', JSON.stringify(data, null, 2));
+
+    if (response.ok) {
+      console.log('\n✅ API call successful!');
+      if (data.claimed_count > 0) {
+        console.log(`   Claimed ${data.claimed_count} messages`);
+        console.log(`   Sent: ${data.sent_count}`);
+        console.log(`   Failed: ${data.failed_count}`);
+        console.log(`   Retry: ${data.retry_count}`);
+      } else {
+        console.log('   No messages claimed (might be already processed or not due)');
+      }
+    } else {
+      console.log('\n❌ API call failed!');
+      console.log('   Error:', data.error || 'Unknown error');
+    }
+  } catch (error) {
+    console.error('❌ Request failed:', error.message);
+  }
+}
+
+testDispatch();
+
+
+```
+
+# scripts\verify_bucket.md
+
+```md
+# GreenBuilders Bucket Verification Guide
+
+## What Was Added
+
+1. **File Upload Functionality** in `ScheduledMessageEdit.jsx`
+   - Users can now upload files directly to the GreenBuilders bucket
+   - Files are automatically organized by user ID: `{user_id}/{timestamp}_{random}.{ext}`
+   - Media type is auto-detected from file type
+   - Public URL is automatically generated and set in the form
+
+2. **Storage Policies** in `supabase_schema.sql`
+   - Users can upload files to their own folder
+   - Users can read their own files (and public files if bucket is public)
+   - Users can delete their own files
+   - Users can update their own files
+
+## How to Verify
+
+### Step 1: Create the Bucket (if not already created)
+
+1. Go to Supabase Dashboard
+2. Navigate to **Storage**
+3. Click **Create Bucket**
+4. Name: `GreenBuilders`
+5. Public: **Yes** (recommended for public URLs)
+6. Click **Create**
+
+### Step 2: Apply Storage Policies
+
+Run the SQL from `supabase_schema.sql` (the storage policies section at the end) in Supabase SQL Editor, or they will be applied when you run the full schema.
+
+### Step 3: Test in the App
+
+1. Navigate to **Scheduled Messages** > **Create New**
+2. Scroll to the **Media** section
+3. Click the upload area or drag and drop a file
+4. The file should upload and show:
+   - File name and size
+   - Auto-detected media type
+   - Public URL in the URL field
+
+### Step 4: Verify in Browser Console
+
+Open browser console and check for:
+- `File uploaded successfully:` log with file details
+- No error messages
+
+### Step 5: Check Supabase Storage
+
+1. Go to Supabase Dashboard > Storage > GreenBuilders
+2. You should see files organized by user ID folders
+3. Click on a file to see its public URL
+
+## Troubleshooting
+
+### Error: "new row violates row-level security"
+- **Solution**: Make sure storage policies are applied. Run the SQL from `supabase_schema.sql`
+
+### Error: "Bucket not found"
+- **Solution**: Create the bucket in Supabase Dashboard (see Step 1)
+
+### Error: "Failed to get public URL"
+- **Solution**: Make sure the bucket is set to **Public** in Supabase Dashboard
+
+### Files not uploading
+- Check browser console for errors
+- Verify Supabase environment variables are set correctly
+- Check network tab for failed requests
+
+## Testing Checklist
+
+- [ ] Bucket exists in Supabase Dashboard
+- [ ] Storage policies are applied
+- [ ] Can upload image file
+- [ ] Can upload video file
+- [ ] Can upload audio file
+- [ ] Can upload document file
+- [ ] Public URL is generated correctly
+- [ ] File appears in Supabase Storage
+- [ ] Can delete uploaded file
+- [ ] Can use uploaded file in scheduled message
+
+
+```
+
 # SQL
 
 ```
@@ -22362,6 +24101,8 @@ import Extension from './pages/Extension'
 import OrganizationSettings from './pages/OrganizationSettings'
 import OrganizationOverview from './pages/OrganizationOverview'
 import Plans from './pages/Plans'
+import ScheduledMessages from './pages/ScheduledMessages'
+import ScheduledMessageEdit from './pages/ScheduledMessageEdit'
 import './index.css'
 
 function App() {
@@ -22389,6 +24130,9 @@ function App() {
                   <Route path="chats/:numberId" element={<Chats />} />
                   <Route path="chats" element={<Chats />} />
                   <Route path="numbers" element={<Numbers />} />
+                  <Route path="scheduled" element={<ScheduledMessages />} />
+                  <Route path="scheduled/new" element={<ScheduledMessageEdit />} />
+                  <Route path="scheduled/:id" element={<ScheduledMessageEdit />} />
                   <Route path="webhooks" element={<Webhooks />} />
                   <Route path="logs" element={<Logs />} />
                   <Route path="automation" element={<Automation />} />
@@ -22410,6 +24154,10 @@ function App() {
 export default App
 
 ```
+
+# src\assets\fonts\Assistant-VariableFont_wght.ttf
+
+This is a binary file of the type: Binary
 
 # src\components\AccountsManagement.jsx
 
@@ -22612,6 +24360,282 @@ function Dashboard({ user, onLogout }) {
 
 export default Dashboard
 
+
+```
+
+# src\components\FeedbackButton.jsx
+
+```jsx
+import { useState } from 'react'
+import { MessageSquarePlus } from 'lucide-react'
+import { Button } from './ui/button'
+import { FeedbackModal } from './FeedbackModal'
+import { useTranslation } from 'react-i18next'
+
+export function FeedbackButton({ className }) {
+    const [open, setOpen] = useState(false)
+    const { t } = useTranslation()
+
+    return (
+        <>
+            <Button
+                variant="outline"
+                size="sm"
+                className={`gap-2 ${className}`}
+                onClick={() => setOpen(true)}
+            >
+                <MessageSquarePlus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('feedback.button', 'Feedback')}</span>
+            </Button>
+
+            <FeedbackModal
+                open={open}
+                onOpenChange={setOpen}
+                source="manual_button"
+            />
+        </>
+    )
+}
+
+```
+
+# src\components\FeedbackModal.jsx
+
+```jsx
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog'
+import { Button } from './ui/button'
+import { Textarea } from './ui/textarea'
+import { Star, Loader2, Send } from 'lucide-react'
+import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../context/AuthContext'
+
+export function FeedbackModal({ open, onOpenChange, source = 'manual' }) {
+  const { t } = useTranslation()
+  const { user } = useAuth()
+  const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = async () => {
+    if (rating === 0) return
+
+    try {
+      setLoading(true)
+      
+      // In a real app, you might save this to a 'feedback' table
+      // For now, we'll just log it or simulate a save
+      // If table exists:
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: user?.id,
+          rating,
+          comment,
+          source, // 'manual' or 'prompt_7_days'
+          user_agent: navigator.userAgent
+        })
+      
+      // If table doesn't exist, this will error, but we'll show success anyway for UI demo
+      if (error && error.code !== '42P01') { 
+        console.error('Error saving feedback:', error)
+      } else {
+        console.log('Feedback submitted:', { rating, comment, source })
+      }
+
+      // If this was an auto-prompt, save that we showed it/user responded
+      if (source === 'prompt_7_days') {
+        localStorage.setItem('feedback_dismissed', 'true')
+      }
+
+      setSubmitted(true)
+      setTimeout(() => {
+        onOpenChange(false)
+        // Reset after closing
+        setTimeout(() => {
+          setSubmitted(false)
+          setRating(0)
+          setComment('')
+        }, 500)
+      }, 2000)
+
+    } catch (err) {
+      console.error('Error submitting feedback:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDismiss = () => {
+    if (source === 'prompt_7_days') {
+        // If they dismiss the prompt, maybe remind later or mark as dismissed
+        localStorage.setItem('feedback_dismissed', 'true') 
+    }
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleDismiss}>
+      <DialogContent className="sm:max-w-md">
+        {!submitted ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{t('feedback.title', 'We value your feedback')}</DialogTitle>
+              <DialogDescription>
+                {t('feedback.description', 'How is your experience with GreenManager so far?')}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex flex-col gap-6 py-4">
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`h-8 w-8 ${
+                        star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              
+              <Textarea
+                placeholder={t('feedback.placeholder', 'Tell us what you like or what we can improve...')}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            <DialogFooter className="sm:justify-between">
+               <Button variant="ghost" onClick={handleDismiss}>
+                 {t('common.skip', 'Skip')}
+               </Button>
+               <Button onClick={handleSubmit} disabled={rating === 0 || loading}>
+                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                 {t('common.submit', 'Submit')}
+               </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 space-y-4">
+            <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+              <Send className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <h3 className="text-lg font-medium">{t('feedback.thank_you', 'Thank you!')}</h3>
+            <p className="text-center text-muted-foreground">
+              {t('feedback.received', 'Your feedback helps us build a better product.')}
+            </p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+```
+
+# src\components\GreenApiHelpModal.jsx
+
+```jsx
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import { Button } from "./ui/button";
+import { ExternalLink, X, ZoomIn } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+export default function GreenApiHelpModal({ isOpen, onClose }) {
+    const { t } = useTranslation();
+    const [showZoomedImage, setShowZoomedImage] = useState(false);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>{t('green_api.guide_title') || 'How to get Green API Credentials'}</DialogTitle>
+                    <DialogDescription>
+                        {t('green_api.guide_desc') || 'Follow these steps to get your Instance ID and API Token.'}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">1</span>
+                            <h4 className="font-semibold">{t('green_api.step1') || 'Go to Green API Console'}</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground ml-8">
+                            {t('green_api.step1_desc') || 'Login or create an account on the Green API console to manage your instances.'}
+                        </p>
+                        <Button asChild variant="outline" className="ml-8 mt-1">
+                            <a href="https://console.green-api.com/instanceList" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                                {t('green_api.open_console') || 'Open Console'}
+                                <ExternalLink className="h-4 w-4" />
+                            </a>
+                        </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">2</span>
+                            <h4 className="font-semibold">{t('green_api.step2') || 'Copy Credentials'}</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground ml-8">
+                            {t('green_api.step2_desc') || 'Select your instance and copy the "InstanceId" and "ApiTokenInstance" as shown below:'}
+                        </p>
+
+                        <div
+                            className="ml-8 mt-2 border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                            onClick={() => setShowZoomedImage(true)}
+                        >
+                            <img
+                                src="/greenApiGuide.png"
+                                alt="Green API Instance Guide"
+                                className="w-full h-auto object-contain"
+                            />
+                            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="bg-black/50 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1 backdrop-blur-sm">
+                                    <ZoomIn className="h-3 w-3" />
+                                    {t('common.click_to_zoom') || 'Click to zoom'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+
+            {/* Image Zoom Lightbox */}
+            {showZoomedImage && (
+                <div
+                    className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setShowZoomedImage(false)}
+                >
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-4 right-4 text-white hover:bg-white/20 hover:text-white"
+                        onClick={() => setShowZoomedImage(false)}
+                    >
+                        <X className="h-6 w-6" />
+                    </Button>
+                    <img
+                        src="/greenApiGuide.png"
+                        alt="Green API Instance Guide Zoomed"
+                        className="max-w-full max-h-[90vh] object-contain rounded shadow-2xl animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+        </Dialog>
+    );
+}
 
 ```
 
@@ -23176,6 +25200,7 @@ import {
     MessageSquare,
     ChevronDown,
     Building2,
+    CalendarClock,
 } from 'lucide-react';
 
 export function Sidebar({ className }) {
@@ -23187,6 +25212,7 @@ export function Sidebar({ className }) {
         { href: '/app/dashboard', label: t('dashboard'), icon: LayoutDashboard },
         { href: '/app/chats', label: t('chats'), icon: MessageSquare },
         { href: '/app/numbers', label: t('numbers'), icon: Smartphone },
+        { href: '/app/scheduled', label: t('scheduled.title') || 'Scheduled', icon: CalendarClock },
         { href: '/app/extension', label: t('extension'), icon: Chrome },
     ];
 
@@ -23194,9 +25220,9 @@ export function Sidebar({ className }) {
         { href: '/app/settings', label: t('settings'), icon: Settings },
         { href: '/app/organization', label: t('organization_settings') || 'Organization', icon: Building2 },
         { href: '/app/plans', label: t('landing.plans.select'), icon: LayoutDashboard },
-        { href: '/app/webhooks', label: t('webhooks'), icon: Webhook },
+
         { href: '/app/logs', label: t('logs'), icon: FileText },
-        { href: '/app/automation', label: t('automation'), icon: Bot },
+
     ];
 
     const isSettingsRoute = settingsChildren.some((link) =>
@@ -23227,12 +25253,12 @@ export function Sidebar({ className }) {
                             <NavLink
                                 key={link.href}
                                 to={link.href}
-                            className={({ isActive }) =>
-                                cn(
-                                    "flex items-center border-b border-border/40 last:border-b-0 px-4 py-2.5 text-[15px] font-medium hover:bg-accent/70 hover:text-accent-foreground transition-all",
-                                    isActive ? "bg-accent text-accent-foreground shadow-sm" : "bg-transparent"
-                                )
-                            }
+                                className={({ isActive }) =>
+                                    cn(
+                                        "flex items-center border-b border-border/40 last:border-b-0 px-4 py-2.5 text-[15px] font-medium hover:bg-accent/70 hover:text-accent-foreground transition-all",
+                                        isActive ? "bg-accent text-accent-foreground shadow-sm" : "bg-transparent"
+                                    )
+                                }
                             >
                                 <link.icon className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
                                 <span>{link.label}</span>
@@ -23409,6 +25435,107 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 
 ```
 
+# src\components\ui\dialog.jsx
+
+```jsx
+import * as React from "react"
+import { X } from "lucide-react"
+import { cn } from "../../lib/utils"
+
+const DialogContext = React.createContext({})
+
+const Dialog = ({ children, open, onOpenChange }) => {
+    return (
+        <DialogContext.Provider value={{ open, onOpenChange }}>
+            {children}
+        </DialogContext.Provider>
+    )
+}
+
+const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => {
+    const { open, onOpenChange } = React.useContext(DialogContext)
+
+    if (!open) return null
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center sm:items-center">
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in"
+                onClick={() => onOpenChange(false)}
+            />
+
+            {/* Content */}
+            <div
+                ref={ref}
+                className={cn(
+                    "fixed z-50 grid w-full gap-4 rounded-b-lg border bg-background p-6 shadow-lg animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:max-w-lg sm:rounded-lg sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0",
+                    className
+                )}
+                {...props}
+            >
+                {children}
+                <button
+                    className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+                    onClick={() => onOpenChange(false)}
+                >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </button>
+            </div>
+        </div>
+    )
+})
+DialogContent.displayName = "DialogContent"
+
+const DialogHeader = ({ className, ...props }) => (
+    <div
+        className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
+        {...props}
+    />
+)
+DialogHeader.displayName = "DialogHeader"
+
+const DialogFooter = ({ className, ...props }) => (
+    <div
+        className={cn(
+            "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+            className
+        )}
+        {...props}
+    />
+)
+DialogFooter.displayName = "DialogFooter"
+
+const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
+    <h3
+        ref={ref}
+        className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+        {...props}
+    />
+))
+DialogTitle.displayName = "DialogTitle"
+
+const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
+    <p
+        ref={ref}
+        className={cn("text-sm text-muted-foreground", className)}
+        {...props}
+    />
+))
+DialogDescription.displayName = "DialogDescription"
+
+export {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogFooter,
+    DialogTitle,
+    DialogDescription,
+}
+
+```
+
 # src\components\ui\input.jsx
 
 ```jsx
@@ -23527,6 +25654,30 @@ export {
     TableCell,
     TableCaption,
 }
+
+```
+
+# src\components\ui\textarea.jsx
+
+```jsx
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+const Textarea = React.forwardRef(({ className, ...props }, ref) => {
+    return (
+        <textarea
+            className={cn(
+                "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                className
+            )}
+            ref={ref}
+            {...props}
+        />
+    )
+})
+Textarea.displayName = "Textarea"
+
+export { Textarea }
 
 ```
 
@@ -23742,6 +25893,267 @@ function UserModal({ user, onClose, onSave }) {
 }
 
 export default UsersManagement
+
+
+```
+
+# src\components\WelcomeModal.jsx
+
+```jsx
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../context/AuthContext';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card } from './ui/card';
+import { CheckCircle2, Smartphone, CalendarClock, X, Sparkles, Loader2, ArrowRight, HelpCircle } from 'lucide-react';
+import { logger } from '../lib/logger';
+import GreenApiHelpModal from './GreenApiHelpModal';
+
+export default function WelcomeModal({
+    isOpen,
+    onClose,
+    hasNumbers,
+    hasScheduledMessages,
+    onComplete
+}) {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
+    const [formData, setFormData] = useState({
+        phone_number: '',
+        instance_id: '',
+        api_token: '',
+        status: 'active'
+    });
+
+    if (!isOpen) return null;
+
+    // Determine initial step based on existing data if user re-opens, 
+    // but typically strictly 1 then 2 for new users.
+    // If user already has numbers, we might just show step 2 or nothing.
+    // For now, we enforce the flow.
+
+    const handleAddNumber = async (e) => {
+        e.preventDefault();
+        if (!user) return;
+
+        // Validation
+        const instanceId = formData.instance_id.trim();
+        const apiToken = formData.api_token.trim();
+
+        if (instanceId.length !== 10 || !/^\d+$/.test(instanceId)) {
+            alert(t('validation.instance_id_format') || 'Instance ID must be exactly 10 digits.');
+            return;
+        }
+
+        if (apiToken.length !== 50) {
+            alert(t('validation.api_token_format') || 'API Token must be exactly 50 characters.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            // Check if instance already exists to avoid duplicates/errors
+            // (Optional, but good for UX)
+
+            const { error } = await supabase
+                .from('numbers')
+                .insert({
+                    user_id: user.id,
+                    phone_number: formData.phone_number,
+                    instance_id: instanceId,
+                    api_token: apiToken,
+                    status: 'active'
+                });
+
+            if (error) throw error;
+
+            await logger.info(
+                `Onboarding number added: ${formData.phone_number}`,
+                { instance_id: instanceId }
+            );
+
+            // Move to step 2
+            setStep(2);
+        } catch (error) {
+            console.error('Error saving number:', error);
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSkip = () => {
+        handleComplete();
+    };
+
+    const handleCreateScheduledMessage = () => {
+        // Mark onboarding as done so it doesn't pop up again
+        localStorage.setItem('onboarding_completed', 'true');
+        onComplete?.();
+        onClose();
+        navigate('/app/scheduled');
+    };
+
+    const handleComplete = () => {
+        localStorage.setItem('onboarding_completed', 'true');
+        onComplete?.();
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <Card className="bg-card border rounded-lg shadow-xl w-full max-w-lg m-4 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                <div className="p-6 space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-full">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                            </div>
+                            <h2 className="text-2xl font-bold">
+                                {t('onboarding.welcome_title') || 'Welcome to GreenManager!'}
+                            </h2>
+                        </div>
+                        <button
+                            onClick={handleSkip}
+                            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-accent"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {/* Progress Steps */}
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className={`flex-1 h-2 rounded-full transition-colors ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
+                        <div className={`flex-1 h-2 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+                        <span className="text-xs font-medium text-muted-foreground ml-2">{step}/2</span>
+                    </div>
+
+                    {step === 1 && (
+                        <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                            <GreenApiHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                    <Smartphone className="h-5 w-5 text-primary" />
+                                    {t('onboarding.step1_title') || 'Connect WhatsApp'}
+                                </h3>
+                                <p className="text-muted-foreground text-sm">
+                                    {t('onboarding.step1_desc') || 'Enter your Green API credentials to connect your first number.'}
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleAddNumber} className="space-y-4 bg-muted/30 p-4 rounded-lg border">
+                                <div>
+                                    <label className="text-sm font-medium">{t('numbers_page.phone_number')}</label>
+                                    <Input
+                                        value={formData.phone_number}
+                                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                        placeholder="+1234567890"
+                                        required
+                                        className="bg-background"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium">{t('common.instance_id')}</label>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-auto p-0 text-xs text-primary hover:bg-transparent"
+                                            onClick={() => setShowHelpModal(true)}
+                                        >
+                                            <HelpCircle className="mr-1 h-3 w-3" />
+                                            {t('common.where_to_find') || 'Where to find?'}
+                                        </Button>
+                                    </div>
+                                    <Input
+                                        value={formData.instance_id}
+                                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
+                                        placeholder="10 digits (e.g. 7107372601)"
+                                        required
+                                        className="bg-background"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground mt-1">
+                                        Must be exactly 10 digits
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">API Token</label>
+                                    <Input
+                                        type="password"
+                                        value={formData.api_token}
+                                        onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
+                                        placeholder="50 characters token"
+                                        required
+                                        className="bg-background"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground mt-1">
+                                        Must be exactly 50 characters
+                                    </p>
+                                </div>
+
+                                <Button type="submit" className="w-full" disabled={loading}>
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            {t('common.connecting') || 'Connecting...'}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {t('common.connect_continue') || 'Connect & Continue'}
+                                            <ArrowRight className="ml-2 h-4 w-4" />
+                                        </>
+                                    )}
+                                </Button>
+                            </form>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                            <div className="text-center space-y-2 py-4">
+                                <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+                                    <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                </div>
+                                <h3 className="text-xl font-bold">{t('onboarding.step2_title') || 'Number Connected!'}</h3>
+                                <p className="text-muted-foreground">
+                                    {t('onboarding.step2_desc') || 'Your number is ready. Now, let\'s set up your first automation.'}
+                                </p>
+                            </div>
+
+                            <div className="bg-muted/30 p-6 rounded-lg border text-center space-y-4">
+                                <CalendarClock className="h-10 w-10 text-primary mx-auto opacity-80" />
+                                <div>
+                                    <h4 className="font-semibold">Scheduled Messages</h4>
+                                    <p className="text-sm text-muted-foreground px-4">
+                                        Send messages automatically at specific times. Perfect for reminders, greetings, and follow-ups.
+                                    </p>
+                                </div>
+                                <Button onClick={handleCreateScheduledMessage} className="w-full">
+                                    {t('onboarding.create_first_message') || 'Create First Message'}
+                                </Button>
+                                <Button variant="ghost" onClick={handleSkip} className="w-full text-muted-foreground">
+                                    {t('onboarding.skip') || 'Skip for now'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        </div>
+    );
+}
 
 
 ```
@@ -24011,7 +26423,12 @@ const resources = {
                 "confirm_delete": "Are you sure you want to delete this item?",
                 "sync": "Sync",
                 "syncing": "Syncing...",
-                "replace": "Change / החלף 🔁"
+                "replace": "Change / החלף 🔁",
+                "back": "Back",
+                "connect_continue": "Connect & Continue",
+                "connect_start_chatting": "Connect & Start Chatting",
+                "connecting": "Connecting...",
+                "where_to_find": "Where to find?"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -24106,8 +26523,14 @@ const resources = {
                     "popular": "Popular",
                     "features": "Features",
                     "select": "Choose Plan",
+                    "monthly": "Monthly",
+                    "yearly": "Yearly",
+                    "billed_yearly": "billed yearly",
                     "month": "/month",
                     "numbers": "Numbers",
+                    "scheduled_messages": "Scheduled Messages",
+                    "customer_support": "Customer Support",
+                    "priority_support": "Priority Support",
                     "users": "Users",
                     "team_members": "Team Members",
                     "basic_webhooks": "Basic Webhooks",
@@ -24227,6 +26650,85 @@ const resources = {
                 "subtitle": "Manage your Green-API account connections",
                 "list_title": "Connected Accounts",
                 "list_desc": "List of all your Green-API accounts and instances"
+            },
+            "onboarding": {
+                "welcome_title": "Welcome to GreenManager! 🎉",
+                "welcome_description": "Let's get you started in 2 simple steps",
+                "step1_title": "Add WhatsApp Number 📱",
+                "step1_title": "Add WhatsApp Number 📱",
+                "step1_description": "Connect your WhatsApp number to start sending messages",
+                "step1_desc": "Enter your Green API credentials to connect your first number.",
+                "step2_title": "Schedule Your First Message 📅",
+                "step2_description": "Create your first scheduled message and experience the power of automation",
+                "add_number_cta": "Add WhatsApp Number 📱",
+                "schedule_message_cta": "Schedule Your First Message 📅",
+                "skip": "Skip for now",
+                "complete": "Got it! ✅",
+                "progress": "Progress 📊"
+            },
+            "scheduled": {
+                "title": "Scheduled Messages",
+                "subtitle": "Schedule WhatsApp messages to be sent automatically",
+                "create": "Create New",
+                "edit": "Edit Scheduled Message",
+                "tab_active": "Active",
+                "tab_inactive": "Inactive",
+                "tab_community": "Community Templates",
+                "no_active": "No active scheduled messages",
+                "no_inactive": "No inactive scheduled messages",
+                "no_community_templates": "No community templates yet. Be the first to share!",
+                "source_number": "Source Number",
+                "select_number": "Select a number",
+                "recipient": "Recipient Phone",
+                "message": "Message",
+                "message_placeholder": "Enter your message...",
+                "media_url": "Media URL (optional)",
+                "media_type": "Media type",
+                "filename": "Filename",
+                "image": "Image",
+                "video": "Video",
+                "audio": "Audio",
+                "document": "Document",
+                "schedule_type": "Schedule Type",
+                "one_time": "One-time",
+                "recurring": "Recurring",
+                "daily": "Daily",
+                "weekly": "Weekly",
+                "monthly": "Monthly",
+                "date": "Date",
+                "start_date": "Start Date",
+                "time": "Time",
+                "publish_community": "Publish to Community Templates",
+                "template_name": "Template name",
+                "template_description": "Describe this template...",
+                "confirm_delete": "Are you sure you want to delete this scheduled message?",
+                "status_pending": "Pending",
+                "status_processing": "Processing",
+                "status_sent": "Sent",
+                "status_failed": "Failed",
+                "status_cancelled": "Cancelled",
+                "shared": "Shared",
+                "by": "by",
+                "copy_to_account": "Copy to My Account",
+                "copied_success": "Template copied to your account!",
+                "go_to_template": "Go to Template",
+                "send_now": "Send Now ⚡",
+                "send_now_title": "Send Message Now? ⚡",
+                "send_now_message": "Are you sure you want to send this message right now?",
+                "remember_option": "Remember this option (skip confirmation next time)",
+                "send_now_confirm": "Send Now ⚡",
+                "missing_credentials": "Missing number credentials",
+                "send_now_error": "Failed to send message",
+                "edit_desc": "Update your scheduled message details",
+                "create_desc": "Schedule a new WhatsApp message to be sent automatically",
+                "recipients": "Recipients",
+                "recipient": "Recipient",
+                "recipients_count": "recipients",
+                "add_recipient": "Add Recipient",
+                "add_recipient": "Add Recipient",
+                "no_recipients": "No recipients",
+                "upgrade_title": "Upgrade to Schedule Messages",
+                "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!"
             }
         }
     },
@@ -24287,7 +26789,12 @@ const resources = {
                 "confirm_delete": "האם אתה בטוח שברצונך למחוק פריט זה?",
                 "sync": "סנכרן",
                 "syncing": "מסנכרן...",
-                "replace": "Change / החלף 🔁"
+                "replace": "Change / החלף 🔁",
+                "back": "חזרה",
+                "connect_continue": "התחבר והמשך",
+                "connect_start_chatting": "התחבר והתחל לצ'אט",
+                "connecting": "מתחבר...",
+                "where_to_find": "איפה למצוא?"
             },
             "numbers_page": {
                 "title": "מספרים",
@@ -24332,8 +26839,8 @@ const resources = {
                 "subtitle": "הכנס את פרטי ההתחברות שלך",
                 "email": "אימייל",
                 "password": "סיסמה",
-                 "submit": "התחבר",
-                 "remember_me": "זכור אותי",
+                "submit": "התחבר",
+                "remember_me": "זכור אותי",
                 "forgot_password": "שכחת סיסמה?",
                 "no_account": "אין לך חשבון?"
             },
@@ -24382,8 +26889,14 @@ const resources = {
                     "popular": "פופולרי",
                     "features": "פיצ'רים כוללים",
                     "select": "בחר תוכנית",
+                    "monthly": "חודשי",
+                    "yearly": "שנתי",
+                    "billed_yearly": "מחויב שנתית",
                     "month": "/חודש",
                     "numbers": "מספרים",
+                    "scheduled_messages": "הודעות מתוזמנות",
+                    "customer_support": "שירות לקוחות",
+                    "priority_support": "תמיכה בעדיפות",
                     "users": "משתמשים",
                     "team_members": "חברי צוות",
                     "basic_webhooks": "Webhooks בסיסיים",
@@ -24503,6 +27016,85 @@ const resources = {
                 "subtitle": "נהל את חיבורי חשבונות ה-Green-API שלך",
                 "list_title": "חשבונות מחוברים",
                 "list_desc": "רשימת כל חשבונות ו-מופעי ה-Green-API שלך"
+            },
+            "onboarding": {
+                "welcome_title": "ברוכים הבאים ל-GreenManager! 🎉",
+                "welcome_description": "בואו נתחיל ב-2 צעדים פשוטים",
+                "step1_title": "הוסף מספר WhatsApp 📱",
+                "step1_title": "הוסף מספר WhatsApp 📱",
+                "step1_description": "חבר את מספר ה-WhatsApp שלך כדי להתחיל לשלוח הודעות",
+                "step1_desc": "הזמן את פרטי ה-Green API שלך כדי לחבר את המספר הראשון שלך.",
+                "step2_title": "תזמן את ההודעה הראשונה שלך 📅",
+                "step2_description": "צור את ההודעה המתוזמנת הראשונה שלך וחווה את כוח האוטומציה",
+                "add_number_cta": "הוסף מספר WhatsApp 📱",
+                "schedule_message_cta": "תזמן את ההודעה הראשונה שלך 📅",
+                "skip": "דלג לעת עתה",
+                "complete": "הבנתי! ✅",
+                "progress": "התקדמות 📊"
+            },
+            "scheduled": {
+                "title": "הודעות מתוזמנות",
+                "subtitle": "תזמן הודעות WhatsApp לשליחה אוטומטית",
+                "create": "צור חדש",
+                "edit": "ערוך הודעה מתוזמנת",
+                "tab_active": "פעילות",
+                "tab_inactive": "לא פעילות",
+                "tab_community": "תבניות קהילה",
+                "no_active": "אין הודעות מתוזמנות פעילות",
+                "no_inactive": "אין הודעות מתוזמנות לא פעילות",
+                "no_community_templates": "עדיין אין תבניות קהילה. היה הראשון לשתף!",
+                "source_number": "מספר מקור",
+                "select_number": "בחר מספר",
+                "recipient": "טלפון נמען",
+                "message": "הודעה",
+                "message_placeholder": "הקלד את ההודעה שלך...",
+                "media_url": "כתובת מדיה (אופציונלי)",
+                "media_type": "סוג מדיה",
+                "filename": "שם קובץ",
+                "image": "תמונה",
+                "video": "סרטון",
+                "audio": "אודיו",
+                "document": "מסמך",
+                "schedule_type": "סוג תזמון",
+                "one_time": "חד פעמי",
+                "recurring": "חוזר",
+                "daily": "יומי",
+                "weekly": "שבועי",
+                "monthly": "חודשי",
+                "date": "תאריך",
+                "start_date": "תאריך התחלה",
+                "time": "שעה",
+                "publish_community": "פרסם לתבניות הקהילה",
+                "template_name": "שם התבנית",
+                "template_description": "תאר את התבנית הזו...",
+                "confirm_delete": "האם אתה בטוח שברצונך למחוק את ההודעה המתוזמנת הזו?",
+                "status_pending": "ממתין",
+                "status_processing": "מעבד",
+                "status_sent": "נשלח",
+                "status_failed": "נכשל",
+                "status_cancelled": "בוטל",
+                "shared": "משותף",
+                "by": "מאת",
+                "copy_to_account": "העתק לחשבון שלי",
+                "copied_success": "התבנית הועתקה לחשבון שלך!",
+                "go_to_template": "עבור לתבנית",
+                "send_now": "שלח עכשיו ⚡",
+                "send_now_title": "לשלוח הודעה עכשיו? ⚡",
+                "send_now_message": "האם אתה בטוח שברצונך לשלוח את ההודעה הזו עכשיו?",
+                "remember_option": "זכור את האפשרות הזו (דלג על אישור בפעם הבאה)",
+                "send_now_confirm": "שלח עכשיו ⚡",
+                "missing_credentials": "חסרים פרטי מספר",
+                "send_now_error": "שליחת ההודעה נכשלה",
+                "edit_desc": "עדכן את פרטי ההודעה המתוזמנת שלך",
+                "create_desc": "תזמן הודעת WhatsApp חדשה לשליחה אוטומטית",
+                "recipients": "נמענים",
+                "recipient": "נמען",
+                "recipients_count": "נמענים",
+                "add_recipient": "הוסף נמען",
+                "add_recipient": "הוסף נמען",
+                "no_recipients": "אין נמענים",
+                "upgrade_title": "שדרג כדי לתזמן הודעות",
+                "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!"
             }
         }
     }
@@ -24529,6 +27121,13 @@ export default i18n;
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Assistant';
+  src: url('./assets/fonts/Assistant-VariableFont_wght.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
 
 @layer base {
   :root {
@@ -24637,14 +27236,17 @@ export default function AuthLayout() {
 # src\layouts\DashboardLayout.jsx
 
 ```jsx
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
+import { FeedbackButton } from '../components/FeedbackButton';
+import { FeedbackModal } from '../components/FeedbackModal';
 
 export default function DashboardLayout() {
     const { user } = useAuth();
+    const [showAutoFeedback, setShowAutoFeedback] = useState(false);
 
     // If we are strictly checking for auth here, we ensure we don't render protected content
     // validation is simplified for now
@@ -24652,17 +27254,50 @@ export default function DashboardLayout() {
         return <Navigate to="/login" replace />;
     }
 
+    // Check for 7-day feedback prompt
+    useEffect(() => {
+        if (!user?.created_at) return;
+
+        const checkFeedbackPrompt = () => {
+            const dismissed = localStorage.getItem('feedback_dismissed');
+            if (dismissed === 'true') return;
+
+            const createdAt = new Date(user.created_at);
+            const now = new Date();
+            const diffTime = Math.abs(now - createdAt);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= 7) {
+                setShowAutoFeedback(true);
+            }
+        };
+
+        checkFeedbackPrompt();
+    }, [user]);
+
     return (
-        <div className="flex min-h-screen bg-background text-foreground">
+        <div className="flex min-h-screen bg-background text-foreground relative">
             {/* Desktop Sidebar */}
             <Sidebar className="hidden md:block" />
 
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
                 <Header />
-                <main className="flex-1 p-6 overflow-auto bg-muted/20">
+                <main className="flex-1 p-6 overflow-auto bg-muted/20 relative">
                     <Outlet />
+
+                    {/* Floating Feedback Button */}
+                    <div className="fixed bottom-6 right-6 z-50">
+                        <FeedbackButton className="shadow-lg" />
+                    </div>
                 </main>
             </div>
+
+            {/* Auto-shown Feedback Modal */}
+            <FeedbackModal
+                open={showAutoFeedback}
+                onOpenChange={setShowAutoFeedback}
+                source="prompt_7_days"
+            />
         </div>
     );
 }
@@ -25253,6 +27888,28 @@ export async function getOrgMembersUsage(
         error: null,
     }
 }
+
+/**
+ * Check if the user plan allows scheduled messages.
+ * Only 'pro' and 'agency'/'organization' plans allow this.
+ * 'free' plan does not.
+ */
+export function canUseScheduledMessages(plan) {
+    if (!plan) return false
+
+    // Check by name (normalized)
+    const name = (plan.name || '').toLowerCase().trim()
+    if (name === 'free') return false
+
+    // Check by features JSON if available (future proofing)
+    if (plan.features && Array.isArray(plan.features)) {
+        if (plan.features.includes('Scheduled Messages')) return true
+    }
+
+    // Default: assume paid plans have it, free doesn't
+    return name !== 'free'
+}
+
 
 
 
@@ -26850,6 +29507,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Button } from '../components/ui/button';
 import { Smartphone, AlertTriangle, CheckCircle2, Activity, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import WelcomeModal from '../components/WelcomeModal';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -26862,10 +29520,60 @@ export default function Dashboard() {
         apiUsage: 0,
         recentActivity: []
     });
+    const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+    const [onboardingState, setOnboardingState] = useState({
+        hasNumbers: false,
+        hasScheduledMessages: false
+    });
 
     useEffect(() => {
         fetchDashboardData();
     }, [user]);
+
+    // Check if user should see onboarding modal
+    useEffect(() => {
+        if (!user || loading) return;
+
+        const checkOnboarding = async () => {
+            try {
+                // Check if onboarding was already completed
+                const onboardingCompleted = localStorage.getItem('onboarding_completed');
+                if (onboardingCompleted === 'true') {
+                    return;
+                }
+
+                // Check numbers count
+                const { count: numbersCount } = await supabase
+                    .from('numbers')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                // Check scheduled messages count
+                const { count: scheduledCount } = await supabase
+                    .from('scheduled_messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                const hasNumbers = (numbersCount || 0) > 0;
+                const hasScheduledMessages = (scheduledCount || 0) > 0;
+
+                setOnboardingState({
+                    hasNumbers,
+                    hasScheduledMessages
+                });
+
+                // Show modal if user hasn't completed onboarding
+                // (either no numbers or no scheduled messages)
+                if (!hasNumbers || !hasScheduledMessages) {
+                    setShowWelcomeModal(true);
+                }
+            } catch (error) {
+                console.error('Error checking onboarding status:', error);
+            }
+        };
+
+        checkOnboarding();
+    }, [user, loading]);
 
     const fetchDashboardData = async () => {
         if (!user) return;
@@ -26915,6 +29623,12 @@ export default function Dashboard() {
                 apiUsage: apiUsageCount || 0, // API calls approximated from log activity
                 recentActivity: recentLogs || []
             });
+
+            // Update onboarding state based on fetched data
+            setOnboardingState({
+                hasNumbers: totalNumbers > 0,
+                hasScheduledMessages: false // Will be updated separately if needed
+            });
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {
@@ -26953,8 +29667,42 @@ export default function Dashboard() {
         }
     ];
 
+    const handleOnboardingComplete = () => {
+        setShowWelcomeModal(false);
+        // Refresh onboarding state
+        const checkState = async () => {
+            if (!user) return;
+            try {
+                const { count: numbersCount } = await supabase
+                    .from('numbers')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                const { count: scheduledCount } = await supabase
+                    .from('scheduled_messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                setOnboardingState({
+                    hasNumbers: (numbersCount || 0) > 0,
+                    hasScheduledMessages: (scheduledCount || 0) > 0
+                });
+            } catch (error) {
+                console.error('Error refreshing onboarding state:', error);
+            }
+        };
+        checkState();
+    };
+
     return (
         <div className="space-y-6">
+            <WelcomeModal
+                isOpen={showWelcomeModal}
+                onClose={() => setShowWelcomeModal(false)}
+                hasNumbers={onboardingState.hasNumbers}
+                hasScheduledMessages={onboardingState.hasScheduledMessages}
+                onComplete={handleOnboardingComplete}
+            />
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">{t('dashboard')}</h2>
@@ -27889,8 +30637,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Search, Plus, MoreHorizontal, RefreshCw, X, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, RefreshCw, X, Edit, Trash2, HelpCircle } from 'lucide-react';
 import { logger } from '../lib/logger';
+import GreenApiHelpModal from '../components/GreenApiHelpModal';
 
 // Simple Badge component since we don't have it in UI lib yet
 function StatusBadge({ status, t }) {
@@ -27944,13 +30693,27 @@ export default function Numbers() {
 
     const fetchNumbers = async () => {
         if (!user) return;
-        
+
         try {
             setLoading(true);
+
+            // Check if user is a member of an organization
+            const { data: memberData } = await supabase
+                .from('organization_members')
+                .select('organization_id, organizations(owner_id)')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            const ownerId = memberData?.organizations?.owner_id;
+            const userIds = [user.id];
+            if (ownerId && ownerId !== user.id) {
+                userIds.push(ownerId);
+            }
+
             const { data, error } = await supabase
                 .from('numbers')
                 .select('*')
-                .eq('user_id', user.id)
+                .in('user_id', userIds)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -27981,20 +30744,9 @@ export default function Numbers() {
                 planName: plan?.name || null,
             });
 
-            const {
-                used: instancesUsed,
-                limit: instancesLimit,
-                error: instancesError,
-            } = await getInstancesUsage(supabase, user.id);
+            // Instances usage is redundant/same as numbers for now
+            setInstancesUsage({ used: 0, limit: -1 });
 
-            if (instancesError) {
-                console.error('Error loading instances usage:', instancesError);
-            }
-
-            setInstancesUsage({
-                used: instancesUsed || 0,
-                limit: typeof instancesLimit === 'number' ? instancesLimit : -1,
-            });
         } catch (err) {
             console.error('Error in fetchNumbersUsage:', err);
         }
@@ -28026,19 +30778,21 @@ export default function Numbers() {
                 alert(t('plans_limits.numbers_reached'));
                 return;
             }
+            // "Instances" check removed/merged into numbers check
+        }
 
-            // Enforce instances per plan (only if this is a new instance_id)
-            const isNewInstance = !numbers.some(
-                (n) => n.instance_id === formData.instance_id,
-            );
-            if (
-                isNewInstance &&
-                instancesUsage.limit !== -1 &&
-                instancesUsage.used >= instancesUsage.limit
-            ) {
-                alert(t('plans_limits.instances_reached'));
-                return;
-            }
+        // Validation
+        const instanceId = formData.instance_id.trim();
+        const apiToken = formData.api_token.trim();
+
+        if (instanceId.length !== 10 || !/^\d+$/.test(instanceId)) {
+            alert(t('validation.instance_id_format') || 'Instance ID must be exactly 10 digits.');
+            return;
+        }
+
+        if (apiToken.length !== 50) {
+            alert(t('validation.api_token_format') || 'API Token must be exactly 50 characters.');
+            return;
         }
 
         try {
@@ -28056,7 +30810,7 @@ export default function Numbers() {
                     .eq('id', editingNumber.id);
 
                 if (error) throw error;
-                
+
                 await logger.info(
                     `Number updated: ${formData.phone_number || formData.instance_id}`,
                     { number_id: editingNumber.id },
@@ -28075,13 +30829,13 @@ export default function Numbers() {
                     });
 
                 if (error) throw error;
-                
+
                 await logger.info(
                     `New number added: ${formData.phone_number || formData.instance_id}`,
                     { instance_id: formData.instance_id }
                 );
             }
-            
+
             setShowModal(false);
             setEditingNumber(null);
             setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
@@ -28112,15 +30866,6 @@ export default function Numbers() {
 
         if (numbersUsage.limit !== -1 && numbersUsage.used >= numbersUsage.limit) {
             alert(t('plans_limits.numbers_reached'));
-            return;
-        }
-
-        const isAtInstanceLimit =
-            instancesUsage.limit !== -1 &&
-            instancesUsage.used >= instancesUsage.limit;
-
-        if (isAtInstanceLimit) {
-            alert(t('plans_limits.instances_reached'));
             return;
         }
 
@@ -28167,11 +30912,6 @@ export default function Numbers() {
                         {numbersUsage.planName
                             ? ` · ${numbersUsage.planName} ${t('landing.plans.features')}`
                             : ''}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        {instancesUsage.limit === -1
-                            ? `${instancesUsage.used} ${t('numbers_page.instances_in_use_unlimited')}`
-                            : `${instancesUsage.used} / ${instancesUsage.limit} ${t('numbers_page.instances_in_use')}`}
                     </p>
                 </div>
                 <Button onClick={handleOpenAddModal}>
@@ -28233,24 +30973,24 @@ export default function Numbers() {
                                             <TableCell>{formatLastSeen(number.last_seen)}</TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Button 
-                                                        variant="ghost" 
+                                                    <Button
+                                                        variant="ghost"
                                                         size="icon"
                                                         onClick={fetchNumbers}
                                                         title={t('numbers_page.refresh')}
                                                     >
                                                         <RefreshCw className="h-4 w-4" />
                                                     </Button>
-                                                    <Button 
-                                                        variant="ghost" 
+                                                    <Button
+                                                        variant="ghost"
                                                         size="icon"
                                                         onClick={() => handleEditNumber(number)}
                                                         title={t('common.edit')}
                                                     >
                                                         <Edit className="h-4 w-4" />
                                                     </Button>
-                                                    <Button 
-                                                        variant="ghost" 
+                                                    <Button
+                                                        variant="ghost"
                                                         size="icon"
                                                         onClick={() => setShowDeleteConfirm(number.id)}
                                                         title={t('common.delete')}
@@ -28300,12 +31040,24 @@ export default function Numbers() {
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium">{t('common.instance_id')}</label>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium">{t('common.instance_id')}</label>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-auto p-0 text-xs text-primary hover:bg-transparent"
+                                            onClick={() => setShowHelpModal(true)}
+                                        >
+                                            <HelpCircle className="mr-1 h-3 w-3" />
+                                            {t('common.where_to_find') || 'Where to find?'}
+                                        </Button>
+                                    </div>
                                     <Input
                                         value={formData.instance_id}
                                         onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
-                                        placeholder="Instance ID from Green-API"
+                                        placeholder="10 digits (e.g. 7107372601)"
                                         required
                                     />
                                 </div>
@@ -29184,7 +31936,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Check, Sparkles, Crown, Building2, Loader2 } from 'lucide-react'
+import { Check, Sparkles, Crown, Building2, Loader2, X } from 'lucide-react'
 import { getNumbersUsage, getInstancesUsage, getOrgMembersUsage } from '../lib/planLimits'
 import { startPlanCheckout } from '../services/billing'
 
@@ -29219,6 +31971,7 @@ export default function Plans() {
   })
   const [billingEvents, setBillingEvents] = useState([])
   const [processingPlanId, setProcessingPlanId] = useState(null)
+  const [billingInterval, setBillingInterval] = useState('month') // 'month' | 'year'
 
   useEffect(() => {
     fetchPlans()
@@ -29239,12 +31992,14 @@ export default function Plans() {
       .from('subscriptions')
       .select('*, plans(*)')
       .eq('user_id', session.user.id)
-      .single()
+      .limit(1)
+      .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') console.error('Error fetching sub:', error)
+    if (error) console.error('Error fetching sub:', error)
     else setCurrentSubscription(data)
     setLoading(false)
   }
+
 
   const fetchUsage = async () => {
     if (!session?.user?.id) return
@@ -29327,6 +32082,7 @@ export default function Plans() {
         supabase,
         userId: session.user.id,
         plan,
+        interval: billingInterval,
       })
 
       // In production, you would redirect the user to the billing provider:
@@ -29358,6 +32114,7 @@ export default function Plans() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">{t('landing.plans.select')}</h2>
         <p className="text-muted-foreground">{t('landing.pricing')}</p>
+
       </div>
 
       {/* Current plan & usage */}
@@ -29459,18 +32216,42 @@ export default function Plans() {
         </CardContent>
       </Card>
 
-      {currentSubscription && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-primary">
-              <span className="text-xl">💎</span>
-              <span>
-                {t('landing.plans.select')}: <span className="font-bold">{currentSubscription.plans?.name}</span> ({currentSubscription.status})
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {
+        currentSubscription && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-primary">
+                <span className="text-xl">💎</span>
+                <span>
+                  {t('landing.plans.select')}: <span className="font-bold">{currentSubscription.plans?.name}</span> ({currentSubscription.status})
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      }
+
+      <div className="flex justify-center mb-6">
+        <div className="relative bg-muted p-1 rounded-lg inline-flex items-center">
+          <button
+            onClick={() => setBillingInterval('month')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'month' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            {t('landing.plans.monthly') || 'Monthly'}
+          </button>
+          <button
+            onClick={() => setBillingInterval('year')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'year' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            {t('landing.plans.yearly') || 'Yearly'}
+          </button>
+
+          {/* Discount Badge */}
+          <span className="absolute -top-3 -right-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
+            SAVE 25%
+          </span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map(plan => {
@@ -29485,9 +32266,16 @@ export default function Plans() {
                     {icon}
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   </div>
-                  <div className="text-4xl font-bold">
-                    ${plan.price_monthly}
-                    <span className="text-base font-normal text-muted-foreground">{t('landing.plans.month')}</span>
+                  <div className="text-right">
+                    <div className="text-4xl font-bold">
+                      ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
+                      <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
+                    </div>
+                    {billingInterval === 'year' && plan.price_monthly > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        ${plan.price_yearly} {t('landing.plans.billed_yearly') || 'billed yearly'}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -29499,12 +32287,32 @@ export default function Plans() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
-                    {plan.instances_limit === -1 ? t('landing.plans.unlimited') : plan.instances_limit} {t('numbers')}
+                    {plan.numbers_limit === -1 ? t('landing.plans.unlimited') : plan.numbers_limit} {t('landing.plans.numbers')}
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
                     {plan.invites_limit === -1 ? t('landing.plans.unlimited') : plan.invites_limit} {t('landing.plans.team_members')}
                   </li>
+                  <li className="flex items-center gap-2">
+                    {plan.name === 'Free' ? (
+                      <X className="h-4 w-4 text-muted-foreground/50" />
+                    ) : (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                    <span className={plan.name === 'Free' ? 'text-muted-foreground' : ''}>
+                      {t('landing.plans.scheduled_messages')}
+                    </span>
+                  </li>
+                  {plan.name !== 'Free' && (
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500" />
+                      <span>
+                        {plan.name === 'Organization' || plan.name === 'Agency'
+                          ? t('landing.plans.priority_support')
+                          : t('landing.plans.customer_support')}
+                      </span>
+                    </li>
+                  )}
                 </ul>
 
                 <Button
@@ -29527,9 +32335,1747 @@ export default function Plans() {
           )
         })}
       </div>
-    </div>
+    </div >
   )
 }
+
+```
+
+# src\pages\ScheduledMessageEdit.jsx
+
+```jsx
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import {
+    ArrowLeft,
+    Loader2,
+    Plus,
+    X,
+    Upload,
+    Image as ImageIcon,
+    Clock,
+    AlertCircle,
+} from 'lucide-react';
+import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
+
+// Days of week for recurring
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// Helper function to convert Israel/Jerusalem time to UTC
+function convertIsraelTimeToUTC(year, month, day, hour, minute) {
+    // We need to find a UTC date that, when displayed in Israel timezone, equals our target
+    // Strategy: try UTC dates and check what they become in Israel timezone
+
+    // Start with UTC+2 offset (winter time in Israel)
+    let testUTC = new Date(Date.UTC(year, month - 1, day, hour - 2, minute, 0));
+
+    // Check what this UTC time is in Israel
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
+
+    const parts = formatter.formatToParts(testUTC);
+    const israelYear = parseInt(parts.find(p => p.type === 'year').value);
+    const israelMonth = parseInt(parts.find(p => p.type === 'month').value);
+    const israelDay = parseInt(parts.find(p => p.type === 'day').value);
+    const israelHour = parseInt(parts.find(p => p.type === 'hour').value);
+    const israelMinute = parseInt(parts.find(p => p.type === 'minute').value);
+
+    // If it matches, return it
+    if (israelYear === year && israelMonth === month && israelDay === day && israelHour === hour && israelMinute === minute) {
+        return testUTC;
+    }
+
+    // Try UTC+3 (summer/DST)
+    testUTC = new Date(Date.UTC(year, month - 1, day, hour - 3, minute, 0));
+    const parts3 = formatter.formatToParts(testUTC);
+    const israelYear3 = parseInt(parts3.find(p => p.type === 'year').value);
+    const israelMonth3 = parseInt(parts3.find(p => p.type === 'month').value);
+    const israelDay3 = parseInt(parts3.find(p => p.type === 'day').value);
+    const israelHour3 = parseInt(parts3.find(p => p.type === 'hour').value);
+    const israelMinute3 = parseInt(parts3.find(p => p.type === 'minute').value);
+
+    if (israelYear3 === year && israelMonth3 === month && israelDay3 === day && israelHour3 === hour && israelMinute3 === minute) {
+        return testUTC;
+    }
+
+    // If still no match, fine-tune by adjusting
+    const diffHours = hour - israelHour3;
+    const diffMinutes = minute - israelMinute3;
+    testUTC = new Date(testUTC.getTime() + diffHours * 3600000 + diffMinutes * 60000);
+
+    return testUTC;
+}
+
+export default function ScheduledMessageEdit() {
+    const { t } = useTranslation();
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const isEditing = !!id && id !== 'new';
+
+    const [numbers, setNumbers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [currentTime, setCurrentTime] = useState('');
+
+    // Form state
+    const [formData, setFormData] = useState({
+        number_id: '',
+        recipients: [''], // Array of phone numbers
+        message: '',
+        is_recurring: false,
+        recurrence_type: 'daily',
+        day_of_week: 0,
+        scheduled_date: '',
+        scheduled_time: '',
+        media_url: '',
+        media_type: '',
+        media_filename: '',
+        is_community_template: false,
+        template_name: '',
+        template_description: '',
+        delay_seconds: 0, // Delay between messages in seconds
+    });
+
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+
+        const loadData = async () => {
+            try {
+                // Fetch numbers
+                const { data: numbersData } = await supabase
+                    .from('numbers')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                setNumbers(numbersData || []);
+
+                if (isEditing && id) {
+                    // Fetch message
+                    const { data: messageData, error } = await supabase
+                        .from('scheduled_messages')
+                        .select('*')
+                        .eq('id', id)
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (error) throw error;
+                    if (!messageData) {
+                        navigate('/app/scheduled');
+                        return;
+                    }
+
+                    // Fetch recipients
+                    const { data: recipientsData } = await supabase
+                        .from('scheduled_message_recipients')
+                        .select('phone_number')
+                        .eq('scheduled_message_id', id)
+                        .order('created_at', { ascending: true });
+
+                    const recipients = recipientsData && recipientsData.length > 0
+                        ? recipientsData.map(r => r.phone_number)
+                        : (messageData.to_phone ? [messageData.to_phone] : ['']); // Fallback to old to_phone for backward compatibility
+
+                    // Check permissions
+                    const { plan } = await fetchCurrentSubscriptionAndPlan(supabase, user.id);
+                    if (!canUseScheduledMessages(plan)) {
+                        alert(t('scheduled.no_permission') || 'You do not have permission to access scheduled messages.');
+                        navigate('/app/dashboard');
+                        return;
+                    }
+
+                    // Convert UTC scheduled_at to Israel/Jerusalem timezone
+                    const scheduledAtUTC = new Date(messageData.scheduled_at);
+                    // Format in Israel timezone
+                    const israelDate = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Jerusalem',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    }).format(scheduledAtUTC);
+                    const israelTime = new Intl.DateTimeFormat('en-GB', {
+                        timeZone: 'Asia/Jerusalem',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                    }).format(scheduledAtUTC);
+
+                    setFormData({
+                        number_id: messageData.number_id || '',
+                        recipients: recipients,
+                        message: messageData.message || '',
+                        is_recurring: messageData.is_recurring || false,
+                        recurrence_type: messageData.recurrence_type || 'daily',
+                        day_of_week: messageData.day_of_week || 0,
+                        scheduled_date: israelDate,
+                        scheduled_time: israelTime,
+                        media_url: messageData.media_url || '',
+                        media_type: messageData.media_type || '',
+                        media_filename: messageData.media_filename || '',
+                        is_community_template: messageData.is_community_template || false,
+                        template_name: messageData.template_name || '',
+                        template_description: messageData.template_description || '',
+                    });
+                } else {
+                    // Set defaults for new message in Israel/Jerusalem timezone
+                    const now = new Date();
+                    const tomorrow = new Date(now);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+
+                    // Format in Israel timezone
+                    const israelDate = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Jerusalem',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    }).format(tomorrow);
+
+                    setFormData(prev => ({
+                        ...prev,
+                        scheduled_date: israelDate,
+                        scheduled_time: '09:00',
+                        number_id: numbersData?.[0]?.id || '',
+                    }));
+
+                    // Check permissions for new
+                    const { plan } = await fetchCurrentSubscriptionAndPlan(supabase, user.id);
+                    if (!canUseScheduledMessages(plan)) {
+                        alert(t('scheduled.no_permission') || 'You do not have permission to access scheduled messages.');
+                        navigate('/app/dashboard');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading data:', err);
+                alert('Failed to load data. Redirecting...');
+                navigate('/app/scheduled');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [user, id, isEditing, navigate]);
+
+    // Update current time display every second
+    useEffect(() => {
+        const updateCurrentTime = () => {
+            const now = new Date();
+            const israelTime = new Intl.DateTimeFormat('he-IL', {
+                timeZone: 'Asia/Jerusalem',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            }).format(now);
+            setCurrentTime(israelTime);
+        };
+
+        updateCurrentTime();
+        const interval = setInterval(updateCurrentTime, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setUploading(true);
+
+            // Generate unique filename
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+            // Upload to GreenBuilders bucket
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('GreenBuilders')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('GreenBuilders')
+                .getPublicUrl(fileName);
+
+            if (!urlData?.publicUrl) {
+                throw new Error('Failed to get public URL');
+            }
+
+            // Auto-detect media type
+            let mediaType = 'document';
+            if (file.type.startsWith('image/')) {
+                mediaType = 'image';
+            } else if (file.type.startsWith('video/')) {
+                mediaType = 'video';
+            } else if (file.type.startsWith('audio/')) {
+                mediaType = 'audio';
+            }
+
+            // Update form data
+            setFormData({
+                ...formData,
+                media_url: urlData.publicUrl,
+                media_type: mediaType,
+                media_filename: file.name,
+            });
+
+            setUploadedFile({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                url: urlData.publicUrl,
+            });
+
+            console.log('File uploaded successfully:', {
+                fileName,
+                publicUrl: urlData.publicUrl,
+                mediaType,
+            });
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert(`Failed to upload file: ${error.message}`);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setFormData({
+            ...formData,
+            media_url: '',
+            media_type: '',
+            media_filename: '',
+        });
+        setUploadedFile(null);
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        // Filter out empty recipients
+        const validRecipients = formData.recipients.filter(r => r.trim() !== '');
+        if (!user || !formData.number_id || validRecipients.length === 0 || !formData.message) {
+            alert('Please fill in all required fields including at least one recipient');
+            return;
+        }
+
+        try {
+            setSaving(true);
+
+            // Build scheduled_at from date + time in Israel/Jerusalem timezone
+            // Convert Israel time to UTC for storage
+            const [year, month, day] = formData.scheduled_date.split('-').map(Number);
+            const [hour, minute] = formData.scheduled_time.split(':').map(Number);
+
+            // Convert Israel time to UTC
+            const scheduledAt = convertIsraelTimeToUTC(year, month, day, hour, minute);
+
+            // Debug logging
+            console.log('[SCHEDULE] Converting time:', {
+                input: `${formData.scheduled_date} ${formData.scheduled_time} (Israel)`,
+                utc: scheduledAt.toISOString(),
+                israelCheck: new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'Asia/Jerusalem',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                }).format(scheduledAt),
+            });
+
+            // Keep to_phone for backward compatibility (use first recipient)
+            const payload = {
+                user_id: user.id,
+                number_id: formData.number_id,
+                to_phone: validRecipients[0], // Keep for backward compatibility
+                message: formData.message,
+                scheduled_at: scheduledAt.toISOString(),
+                is_recurring: formData.is_recurring,
+                recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
+                day_of_week: formData.is_recurring && formData.recurrence_type === 'weekly' ? formData.day_of_week : null,
+                time_of_day: formData.scheduled_time,
+                is_active: true,
+                media_url: formData.media_url || null,
+                media_type: formData.media_type || null,
+                media_filename: formData.media_filename || null,
+                is_community_template: formData.is_community_template,
+                template_name: formData.is_community_template ? formData.template_name : null,
+                template_description: formData.is_community_template ? formData.template_description : null,
+            };
+
+            // Handle staggering/delay if multiple recipients and delay > 0
+            // This splits the single request into multiple scheduled messages
+            if (validRecipients.length > 1 && formData.delay_seconds > 0) {
+                if (isEditing) {
+                    // If editing and switching to staggered, we might need to warn that this will split the message
+                    if (!confirm(t('scheduled.confirm_stagger') || 'This will split this message into multiple individual scheduled messages. Continue?')) {
+                        setSaving(false);
+                        return;
+                    }
+                    // Delete the original message (it gets replaced by new ones)
+                    await supabase.from('scheduled_messages').delete().eq('id', id);
+                }
+
+                // Create a message for each recipient with incrementing schedule time
+                let savedCount = 0;
+                for (let i = 0; i < validRecipients.length; i++) {
+                    const recipient = validRecipients[i];
+                    const delayMs = i * formData.delay_seconds * 1000;
+                    const staggeredTime = new Date(scheduledAt.getTime() + delayMs);
+
+                    // Helper formatting for Israel time (not strictly needed for storage but good for consistency/debug)
+                    const staggeredIsraelTime = new Intl.DateTimeFormat('en-GB', {
+                        timeZone: 'Asia/Jerusalem',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                    }).format(staggeredTime);
+
+                    const singlePayload = {
+                        ...payload,
+                        to_phone: recipient,
+                        scheduled_at: staggeredTime.toISOString(),
+                        time_of_day: staggeredIsraelTime, // Update visual time
+                        status: 'pending'
+                    };
+
+                    const { data, error } = await supabase
+                        .from('scheduled_messages')
+                        .insert(singlePayload)
+                        .select('id')
+                        .single();
+
+                    if (error) {
+                        console.error(`Error saving staggered message for ${recipient}:`, error);
+                    } else {
+                        // Insert recipient record for this single message
+                        await supabase.from('scheduled_message_recipients').insert({
+                            scheduled_message_id: data.id,
+                            phone_number: recipient,
+                            status: 'pending'
+                        });
+                        savedCount++;
+                    }
+                }
+
+                // Done
+                navigate('/app/scheduled');
+                return;
+            }
+
+            // Standard save (one message, multiple recipients in table)
+            let messageId;
+            if (isEditing) {
+                const { data, error } = await supabase
+                    .from('scheduled_messages')
+                    .update(payload)
+                    .eq('id', id)
+                    .select('id')
+                    .single();
+                if (error) throw error;
+                messageId = data.id;
+            } else {
+                payload.status = 'pending';
+                const { data, error } = await supabase
+                    .from('scheduled_messages')
+                    .insert(payload)
+                    .select('id')
+                    .single();
+                if (error) throw error;
+                messageId = data.id;
+            }
+
+            // Save recipients
+            // Delete old recipients if editing
+            if (isEditing) {
+                await supabase
+                    .from('scheduled_message_recipients')
+                    .delete()
+                    .eq('scheduled_message_id', messageId);
+            }
+
+            // Insert new recipients
+            const recipientsToInsert = validRecipients.map(phone => ({
+                scheduled_message_id: messageId,
+                phone_number: phone.trim(),
+                status: 'pending',
+            }));
+
+            if (recipientsToInsert.length > 0) {
+                const { error: recipientsError } = await supabase
+                    .from('scheduled_message_recipients')
+                    .insert(recipientsToInsert);
+                if (recipientsError) throw recipientsError;
+            }
+
+            navigate('/app/scheduled');
+        } catch (err) {
+            console.error('Error saving scheduled message:', err);
+            alert(err.message || 'Failed to save');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <p className="text-muted-foreground">Please log in to continue</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="container mx-auto max-w-4xl py-8 px-4">
+            {/* Header */}
+            <div className="mb-6">
+                <Button
+                    variant="ghost"
+                    onClick={() => navigate('/app/scheduled')}
+                    className="mb-4"
+                >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    {t('common.back') || 'Back'}
+                </Button>
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {isEditing
+                        ? t('scheduled.edit') || 'Edit Scheduled Message'
+                        : t('scheduled.create') || 'Create Scheduled Message'}
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                    {isEditing
+                        ? t('scheduled.edit_desc') || 'Update your scheduled message details'
+                        : t('scheduled.create_desc') || 'Schedule a new WhatsApp message to be sent automatically'}
+                </p>
+            </div>
+
+            {/* Form */}
+            <Card>
+                <CardContent className="p-6">
+                    <form onSubmit={handleSave} className="space-y-6">
+                        {/* Source Number */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                {t('scheduled.source_number') || 'Source Number'} *
+                            </label>
+                            <select
+                                value={formData.number_id}
+                                onChange={(e) => setFormData({ ...formData, number_id: e.target.value })}
+                                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                                required
+                            >
+                                <option value="">{t('scheduled.select_number') || 'Select a number'}</option>
+                                {numbers.map((num) => (
+                                    <option key={num.id} value={num.id}>
+                                        {num.phone_number}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Recipients */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                {t('scheduled.recipients') || 'Recipients'} *
+                                <span className="text-xs text-muted-foreground ml-2">
+                                    ({formData.recipients.filter(r => r.trim() !== '').length} {t('scheduled.recipients_count') || 'recipients'})
+                                </span>
+                            </label>
+                            <div className="space-y-2">
+                                {formData.recipients.map((recipient, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input
+                                            value={recipient}
+                                            onChange={(e) => {
+                                                const newRecipients = [...formData.recipients];
+                                                newRecipients[index] = e.target.value;
+                                                setFormData({ ...formData, recipients: newRecipients });
+                                            }}
+                                            placeholder="+972501234567"
+                                            className="flex-1"
+                                        />
+                                        {formData.recipients.length > 1 && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    const newRecipients = formData.recipients.filter((_, i) => i !== index);
+                                                    setFormData({ ...formData, recipients: newRecipients });
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setFormData({ ...formData, recipients: [...formData.recipients, ''] });
+                                    }}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {t('scheduled.add_recipient') || 'Add Recipient'}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Staggering / Delay & Spam Warning */}
+                        {formData.recipients.filter(r => r.trim()).length > 1 && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium flex items-center gap-2">
+                                        {t('scheduled.delay_seconds') || 'Delay between messages (seconds)'}
+                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        value={formData.delay_seconds}
+                                        onChange={(e) => setFormData({ ...formData, delay_seconds: parseInt(e.target.value) || 0 })}
+                                        placeholder="0"
+                                        className="max-w-[150px]"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('scheduled.delay_desc') || 'Adding a delay helps prevent number blocking by spreading out the sending time.'}
+                                    </p>
+                                </div>
+
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded-md p-4 flex items-start gap-3">
+                                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+                                    <div className="text-sm">
+                                        <p className="font-medium text-yellow-800 dark:text-yellow-400">
+                                            {t('scheduled.spam_warning_title') || 'Avoid Number Blocking'}
+                                        </p>
+                                        <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                                            {t('scheduled.spam_warning_desc') || 'Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                {t('scheduled.message') || 'Message'} *
+                            </label>
+                            <textarea
+                                value={formData.message}
+                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[150px] resize-y"
+                                placeholder={t('scheduled.message_placeholder') || 'Enter your message...'}
+                                required
+                            />
+                        </div>
+
+                        {/* Media Upload */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                {t('scheduled.media_url') || 'Media (optional)'}
+                            </label>
+
+                            {!formData.media_url && !uploadedFile ? (
+                                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                                    <input
+                                        type="file"
+                                        id="media-upload"
+                                        onChange={handleFileUpload}
+                                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                                        className="hidden"
+                                        disabled={uploading}
+                                    />
+                                    <label
+                                        htmlFor="media-upload"
+                                        className={`flex flex-col items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {uploading ? (
+                                            <>
+                                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                                <span className="text-sm text-muted-foreground">Uploading...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                                <span className="text-sm text-muted-foreground">
+                                                    Click to upload or drag and drop
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Images, Videos, Audio, Documents
+                                                </span>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {uploadedFile && (
+                                        <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
+                                            {formData.media_type === 'image' && (
+                                                <ImageIcon className="h-5 w-5 text-primary" />
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">{uploadedFile.name}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {(uploadedFile.size / 1024).toFixed(2)} KB
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleRemoveFile}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-2">
+                                        <select
+                                            value={formData.media_type}
+                                            onChange={(e) => setFormData({ ...formData, media_type: e.target.value })}
+                                            className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+                                        >
+                                            <option value="">{t('scheduled.media_type') || 'Media type'}</option>
+                                            <option value="image">{t('scheduled.image') || 'Image'}</option>
+                                            <option value="video">{t('scheduled.video') || 'Video'}</option>
+                                            <option value="audio">{t('scheduled.audio') || 'Audio'}</option>
+                                            <option value="document">{t('scheduled.document') || 'Document'}</option>
+                                        </select>
+                                        <Input
+                                            value={formData.media_filename}
+                                            onChange={(e) => setFormData({ ...formData, media_filename: e.target.value })}
+                                            placeholder={t('scheduled.filename') || 'Filename'}
+                                            className="flex-1"
+                                        />
+                                    </div>
+
+                                    <Input
+                                        value={formData.media_url}
+                                        onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
+                                        placeholder="https://example.com/image.jpg"
+                                        className="text-xs"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        Or enter a URL manually above
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Schedule Type */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                {t('scheduled.schedule_type') || 'Schedule Type'}
+                            </label>
+                            <div className="flex gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        checked={!formData.is_recurring}
+                                        onChange={() => setFormData({ ...formData, is_recurring: false })}
+                                        className="text-primary"
+                                    />
+                                    <span className="text-sm">{t('scheduled.one_time') || 'One-time'}</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        checked={formData.is_recurring}
+                                        onChange={() => setFormData({ ...formData, is_recurring: true })}
+                                        className="text-primary"
+                                    />
+                                    <span className="text-sm">{t('scheduled.recurring') || 'Recurring'}</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Recurrence Options */}
+                        {formData.is_recurring && (
+                            <div className="space-y-2 pl-4 border-l-2 border-primary/20">
+                                <select
+                                    value={formData.recurrence_type}
+                                    onChange={(e) => setFormData({ ...formData, recurrence_type: e.target.value })}
+                                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                                >
+                                    <option value="daily">{t('scheduled.daily') || 'Daily'}</option>
+                                    <option value="weekly">{t('scheduled.weekly') || 'Weekly'}</option>
+                                    <option value="monthly">{t('scheduled.monthly') || 'Monthly'}</option>
+                                </select>
+
+                                {formData.recurrence_type === 'weekly' && (
+                                    <select
+                                        value={formData.day_of_week}
+                                        onChange={(e) => setFormData({ ...formData, day_of_week: parseInt(e.target.value) })}
+                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                                    >
+                                        {DAYS_OF_WEEK.map((day, index) => (
+                                            <option key={index} value={index}>
+                                                {day}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Date & Time */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                    שעה נוכחית (ישראל): {currentTime}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        {formData.is_recurring
+                                            ? t('scheduled.start_date') || 'Start Date'
+                                            : t('scheduled.date') || 'Date'} *
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={formData.scheduled_date}
+                                        onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        {t('scheduled.time') || 'Time'} *
+                                    </label>
+                                    <Input
+                                        type="time"
+                                        value={formData.scheduled_time}
+                                        onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Publish to Community */}
+                        <div className="space-y-2 pt-4 border-t">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.is_community_template}
+                                    onChange={(e) => setFormData({ ...formData, is_community_template: e.target.checked })}
+                                    className="text-primary rounded"
+                                />
+                                <span className="text-sm font-medium">
+                                    {t('scheduled.publish_community') || 'Publish to Community Templates'}
+                                </span>
+                            </label>
+
+                            {formData.is_community_template && (
+                                <div className="space-y-2 pl-6">
+                                    <Input
+                                        value={formData.template_name}
+                                        onChange={(e) => setFormData({ ...formData, template_name: e.target.value })}
+                                        placeholder={t('scheduled.template_name') || 'Template name'}
+                                    />
+                                    <textarea
+                                        value={formData.template_description}
+                                        onChange={(e) => setFormData({ ...formData, template_description: e.target.value })}
+                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[80px] resize-y"
+                                        placeholder={t('scheduled.template_description') || 'Describe this template...'}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Submit */}
+                        <div className="flex justify-end gap-2 pt-4 border-t">
+                            <Button type="button" variant="outline" onClick={() => navigate('/app/scheduled')}>
+                                {t('common.cancel') || 'Cancel'}
+                            </Button>
+                            <Button type="submit" disabled={saving}>
+                                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isEditing
+                                    ? t('common.save') || 'Save'
+                                    : t('scheduled.create') || 'Create'}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+```
+
+# src\pages\ScheduledMessages.jsx
+
+```jsx
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
+import {
+    Plus,
+    Calendar,
+    Clock,
+    Phone,
+    MessageSquare,
+    Repeat,
+    Users,
+    Edit,
+    Trash2,
+    Copy,
+    X,
+    Image,
+    Video,
+    Music,
+    File,
+    Check,
+    AlertCircle,
+    Loader2,
+    Send,
+    Pause,
+    Play,
+    Zap,
+} from 'lucide-react';
+
+// Status badge component
+function StatusBadge({ status, t }) {
+    const styles = {
+        pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+        processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+        sent: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+        failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+        cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+    };
+    return (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.pending}`}>
+            {t(`scheduled.status_${status}`) || status}
+        </span>
+    );
+}
+
+// Media type icon
+function MediaIcon({ type }) {
+    switch (type) {
+        case 'image': return <Image className="h-4 w-4" />;
+        case 'video': return <Video className="h-4 w-4" />;
+        case 'audio': return <Music className="h-4 w-4" />;
+        case 'document': return <File className="h-4 w-4" />;
+        default: return null;
+    }
+}
+
+// Days of week for recurring
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+export default function ScheduledMessages() {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    // State
+    const [activeTab, setActiveTab] = useState('active'); // 'active' | 'inactive' | 'community'
+    const [messages, setMessages] = useState([]);
+    const [communityTemplates, setCommunityTemplates] = useState([]);
+    const [numbers, setNumbers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [copiedToast, setCopiedToast] = useState(null);
+    const [sendNowDialog, setSendNowDialog] = useState(null); // { message: msg, remember: false }
+    const [sendingNow, setSendingNow] = useState(false);
+    const [hasPermission, setHasPermission] = useState(null);
+
+    useEffect(() => {
+        if (user) {
+            checkPermissions();
+        }
+    }, [user]);
+
+    const checkPermissions = async () => {
+        const { plan } = await fetchCurrentSubscriptionAndPlan(supabase, user.id);
+        const allowed = canUseScheduledMessages(plan);
+        setHasPermission(allowed);
+        if (allowed) {
+            fetchMessages();
+            fetchNumbers();
+            fetchCommunityTemplates();
+        } else {
+            setLoading(false);
+        }
+    };
+
+    const fetchMessages = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('scheduled_messages')
+                .select('*, numbers(phone_number, instance_id, api_token)')
+                .eq('user_id', user.id)
+                .order('scheduled_at', { ascending: true });
+
+            if (error) throw error;
+
+            // Fetch recipient counts for each message
+            const messagesWithRecipients = await Promise.all(
+                (data || []).map(async (msg) => {
+                    const { count } = await supabase
+                        .from('scheduled_message_recipients')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('scheduled_message_id', msg.id);
+
+                    return {
+                        ...msg,
+                        recipient_count: count || (msg.to_phone ? 1 : 0), // Fallback to 1 if old format
+                    };
+                })
+            );
+
+            setMessages(messagesWithRecipients);
+        } catch (err) {
+            console.error('Error fetching scheduled messages:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchNumbers = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('numbers')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setNumbers(data || []);
+        } catch (err) {
+            console.error('Error fetching numbers:', err);
+        }
+    };
+
+    const fetchCommunityTemplates = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('scheduled_messages')
+                .select('*, profiles(full_name, email)')
+                .eq('is_community_template', true)
+                .neq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setCommunityTemplates(data || []);
+        } catch (err) {
+            console.error('Error fetching community templates:', err);
+        }
+    };
+
+    const handleCreate = () => {
+        navigate('/app/scheduled/new');
+    };
+
+    const handleEdit = (msg, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        navigate(`/app/scheduled/${msg.id}`);
+    };
+
+    const handleDelete = async (id, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        if (!confirm(t('scheduled.confirm_delete') || 'Are you sure you want to delete this scheduled message?')) return;
+
+        try {
+            const { error } = await supabase
+                .from('scheduled_messages')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+            fetchMessages();
+        } catch (err) {
+            console.error('Error deleting scheduled message:', err);
+        }
+    };
+
+    const handleToggleActive = async (msg, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        try {
+            const { error } = await supabase
+                .from('scheduled_messages')
+                .update({ is_active: !msg.is_active })
+                .eq('id', msg.id);
+            if (error) throw error;
+            fetchMessages();
+        } catch (err) {
+            console.error('Error toggling active status:', err);
+        }
+    };
+
+    const handleCopyTemplate = async (template) => {
+        try {
+            const scheduledAt = new Date();
+            scheduledAt.setHours(9, 0, 0, 0);
+            if (scheduledAt < new Date()) {
+                scheduledAt.setDate(scheduledAt.getDate() + 1);
+            }
+
+            // Fetch template recipients
+            const { data: templateRecipients } = await supabase
+                .from('scheduled_message_recipients')
+                .select('phone_number')
+                .eq('scheduled_message_id', template.id);
+
+            const { data, error } = await supabase
+                .from('scheduled_messages')
+                .insert({
+                    user_id: user.id,
+                    number_id: numbers[0]?.id || null,
+                    to_phone: templateRecipients?.[0]?.phone_number || template.to_phone || '', // Keep for backward compatibility
+                    message: template.message,
+                    scheduled_at: scheduledAt.toISOString(),
+                    is_recurring: template.is_recurring,
+                    recurrence_type: template.recurrence_type,
+                    day_of_week: template.day_of_week,
+                    time_of_day: template.time_of_day,
+                    is_active: false,
+                    media_url: template.media_url,
+                    media_type: template.media_type,
+                    media_filename: template.media_filename,
+                    is_community_template: false,
+                    copied_from_id: template.id,
+                    status: 'pending',
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Copy recipients if they exist
+            if (templateRecipients && templateRecipients.length > 0) {
+                const recipientsToInsert = templateRecipients.map(r => ({
+                    scheduled_message_id: data.id,
+                    phone_number: r.phone_number,
+                    status: 'pending',
+                }));
+
+                await supabase
+                    .from('scheduled_message_recipients')
+                    .insert(recipientsToInsert);
+            }
+
+            if (error) throw error;
+
+            // Show toast
+            setCopiedToast(data.id);
+            setTimeout(() => setCopiedToast(null), 5000);
+
+            fetchMessages();
+        } catch (err) {
+            console.error('Error copying template:', err);
+            alert(err.message || 'Failed to copy template');
+        }
+    };
+
+    // Normalize phone number to chatId format (like dispatch.ts)
+    const normalizePhoneToChatId = (phone) => {
+        let cleaned = phone.replace(/\D/g, '');
+        if (cleaned.startsWith('0')) {
+            cleaned = '972' + cleaned.substring(1);
+        }
+        if (!cleaned.startsWith('972')) {
+            cleaned = '972' + cleaned;
+        }
+        return `${cleaned}@c.us`;
+    };
+
+    // Send message immediately via Green API
+    const sendMessageNow = async (msg) => {
+        if (!msg.numbers?.instance_id || !msg.numbers?.api_token) {
+            alert(t('scheduled.missing_credentials') || 'Missing number credentials');
+            return;
+        }
+
+        try {
+            setSendingNow(true);
+
+            // Fetch all recipients
+            const { data: recipientsData } = await supabase
+                .from('scheduled_message_recipients')
+                .select('id, phone_number')
+                .eq('scheduled_message_id', msg.id)
+                .eq('status', 'pending');
+
+            // Fallback to old to_phone if no recipients table entries
+            const recipients = recipientsData && recipientsData.length > 0
+                ? recipientsData
+                : (msg.to_phone ? [{ id: null, phone_number: msg.to_phone }] : []);
+
+            if (recipients.length === 0) {
+                alert(t('scheduled.no_recipients') || 'No recipients found');
+                return;
+            }
+
+            let successCount = 0;
+            let failCount = 0;
+            const now = new Date().toISOString();
+
+            // Send to all recipients
+            for (const recipient of recipients) {
+                try {
+                    const chatId = normalizePhoneToChatId(recipient.phone_number);
+                    const url = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendMessage/${msg.numbers.api_token}`;
+
+                    // Send text message
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chatId, message: msg.message }),
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`GreenAPI error: ${response.status} ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    const providerMessageId = data.idMessage || null;
+
+                    // If there's media, send it too
+                    if (msg.media_url && msg.media_type) {
+                        const mediaUrl = `https://api.green-api.com/waInstance${msg.numbers.instance_id}/sendFileByUrl/${msg.numbers.api_token}`;
+                        await fetch(mediaUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chatId,
+                                urlFile: msg.media_url,
+                                fileName: msg.media_filename || 'file',
+                                caption: msg.message,
+                            }),
+                        });
+                    }
+
+                    // Update recipient status if exists in table
+                    if (recipient.id) {
+                        await supabase
+                            .from('scheduled_message_recipients')
+                            .update({
+                                status: 'sent',
+                                sent_at: now,
+                                provider_message_id: providerMessageId,
+                            })
+                            .eq('id', recipient.id);
+                    }
+
+                    successCount++;
+                } catch (err) {
+                    console.error(`Error sending to ${recipient.phone_number}:`, err);
+                    failCount++;
+
+                    // Update recipient status if exists in table
+                    if (recipient.id) {
+                        await supabase
+                            .from('scheduled_message_recipients')
+                            .update({
+                                status: 'failed',
+                                error_message: err.message,
+                            })
+                            .eq('id', recipient.id);
+                    }
+                }
+            }
+
+            // Update scheduled message status
+            const allSent = failCount === 0;
+            const updateData = {
+                status: allSent ? 'sent' : (successCount > 0 ? 'processing' : 'failed'),
+                sent_at: allSent ? now : null,
+                last_error: failCount > 0 ? `${failCount} recipients failed` : null,
+            };
+
+            const { error: updateError } = await supabase
+                .from('scheduled_messages')
+                .update(updateData)
+                .eq('id', msg.id);
+
+            if (updateError) throw updateError;
+
+            // If recurring, reschedule for next occurrence (this will reset status to 'pending')
+            if (msg.is_recurring && allSent) {
+                const { error: rpcError } = await supabase.rpc('reschedule_recurring_message', {
+                    p_message_id: msg.id,
+                });
+                if (rpcError) {
+                    console.error('Error rescheduling recurring message:', rpcError);
+                }
+            }
+
+            setSendNowDialog(null);
+            fetchMessages();
+
+            if (failCount > 0) {
+                alert(`${successCount} sent, ${failCount} failed`);
+            }
+        } catch (err) {
+            console.error('Error sending message now:', err);
+            alert(err.message || t('scheduled.send_now_error') || 'Failed to send message');
+        } finally {
+            setSendingNow(false);
+        }
+    };
+
+    // Handle Send Now button click
+    const handleSendNow = (msg, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        const rememberPreference = localStorage.getItem('scheduled_send_now_skip_confirm');
+        if (rememberPreference === 'true') {
+            // Skip confirmation if user chose to remember
+            sendMessageNow(msg);
+        } else {
+            // Show confirmation dialog
+            setSendNowDialog({ message: msg, remember: false });
+        }
+    };
+
+    // Handle confirmation dialog confirm
+    const handleConfirmSendNow = () => {
+        if (sendNowDialog) {
+            if (sendNowDialog.remember) {
+                localStorage.setItem('scheduled_send_now_skip_confirm', 'true');
+            }
+            sendMessageNow(sendNowDialog.message);
+        }
+    };
+
+    // Filter messages by active tab
+    const filteredMessages = messages.filter((msg) => {
+        if (activeTab === 'active') return msg.is_active;
+        if (activeTab === 'inactive') return !msg.is_active;
+        return true;
+    });
+
+    const formatSchedule = (msg) => {
+        if (msg.is_recurring) {
+            const time = msg.time_of_day || new Date(msg.scheduled_at).toTimeString().slice(0, 5);
+            switch (msg.recurrence_type) {
+                case 'daily':
+                    return `${t('scheduled.daily')} ${time}`;
+                case 'weekly':
+                    return `${DAYS_OF_WEEK[msg.day_of_week]} ${time}`;
+                case 'monthly':
+                    return `${t('scheduled.monthly')} ${time}`;
+                default:
+                    return time;
+            }
+        }
+        return new Date(msg.scheduled_at).toLocaleString();
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        {t('scheduled.title') || 'Scheduled Messages'}
+                    </h2>
+                    <p className="text-muted-foreground">
+                        {t('scheduled.subtitle') || 'Schedule WhatsApp messages to be sent automatically'}
+                    </p>
+                </div>
+                <Button onClick={handleCreate}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('scheduled.create') || 'Create New'}
+                </Button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-2 border-b">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'active'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    <Play className="inline-block mr-1 h-4 w-4" />
+                    {t('scheduled.tab_active') || 'Active'}
+                    <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+                        {messages.filter((m) => m.is_active).length}
+                    </span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('inactive')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'inactive'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    <Pause className="inline-block mr-1 h-4 w-4" />
+                    {t('scheduled.tab_inactive') || 'Inactive'}
+                    <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+                        {messages.filter((m) => !m.is_active).length}
+                    </span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('community')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'community'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    <Users className="inline-block mr-1 h-4 w-4" />
+                    {t('scheduled.tab_community') || 'Community Templates'}
+                    <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+                        {communityTemplates.length}
+                    </span>
+                </button>
+            </div>
+
+            {/* Content */}
+            {hasPermission === false ? (
+                <Card className="border-dashed border-2">
+                    <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Clock className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold">{t('scheduled.upgrade_title') || 'Scheduled Messages is a Pro Feature'}</h3>
+                            <p className="text-muted-foreground max-w-md mx-auto">
+                                {t('scheduled.upgrade_desc') || 'Upgrade to Pro or Organization plan to schedule unlimited messages, recurring campaigns, and more.'}
+                            </p>
+                        </div>
+                        <Button onClick={() => navigate('/app/plans')} className="mt-4">
+                            {t('common.upgrade') || 'Upgrade Now'}
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : loading ? (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            ) : activeTab === 'community' ? (
+                /* Community Templates */
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {communityTemplates.length === 0 ? (
+                        <div className="col-span-full text-center py-12 text-muted-foreground">
+                            {t('scheduled.no_community_templates') || 'No community templates yet'}
+                        </div>
+                    ) : (
+                        communityTemplates.map((template) => (
+                            <Card key={template.id} className="relative overflow-hidden">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        {template.template_name || 'Untitled Template'}
+                                        {template.media_type && <MediaIcon type={template.media_type} />}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {t('scheduled.by') || 'by'} {template.profiles?.full_name || template.profiles?.email || 'Anonymous'}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {template.template_description && (
+                                        <p className="text-sm text-muted-foreground">
+                                            {template.template_description}
+                                        </p>
+                                    )}
+                                    <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                                        <p className="line-clamp-3">{template.message}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        {template.is_recurring && (
+                                            <span className="flex items-center gap-1">
+                                                <Repeat className="h-3 w-3" />
+                                                {template.recurrence_type}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <Button
+                                        onClick={() => handleCopyTemplate(template)}
+                                        className="w-full"
+                                        variant="outline"
+                                    >
+                                        <Copy className="mr-2 h-4 w-4" />
+                                        {t('scheduled.copy_to_account') || 'Copy to My Account'}
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
+            ) : (
+                /* Active/Inactive Messages */
+                <div className="space-y-4">
+                    {filteredMessages.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            {activeTab === 'active'
+                                ? t('scheduled.no_active') || 'No active scheduled messages'
+                                : t('scheduled.no_inactive') || 'No inactive scheduled messages'}
+                        </div>
+                    ) : (
+                        filteredMessages.map((msg) => (
+                            <Card
+                                key={msg.id}
+                                className={`relative cursor-pointer transition-all hover:shadow-md ${!msg.is_active ? 'opacity-60' : ''}`}
+                                onClick={() => handleEdit(msg)}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 min-w-0 space-y-2">
+                                            {/* Header row */}
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <StatusBadge status={msg.status} t={t} />
+                                                {msg.is_recurring && (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                                        <Repeat className="h-3 w-3" />
+                                                        {msg.recurrence_type}
+                                                    </span>
+                                                )}
+                                                {msg.media_type && (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                                        <MediaIcon type={msg.media_type} />
+                                                        {msg.media_type}
+                                                    </span>
+                                                )}
+                                                {msg.is_community_template && (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                                                        <Users className="h-3 w-3" />
+                                                        {t('scheduled.shared') || 'Shared'}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Message preview */}
+                                            <p className="text-sm line-clamp-2">{msg.message}</p>
+
+                                            {/* Details row */}
+                                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                                <span className="flex items-center gap-1">
+                                                    <Phone className="h-3 w-3" />
+                                                    {msg.recipient_count > 1
+                                                        ? `${msg.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
+                                                        : msg.to_phone || t('scheduled.no_recipients') || 'No recipients'}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Send className="h-3 w-3" />
+                                                    {msg.numbers?.phone_number || 'Unknown source'}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {formatSchedule(msg)}
+                                                </span>
+                                            </div>
+
+                                            {/* Error message if failed */}
+                                            {msg.status === 'failed' && msg.last_error && (
+                                                <div className="flex items-start gap-1 text-xs text-red-600 dark:text-red-400">
+                                                    <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                                    <span className="line-clamp-1">{msg.last_error}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-1">
+                                            {msg.is_active && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => handleSendNow(msg, e)}
+                                                    title={t('scheduled.send_now') || 'Send Now'}
+                                                    className="text-green-600 hover:text-green-700 dark:text-green-400"
+                                                >
+                                                    <Zap className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => handleToggleActive(msg, e)}
+                                                title={msg.is_active ? 'Deactivate' : 'Activate'}
+                                            >
+                                                {msg.is_active ? (
+                                                    <Pause className="h-4 w-4" />
+                                                ) : (
+                                                    <Play className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => handleEdit(msg, e)}
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => handleDelete(msg.id, e)}
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
+            )
+            }
+
+            {/* Copied Toast */}
+            {
+                copiedToast && (
+                    <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-5">
+                        <Check className="h-5 w-5" />
+                        <span>{t('scheduled.copied_success') || 'Template copied!'}</span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white hover:bg-green-700"
+                            onClick={() => {
+                                const msg = messages.find((m) => m.id === copiedToast);
+                                if (msg) {
+                                    navigate(`/app/scheduled/${msg.id}`);
+                                }
+                                setCopiedToast(null);
+                            }}
+                        >
+                            {t('scheduled.go_to_template') || 'Go to Template'}
+                        </Button>
+                        <button onClick={() => setCopiedToast(null)} className="hover:bg-green-700 p-1 rounded">
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                )
+            }
+
+            {/* Send Now Confirmation Dialog */}
+            {
+                sendNowDialog && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                        <div className="bg-card border rounded-lg shadow-xl w-full max-w-md m-4 animate-in zoom-in-95">
+                            <div className="p-6 space-y-4">
+                                {/* Cute header */}
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                                        <Zap className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold">
+                                        {t('scheduled.send_now_title') || 'Send Message Now?'}
+                                    </h3>
+                                </div>
+
+                                {/* Message */}
+                                <p className="text-sm text-muted-foreground">
+                                    {t('scheduled.send_now_message') || 'Are you sure you want to send this message right now?'}
+                                    <br />
+                                    <span className="font-medium text-foreground">
+                                        {sendNowDialog.message.recipient_count > 1
+                                            ? `${sendNowDialog.message.recipient_count} ${t('scheduled.recipients') || 'recipients'}`
+                                            : `${t('scheduled.recipient') || 'Recipient'}: ${sendNowDialog.message.to_phone || t('scheduled.no_recipients') || 'No recipients'}`}
+                                    </span>
+                                </p>
+
+                                {/* Message preview */}
+                                <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                                    <p className="line-clamp-3">{sendNowDialog.message.message}</p>
+                                </div>
+
+                                {/* Remember option */}
+                                <label className="flex items-center gap-2 cursor-pointer pt-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={sendNowDialog.remember}
+                                        onChange={(e) => setSendNowDialog({ ...sendNowDialog, remember: e.target.checked })}
+                                        className="text-primary rounded"
+                                    />
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('scheduled.remember_option') || 'Remember this option (skip confirmation next time)'}
+                                    </span>
+                                </label>
+
+                                {/* Actions */}
+                                <div className="flex justify-end gap-2 pt-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setSendNowDialog(null)}
+                                        disabled={sendingNow}
+                                    >
+                                        {t('common.cancel') || 'Cancel'}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleConfirmSendNow}
+                                        disabled={sendingNow}
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                        {sendingNow && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {t('scheduled.send_now_confirm') || 'Send Now'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
+    );
+}
+
 
 ```
 
@@ -30429,15 +34975,21 @@ export async function startPlanCheckout({
   supabase = defaultSupabase,
   userId,
   plan,
+  interval = 'month', // 'month' or 'year'
 }) {
   if (!userId || !plan?.id) {
     throw new Error('Missing userId or plan information')
   }
 
+  // Determine actual price based on interval
+  const amount = interval === 'year' && plan.price_yearly != null
+    ? plan.price_yearly
+    : plan.price_monthly;
+
   // Placeholder checkout URL – in the future, replace with real provider URL
   const redirectUrl = `${BILLING_PROVIDER_BASE_URL}/checkout?plan=${encodeURIComponent(
     plan.id,
-  )}`
+  )}&interval=${interval}`
 
   // Update subscription immediately (test environment – no real payment)
   const { error } = await supabase.from('subscriptions').upsert(
@@ -30445,6 +34997,7 @@ export async function startPlanCheckout({
       user_id: userId,
       plan_id: plan.id,
       status: 'active',
+      // In a real app we might store interval here too
     },
     { onConflict: 'user_id' },
   )
@@ -30458,10 +35011,10 @@ export async function startPlanCheckout({
     await supabase.from('billing_events').insert({
       user_id: userId,
       plan_id: plan.id,
-      amount: plan.price_monthly,
+      amount: amount,
       currency: 'USD',
       status: 'paid',
-      description: `Test env direct plan change to ${plan.name}`,
+      description: `Test env direct plan change to ${plan.name} (${interval})`,
     })
   } catch (eventError) {
     // Ignore missing table / RLS issues in dev, just log for debugging
@@ -31179,6 +35732,251 @@ export async function pollNewMessages(instanceId, token, onNewMessage) {
   }
 }
 
+
+
+```
+
+# SUPABASE_CRON_SETUP.md
+
+```md
+# Supabase Cron Jobs Setup Guide
+
+## הבעיה
+ה-scheduled messages לא נשלחים אוטומטית כי ה-cron job לא מוגדר או לא עובד.
+
+## פתרון
+
+### שלב 1: בדוק אם ה-Cron Job קיים
+
+הרץ ב-Supabase SQL Editor:
+
+\`\`\`sql
+SELECT * FROM cron.job WHERE jobname = 'dispatch_scheduled_messages';
+\`\`\`
+
+אם אין תוצאות, צריך ליצור את ה-cron job.
+
+### שלב 2: בדוק את ה-Execution History
+
+\`\`\`sql
+SELECT 
+  j.jobname,
+  jr.status,
+  jr.return_message,
+  jr.start_time,
+  jr.end_time
+FROM cron.job j
+LEFT JOIN cron.job_run_details jr ON j.jobid = jr.jobid
+WHERE j.jobname = 'dispatch_scheduled_messages'
+ORDER BY jr.start_time DESC
+LIMIT 10;
+\`\`\`
+
+זה יראה לך:
+- האם ה-cron job רץ
+- האם יש שגיאות
+- מה ה-return_message (תגובת ה-API)
+
+### שלב 3: צור/עדכן את ה-Cron Job
+
+**חשוב:** החלף את הערכים הבאים:
+- `<YOUR_DOMAIN>` - הדומיין של Vercel שלך (למשל: `admin-panel-xyz.vercel.app`)
+- `YOUR_CRON_SECRET` - ה-CRON_SECRET מ-Vercel environment variables
+
+\`\`\`sql
+-- קודם, בטל את ה-cron job הישן (אם קיים)
+SELECT cron.unschedule('dispatch_scheduled_messages');
+
+-- עכשיו, צור את ה-cron job החדש
+SELECT cron.schedule(
+  'dispatch_scheduled_messages',
+  '* * * * *',  -- כל דקה
+  $$
+    SELECT net.http_post(
+      url := 'https://<YOUR_DOMAIN>/api/dispatch',
+      headers := jsonb_build_object(
+        'authorization', 'Bearer YOUR_CRON_SECRET',
+        'content-type', 'application/json'
+      ),
+      body := '{}'::jsonb
+    );
+  $$
+);
+\`\`\`
+
+### שלב 4: בדוק את ה-API ידנית
+
+לפני שאתה מחכה ל-cron, בדוק שה-API עובד:
+
+\`\`\`bash
+curl -X POST https://your-domain.vercel.app/api/dispatch \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+\`\`\`
+
+אמור להחזיר:
+\`\`\`json
+{
+  "claimed_count": 0,
+  "sent_count": 0,
+  "failed_count": 0,
+  "retry_count": 0,
+  "results": []
+}
+\`\`\`
+
+### שלב 5: בדוק Scheduled Messages שממתינים
+
+\`\`\`sql
+SELECT 
+  id,
+  message,
+  scheduled_at,
+  status,
+  is_active,
+  NOW() as current_time,
+  scheduled_at <= NOW() as is_due
+FROM scheduled_messages
+WHERE status = 'pending'
+  AND is_active = true
+ORDER BY scheduled_at ASC;
+\`\`\`
+
+אם יש הודעות עם `is_due = true`, הן אמורות להישלח.
+
+### שלב 6: בדוק את ה-Function claim_due_scheduled_messages
+
+\`\`\`sql
+SELECT * FROM claim_due_scheduled_messages(50);
+\`\`\`
+
+זה יראה לך אילו הודעות יטופלו.
+
+## פתרון בעיות
+
+### Cron Job לא רץ
+
+1. **בדוק שה-pg_cron extension מופעל:**
+   \`\`\`sql
+   SELECT * FROM pg_extension WHERE extname = 'pg_cron';
+   \`\`\`
+
+2. **בדוק שה-pg_net extension מופעל:**
+   \`\`\`sql
+   SELECT * FROM pg_extension WHERE extname = 'pg_net';
+   \`\`\`
+
+3. **אם חסרים, הפעל אותם:**
+   \`\`\`sql
+   CREATE EXTENSION IF NOT EXISTS pg_cron;
+   CREATE EXTENSION IF NOT EXISTS pg_net;
+   \`\`\`
+
+### Cron Job רץ אבל יש שגיאות
+
+בדוק את ה-`return_message` ב-`cron.job_run_details`:
+
+\`\`\`sql
+SELECT 
+  status,
+  return_message,
+  start_time
+FROM cron.job_run_details
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'dispatch_scheduled_messages')
+ORDER BY start_time DESC
+LIMIT 5;
+\`\`\`
+
+**שגיאות נפוצות:**
+
+1. **"Invalid Authorization token"**
+   - ה-CRON_SECRET לא נכון
+   - בדוק ב-Vercel environment variables
+
+2. **"Connection refused" או "Timeout"**
+   - ה-URL לא נכון
+   - בדוק שהדומיין נכון
+
+3. **"Method not allowed"**
+   - ה-API לא מקבל POST
+   - זה לא אמור לקרות, אבל בדוק
+
+### Messages לא נשלחות
+
+1. **בדוק שה-messages ב-pending:**
+   \`\`\`sql
+   SELECT COUNT(*) FROM scheduled_messages 
+   WHERE status = 'pending' AND is_active = true;
+   \`\`\`
+
+2. **בדוק שה-scheduled_at עבר:**
+   \`\`\`sql
+   SELECT COUNT(*) FROM scheduled_messages 
+   WHERE status = 'pending' 
+   AND is_active = true 
+   AND scheduled_at <= NOW();
+   \`\`\`
+
+3. **בדוק שה-numbers table יש credentials:**
+   \`\`\`sql
+   SELECT n.id, n.phone_number, n.instance_id, n.api_token
+   FROM numbers n
+   INNER JOIN scheduled_messages sm ON sm.number_id = n.id
+   WHERE sm.status = 'pending'
+   AND sm.is_active = true
+   AND (n.instance_id IS NULL OR n.api_token IS NULL);
+   \`\`\`
+
+## בדיקה מהירה
+
+הרץ את זה כדי לבדוק הכל בבת אחת:
+
+\`\`\`sql
+-- 1. בדוק cron job
+SELECT 'Cron Job Status:' as check_type, 
+       CASE WHEN EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'dispatch_scheduled_messages') 
+            THEN '✅ Exists' 
+            ELSE '❌ Missing' 
+       END as status;
+
+-- 2. בדוק pending messages
+SELECT 'Pending Messages:' as check_type,
+       COUNT(*)::text as status
+FROM scheduled_messages
+WHERE status = 'pending' AND is_active = true;
+
+-- 3. בדוק due messages
+SELECT 'Due Messages:' as check_type,
+       COUNT(*)::text as status
+FROM scheduled_messages
+WHERE status = 'pending' 
+AND is_active = true 
+AND scheduled_at <= NOW();
+
+-- 4. בדוק last cron run
+SELECT 'Last Cron Run:' as check_type,
+       COALESCE(
+         (SELECT status || ' at ' || start_time::text 
+          FROM cron.job_run_details 
+          WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'dispatch_scheduled_messages')
+          ORDER BY start_time DESC LIMIT 1),
+         'Never'
+       ) as status;
+\`\`\`
+
+## קבצים שימושיים
+
+- `scripts/check_cron.sql` - כל ה-SQL queries לבדיקה
+- `scripts/setup_cron.js` - סקריפט Node.js לבדיקה (אם יש לך access)
+
+## תמיכה
+
+אם עדיין לא עובד:
+1. בדוק את ה-logs ב-Vercel (Functions > /api/dispatch > Logs)
+2. בדוק את ה-cron execution history
+3. בדוק שה-messages ב-pending ו-is_due = true
+4. בדוק שה-numbers table יש credentials תקינים
 
 
 ```
@@ -31989,32 +36787,163 @@ create policy "Users can insert own billing events" on public.billing_events
 -- SCHEDULED MESSAGES TABLE FOR WHATSAPP DISPATCH
 create table if not exists public.scheduled_messages (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  number_id uuid references public.numbers(id) on delete cascade not null,
   to_phone text not null,
   message text not null,
   scheduled_at timestamp with time zone not null,
-  status text not null default 'pending',
+  status text not null default 'pending' check (status in ('pending', 'processing', 'sent', 'failed', 'cancelled')),
   attempts int not null default 0,
   last_error text,
   sent_at timestamp with time zone,
   provider_message_id text,
+  -- Recurring schedule support
+  is_recurring boolean not null default false,
+  recurrence_type text check (recurrence_type in ('daily', 'weekly', 'monthly')),
+  day_of_week int check (day_of_week >= 0 and day_of_week <= 6), -- 0=Sunday, 6=Saturday
+  time_of_day time,
+  is_active boolean not null default true,
+  -- Media support
+  media_url text,
+  media_type text check (media_type in ('image', 'video', 'audio', 'document')),
+  media_filename text,
+  -- Community template support
+  is_community_template boolean not null default false,
+  template_name text,
+  template_description text,
+  copied_from_id uuid references public.scheduled_messages(id) on delete set null,
   created_at timestamp with time zone not null default timezone('utc'::text, now())
 );
 
 -- Ensure required columns exist if table was created earlier
 alter table public.scheduled_messages
-  add column if not exists to_phone text not null,
-  add column if not exists message text not null,
-  add column if not exists scheduled_at timestamp with time zone not null,
+  add column if not exists user_id uuid references public.profiles(id) on delete cascade,
+  add column if not exists number_id uuid references public.numbers(id) on delete cascade,
+  add column if not exists to_phone text,
+  add column if not exists message text,
+  add column if not exists scheduled_at timestamp with time zone,
   add column if not exists status text not null default 'pending',
   add column if not exists attempts int not null default 0,
   add column if not exists last_error text,
   add column if not exists sent_at timestamp with time zone,
   add column if not exists provider_message_id text,
+  add column if not exists is_recurring boolean not null default false,
+  add column if not exists recurrence_type text,
+  add column if not exists day_of_week int,
+  add column if not exists time_of_day time,
+  add column if not exists is_active boolean not null default true,
+  add column if not exists media_url text,
+  add column if not exists media_type text,
+  add column if not exists media_filename text,
+  add column if not exists is_community_template boolean not null default false,
+  add column if not exists template_name text,
+  add column if not exists template_description text,
+  add column if not exists copied_from_id uuid references public.scheduled_messages(id) on delete set null,
   add column if not exists created_at timestamp with time zone not null default timezone('utc'::text, now());
+
+-- Enable RLS for scheduled_messages
+alter table public.scheduled_messages enable row level security;
+
+-- Users can view their own scheduled messages
+drop policy if exists "Users can view own scheduled messages" on public.scheduled_messages;
+create policy "Users can view own scheduled messages" on public.scheduled_messages
+  for select using (
+    auth.uid() = user_id
+    OR is_community_template = true
+  );
+
+-- Users can insert their own scheduled messages
+drop policy if exists "Users can insert own scheduled messages" on public.scheduled_messages;
+create policy "Users can insert own scheduled messages" on public.scheduled_messages
+  for insert with check (auth.uid() = user_id);
+
+-- Users can update their own scheduled messages
+drop policy if exists "Users can update own scheduled messages" on public.scheduled_messages;
+create policy "Users can update own scheduled messages" on public.scheduled_messages
+  for update using (auth.uid() = user_id);
+
+-- Users can delete their own scheduled messages
+drop policy if exists "Users can delete own scheduled messages" on public.scheduled_messages;
+create policy "Users can delete own scheduled messages" on public.scheduled_messages
+  for delete using (auth.uid() = user_id);
+
+-- Index for user's messages
+create index if not exists scheduled_messages_user_id_idx
+  on public.scheduled_messages (user_id);
+
+-- Index for community templates
+create index if not exists scheduled_messages_community_template_idx
+  on public.scheduled_messages (is_community_template) where is_community_template = true;
 
 -- Index for efficient lookup of due messages
 create index if not exists scheduled_messages_status_scheduled_at_idx
   on public.scheduled_messages (status, scheduled_at);
+
+-- SCHEDULED MESSAGE RECIPIENTS TABLE (for multiple recipients support)
+create table if not exists public.scheduled_message_recipients (
+  id uuid primary key default gen_random_uuid(),
+  scheduled_message_id uuid references public.scheduled_messages(id) on delete cascade not null,
+  phone_number text not null,
+  status text not null default 'pending' check (status in ('pending', 'sent', 'failed')),
+  sent_at timestamp with time zone,
+  provider_message_id text,
+  error_message text,
+  created_at timestamp with time zone not null default timezone('utc'::text, now())
+);
+
+-- Index for efficient lookup
+create index if not exists scheduled_message_recipients_message_id_idx
+  on public.scheduled_message_recipients (scheduled_message_id);
+
+create index if not exists scheduled_message_recipients_status_idx
+  on public.scheduled_message_recipients (status);
+
+-- Enable RLS for scheduled_message_recipients
+alter table public.scheduled_message_recipients enable row level security;
+
+-- Users can view recipients of their own scheduled messages
+drop policy if exists "Users can view own message recipients" on public.scheduled_message_recipients;
+create policy "Users can view own message recipients" on public.scheduled_message_recipients
+  for select using (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
+-- Users can insert recipients for their own scheduled messages
+drop policy if exists "Users can insert own message recipients" on public.scheduled_message_recipients;
+create policy "Users can insert own message recipients" on public.scheduled_message_recipients
+  for insert with check (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
+-- Users can update recipients of their own scheduled messages
+drop policy if exists "Users can update own message recipients" on public.scheduled_message_recipients;
+create policy "Users can update own message recipients" on public.scheduled_message_recipients
+  for update using (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
+
+-- Users can delete recipients of their own scheduled messages
+drop policy if exists "Users can delete own message recipients" on public.scheduled_message_recipients;
+create policy "Users can delete own message recipients" on public.scheduled_message_recipients
+  for delete using (
+    exists (
+      select 1 from public.scheduled_messages
+      where scheduled_messages.id = scheduled_message_recipients.scheduled_message_id
+      and scheduled_messages.user_id = auth.uid()
+    )
+  );
 
 -- Atomic claim function: marks due messages as 'processing' and returns them
 create or replace function public.claim_due_scheduled_messages(max_batch integer default 50)
@@ -32029,6 +36958,7 @@ begin
     select id
     from public.scheduled_messages
     where status = 'pending'
+      and is_active = true
       and scheduled_at <= timezone('utc'::text, now())
     order by scheduled_at
     for update skip locked
@@ -32039,7 +36969,51 @@ begin
 end;
 $$;
 
+-- Function to reschedule recurring messages after send
+create or replace function public.reschedule_recurring_message(p_message_id uuid)
+returns void
+language plpgsql
+as $$
+declare
+  v_msg record;
+  v_next_scheduled_at timestamp with time zone;
+begin
+  select * into v_msg from public.scheduled_messages where id = p_message_id;
+  
+  if not found or not v_msg.is_recurring then
+    return;
+  end if;
+  
+  -- Calculate next scheduled_at based on recurrence_type
+  case v_msg.recurrence_type
+    when 'daily' then
+      v_next_scheduled_at := v_msg.scheduled_at + interval '1 day';
+    when 'weekly' then
+      v_next_scheduled_at := v_msg.scheduled_at + interval '1 week';
+    when 'monthly' then
+      v_next_scheduled_at := v_msg.scheduled_at + interval '1 month';
+    else
+      return; -- Unknown recurrence type
+  end case;
+  
+  -- Update the message with new scheduled_at and reset status
+  update public.scheduled_messages
+  set 
+    scheduled_at = v_next_scheduled_at,
+    status = 'pending',
+    attempts = 0,
+    last_error = null,
+    sent_at = null,
+    provider_message_id = null
+  where id = p_message_id;
+end;
+$$;
+
 -- Schedule cron job to dispatch due messages every minute
+-- NOTE: Replace <YOUR_DOMAIN> with your actual Vercel domain (e.g., 'admin-panel-788h-git-main-omgeredus-projects.vercel.app')
+-- NOTE: Replace YOUR_CRON_SECRET_HERE with your actual CRON_SECRET value from Vercel environment variables
+-- To schedule, run this SQL in Supabase SQL Editor:
+/*
 select
   cron.schedule(
     'dispatch_scheduled_messages',
@@ -32048,12 +37022,86 @@ select
       select net.http_post(
         url := 'https://<YOUR_DOMAIN>/api/dispatch',
         headers := jsonb_build_object(
-          'authorization', 'Bearer CRON_SECRET',
+          'authorization', 'Bearer YOUR_CRON_SECRET_HERE',
           'content-type', 'application/json'
         ),
         body := '{}'::jsonb
       );
     $$
+  );
+*/
+
+-- SQL Snippets for Cron Job Management:
+-- 
+-- 1. List all cron jobs:
+--    select * from cron.job;
+--
+-- 2. List cron job execution history:
+--    select * from cron.job_run_details order by start_time desc limit 50;
+--
+-- 3. Unschedule the dispatch job:
+--    select cron.unschedule('dispatch_scheduled_messages');
+--
+-- 4. Reschedule with different interval (e.g., every 5 minutes):
+--    select cron.unschedule('dispatch_scheduled_messages');
+--    select cron.schedule(
+--      'dispatch_scheduled_messages',
+--      '*/5 * * * *',
+--      $$ ... (same as above) $$
+--    );
+
+-- ============================================================================
+-- STORAGE BUCKET POLICIES FOR GREENBUILDERS BUCKET
+-- ============================================================================
+-- These policies allow users to upload, read, and delete their own files
+-- in the GreenBuilders bucket for scheduled messages.
+
+-- Note: The bucket must be created in Supabase Dashboard first:
+-- Storage > Create Bucket > Name: GreenBuilders > Public: Yes (recommended)
+
+-- Policy: Users can upload files to their own folder
+-- Files are stored as: {user_id}/{timestamp}_{random}.{ext}
+drop policy if exists "Users can upload to GreenBuilders" on storage.objects;
+create policy "Users can upload to GreenBuilders" on storage.objects
+  for insert
+  with check (
+    bucket_id = 'GreenBuilders'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Policy: Users can read their own files
+drop policy if exists "Users can read own files from GreenBuilders" on storage.objects;
+create policy "Users can read own files from GreenBuilders" on storage.objects
+  for select
+  using (
+    bucket_id = 'GreenBuilders'
+    and (
+      -- Users can read their own files
+      (storage.foldername(name))[1] = auth.uid()::text
+      -- Or if bucket is public, anyone can read
+      or exists (
+        select 1 from storage.buckets
+        where id = 'GreenBuilders' and public = true
+      )
+    )
+  );
+
+-- Policy: Users can delete their own files
+drop policy if exists "Users can delete own files from GreenBuilders" on storage.objects;
+create policy "Users can delete own files from GreenBuilders" on storage.objects
+  for delete
+  using (
+    bucket_id = 'GreenBuilders'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Policy: Users can update their own files (for replacing files)
+drop policy if exists "Users can update own files in GreenBuilders" on storage.objects;
+create policy "Users can update own files in GreenBuilders" on storage.objects
+  for update
+  using (
+    bucket_id = 'GreenBuilders'
+    and (storage.foldername(name))[1] = auth.uid()::text
   );
 
 
@@ -32112,12 +37160,324 @@ export default {
                 sm: "calc(var(--radius) - 4px)",
             },
             fontFamily: {
-                sans: ["Inter", "sans-serif"],
+                sans: ["Assistant", "Inter", "sans-serif"],
             }
         },
     },
     plugins: [],
 }
+
+```
+
+# test.txt
+
+```txt
+test
+```
+
+# TROUBLESHOOTING_SCHEDULED.md
+
+```md
+# פתרון בעיות - Scheduled Messages לא נשלחות
+
+## בדיקות מהירות
+
+### 1. בדוק אם יש הודעות ב-pending
+
+הרץ ב-Supabase SQL Editor:
+
+\`\`\`sql
+SELECT 
+  id,
+  message,
+  scheduled_at,
+  status,
+  is_active,
+  NOW() as current_utc_time,
+  scheduled_at <= NOW() as is_due
+FROM scheduled_messages
+WHERE status = 'pending'
+  AND is_active = true
+ORDER BY scheduled_at ASC;
+\`\`\`
+
+**אם `is_due = true` אבל ההודעה לא נשלחת:**
+- ה-cron job כנראה לא רץ
+- או שה-API לא נקרא
+
+### 2. בדוק אם ה-Cron Job קיים ורץ
+
+\`\`\`sql
+-- בדוק אם ה-cron job קיים
+SELECT * FROM cron.job WHERE jobname = 'dispatch_scheduled_messages';
+
+-- בדוק את ה-execution history
+SELECT 
+  status,
+  return_message,
+  start_time,
+  end_time
+FROM cron.job_run_details
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'dispatch_scheduled_messages')
+ORDER BY start_time DESC
+LIMIT 10;
+\`\`\`
+
+**אם אין cron job:**
+- צריך ליצור אותו (ראה `SUPABASE_CRON_SETUP.md`)
+
+**אם יש שגיאות ב-return_message:**
+- בדוק מה השגיאה
+- בדוק שה-URL נכון
+- בדוק שה-CRON_SECRET נכון
+
+### 3. בדוק את ה-API ידנית
+
+\`\`\`bash
+curl -X POST https://your-domain.vercel.app/api/dispatch \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+\`\`\`
+
+**אם זה לא עובד:**
+- בדוק את ה-logs ב-Vercel
+- בדוק שה-CRON_SECRET נכון
+
+### 4. בדוק את ה-TimeZone Conversion
+
+הבעיה הנפוצה ביותר היא שהתאריך נשמר לא נכון ב-UTC.
+
+**בדוק את ה-scheduled_at ב-DB:**
+
+\`\`\`sql
+SELECT 
+  id,
+  scheduled_at,
+  -- מה זה ב-Israel timezone
+  scheduled_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jerusalem' as israel_time,
+  -- מה זה עכשיו ב-UTC
+  NOW() as current_utc,
+  -- האם זה עבר?
+  scheduled_at <= NOW() as is_due
+FROM scheduled_messages
+WHERE status = 'pending'
+ORDER BY scheduled_at;
+\`\`\`
+
+**אם ה-israel_time לא תואם למה שהזנת:**
+- יש בעיה בהמרה של timezone
+- צריך לתקן את הפונקציה `convertIsraelTimeToUTC`
+
+### 5. הרץ את סקריפט ה-Debug
+
+\`\`\`bash
+node scripts/debug_scheduled.js
+\`\`\`
+
+זה יראה לך:
+- כל ההודעות המתוזמנות
+- אילו הודעות ב-pending
+- אילו הודעות due
+- האם ה-cron job קיים
+- האם יש recipients
+
+## בעיות נפוצות ופתרונות
+
+### בעיה 1: Cron Job לא קיים
+
+**תסמינים:**
+- ההודעות לא נשלחות
+- אין execution history
+
+**פתרון:**
+1. צור את ה-cron job (ראה `SUPABASE_CRON_SETUP.md`)
+2. ודא שה-URL וה-CRON_SECRET נכונים
+
+### בעיה 2: Timezone Conversion שגוי
+
+**תסמינים:**
+- ההודעות נשמרות אבל לא נשלחות
+- ה-scheduled_at ב-DB לא תואם למה שהזנת
+
+**פתרון:**
+1. בדוק את ה-scheduled_at ב-DB
+2. השווה למה שהזנת
+3. אם לא תואם, יש בעיה ב-`convertIsraelTimeToUTC`
+4. נסה לשמור הודעה חדשה ובדוק מה נשמר
+
+### בעיה 3: אין Recipients
+
+**תסמינים:**
+- ההודעה ב-processing אבל לא נשלחת
+- יש שגיאה "No recipients found"
+
+**פתרון:**
+1. בדוק את `scheduled_message_recipients` table
+2. ודא שיש recipients לכל הודעה
+3. אם לא, הוסף recipients
+
+### בעיה 4: API לא נקרא
+
+**תסמינים:**
+- אין logs ב-Vercel
+- ה-cron job רץ אבל אין תוצאות
+
+**פתרון:**
+1. בדוק את ה-cron job execution history
+2. בדוק את ה-return_message
+3. אם יש שגיאה, תקן אותה
+4. בדוק שה-URL נכון
+
+### בעיה 5: Authorization Failed
+
+**תסמינים:**
+- ה-cron job רץ אבל יש שגיאה 403
+- ה-return_message אומר "Invalid Authorization token"
+
+**פתרון:**
+1. בדוק שה-CRON_SECRET ב-Vercel תואם ל-SQL
+2. ודא שה-header נשלח נכון
+3. בדוק את ה-logs ב-Vercel
+
+## בדיקות נוספות
+
+### בדוק את ה-Function claim_due_scheduled_messages
+
+\`\`\`sql
+-- זה אמור להחזיר הודעות שצריכות להישלח
+SELECT * FROM claim_due_scheduled_messages(50);
+\`\`\`
+
+אם זה מחזיר רשימה ריקה אבל יש הודעות due:
+- יש בעיה ב-function
+- בדוק את ה-SQL
+
+### בדוק את ה-Numbers Table
+
+\`\`\`sql
+SELECT 
+  n.id,
+  n.phone_number,
+  n.instance_id,
+  n.api_token,
+  sm.id as message_id,
+  sm.status
+FROM numbers n
+INNER JOIN scheduled_messages sm ON sm.number_id = n.id
+WHERE sm.status = 'pending'
+  AND (n.instance_id IS NULL OR n.api_token IS NULL);
+\`\`\`
+
+אם יש הודעות עם numbers חסרי credentials:
+- צריך להוסיף instance_id ו-api_token
+
+## Debug Checklist
+
+- [ ] יש הודעות ב-pending?
+- [ ] ה-scheduled_at עבר (is_due = true)?
+- [ ] ה-cron job קיים?
+- [ ] ה-cron job רץ (יש execution history)?
+- [ ] אין שגיאות ב-return_message?
+- [ ] ה-API עובד (בדיקה ידנית)?
+- [ ] יש recipients לכל הודעה?
+- [ ] ה-numbers table יש credentials?
+- [ ] ה-timezone conversion נכון?
+
+## אם עדיין לא עובד
+
+1. הרץ את `scripts/debug_scheduled.js`
+2. שתף את התוצאות
+3. בדוק את ה-logs ב-Vercel
+4. בדוק את ה-cron execution history
+5. בדוק את ה-scheduled_at ב-DB
+
+
+```
+
+# update_free_tier.sql
+
+```sql
+-- Update Free plan to have 2 numbers and instances
+UPDATE plans 
+SET 
+  numbers_limit = 2,
+  instances_limit = 2
+WHERE name = 'Free';
+
+```
+
+# update_plans.sql
+
+```sql
+-- Ensure necessary columns exist
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS features JSONB;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS invites_limit INTEGER DEFAULT 0;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS price_yearly DECIMAL(10, 2);
+
+-- Update plans with new pricing and limits
+
+-- 1. Free Plan
+-- Price: $0, 0 scheduled messages (blocked via UI logic but we can also set low limits here if used), 
+-- but requirements say "Not available for free users". logic will be in app.
+UPDATE plans 
+SET 
+  price_monthly = 0,
+  price_yearly = 0,
+  numbers_limit = 1,
+  instances_limit = 1,
+  invites_limit = 0, -- No team members
+  description = 'Perfect for getting started'
+WHERE name = 'Free';
+
+-- 2. Pro Plan
+-- Price: $19/mo. Yearly: 19 * 12 * 0.75 = 171
+UPDATE plans 
+SET 
+  price_monthly = 19,
+  price_yearly = 171,
+  numbers_limit = 5,
+  instances_limit = 5,
+  invites_limit = 3,
+  description = 'For growing businesses'
+WHERE name = 'Pro';
+
+-- 3. Handle Agency -> Organization merge
+-- If we have both, delete the new one (assuming no subs yet) and rename Agency
+DO $$
+BEGIN
+    -- Check if both exist. We prefer to keep 'Agency' (renamed to Organization) as it likely has legacy subscriptions.
+    IF EXISTS (SELECT 1 FROM plans WHERE name = 'Agency') AND EXISTS (SELECT 1 FROM plans WHERE name = 'Organization') THEN
+        DELETE FROM plans WHERE name = 'Organization';
+    END IF;
+
+    -- Rename Agency to Organization
+    IF EXISTS (SELECT 1 FROM plans WHERE name = 'Agency') THEN
+        UPDATE plans SET name = 'Organization' WHERE name = 'Agency';
+    END IF;
+END $$;
+
+-- 4. Update Organization plan details
+-- Price: $44/mo. Yearly: 44 * 12 * 0.75 = 396
+UPDATE plans 
+SET 
+  price_monthly = 44,
+  price_yearly = 396,
+  numbers_limit = 20,
+  instances_limit = 20,
+  invites_limit = 10,
+  description = 'For teams and organizations',
+  features = '["Unlimited messages", "Team management", "Priority support", "Scheduled Messages"]'::jsonb
+WHERE name = 'Organization';
+
+-- Ensure Organization plan exists if it was missing completely
+INSERT INTO plans (name, price_monthly, price_yearly, numbers_limit, instances_limit, invites_limit, description, features)
+SELECT 'Organization', 44, 396, 20, 20, 10, 'For teams and organizations', '["Unlimited messages", "Team management", "Priority support", "Scheduled Messages"]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM plans WHERE name = 'Organization');
+
+-- Verify
+SELECT * FROM plans;
 
 ```
 

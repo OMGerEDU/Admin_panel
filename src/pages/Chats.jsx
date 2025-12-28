@@ -6,9 +6,12 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Send, Phone } from 'lucide-react';
+import { Plus, Search, Send, Phone, Tag, Settings } from 'lucide-react';
+import { useTags } from '../hooks/useTags';
+import { TagsManager } from '../components/TagsManager';
+import { ChatTagsSelector } from '../components/ChatTagsSelector';
 import { cn, removeJidSuffix } from '../lib/utils';
-import { 
+import {
     sendMessage as sendGreenMessage,
     getLastIncomingMessages,
     getLastOutgoingMessages,
@@ -46,6 +49,11 @@ export default function Chats() {
     const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
     const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
     const [chatAvatars, setChatAvatars] = useState(new Map()); // Map<chatId, avatarUrl>
+
+    // Tags Integration
+    const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id);
+    const [showTagsManager, setShowTagsManager] = useState(false);
+    const [currentChatTagsId, setCurrentChatTagsId] = useState(null); // chatId for selector dialog
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -95,7 +103,7 @@ export default function Chats() {
             fetchMessages();
         }
     }, [selectedChat]);
-    
+
     // Load avatar for a chat
     const loadChatAvatar = async (chatId) => {
         if (!selectedNumber || !chatId || chatAvatars.has(chatId)) return;
@@ -110,7 +118,7 @@ export default function Chats() {
             console.error('[AVATAR] Error loading avatar:', error);
         }
     };
-    
+
     // Load avatars for all chats when chats are loaded
     useEffect(() => {
         if (chats.length > 0 && selectedNumber?.instance_id && selectedNumber?.api_token) {
@@ -131,7 +139,7 @@ export default function Chats() {
             });
         }
     }, [chats, selectedNumber]);
-    
+
     // Load avatar for selected chat after messages are loaded
     useEffect(() => {
         if (selectedChat && selectedNumber && messages.length > 0) {
@@ -152,7 +160,7 @@ export default function Chats() {
 
     const fetchNumbers = async () => {
         if (!user) return;
-        
+
         try {
             setLoading(true);
             // Fetch numbers that the user owns OR numbers from organizations they're a member of
@@ -360,18 +368,18 @@ export default function Chats() {
             // Green API endpoint: getChatHistory - DIRECT CALL like extension
             const GREEN_API_BASE = 'https://api.green-api.com';
             const apiUrl = `${GREEN_API_BASE}/waInstance${acc.instance_id}/getChatHistory/${acc.api_token}`;
-            
+
             console.log('[HISTORY] Fetching from:', apiUrl);
             console.log('[HISTORY] ChatId:', chatId);
-            
+
             // Request body according to Green API documentation
             const requestBody = {
                 chatId: chatId,
                 count: 100
             };
-            
+
             console.log('[HISTORY] Request body:', requestBody);
-            
+
             const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -487,15 +495,15 @@ export default function Chats() {
         try {
             const GREEN_API_BASE = 'https://api.green-api.com';
             const apiUrl = `${GREEN_API_BASE}/waInstance${acc.instance_id}/getChatHistory/${acc.api_token}`;
-            
+
             // Request older messages (before the oldest we have)
             const requestBody = {
                 chatId: chatId,
                 count: 100
             };
-            
+
             console.log('[HISTORY] Loading more messages, before timestamp:', oldestMessageTimestamp);
-            
+
             const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -509,7 +517,7 @@ export default function Chats() {
             }
 
             const data = await res.json();
-            
+
             // Parse response
             let arr = [];
             if (Array.isArray(data)) {
@@ -530,7 +538,7 @@ export default function Chats() {
 
             // Filter out messages we already have (by timestamp)
             const existingTimestamps = new Set(messages.map(m => m.timestamp));
-            const newMessages = arr.filter(msg => 
+            const newMessages = arr.filter(msg =>
                 msg.timestamp < oldestMessageTimestamp && !existingTimestamps.has(msg.timestamp)
             );
 
@@ -646,7 +654,7 @@ export default function Chats() {
             chatsCacheRef.current.data = null;
             chatsCacheRef.current.timestamp = 0;
             historyCacheRef.current.clear();
-            
+
             // Clear localStorage cache for current chat if selected
             if (selectedChat && selectedNumber?.instance_id) {
                 const chatId = selectedChat.chatId || selectedChat.remote_jid;
@@ -654,12 +662,12 @@ export default function Chats() {
                     clearLocalChatCache(selectedNumber.instance_id, chatId);
                 }
             }
-            
+
             await logger.info('Starting full sync', { instance_id: selectedNumber.instance_id }, selectedNumber.id);
 
             // Force refresh chats
             await fetchChats(true);
-            
+
             // Force refresh messages if chat is selected
             if (selectedChat) {
                 await fetchMessages(true);
@@ -682,7 +690,7 @@ export default function Chats() {
 
         setIsPolling(true);
         let lastNotificationTime = Date.now();
-        
+
         const interval = setInterval(() => {
             pollNewMessages(
                 selectedNumber.instance_id,
@@ -773,6 +781,16 @@ export default function Chats() {
                         >
                             {syncing ? t('common.syncing') || 'Syncing...' : t('common.sync') || 'Sync'}
                         </Button>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setShowTagsManager(true)}
+                            title={t('tags.manage_tags') || 'Manage Tags'}
+                            className="ml-1 text-muted-foreground hover:text-foreground"
+                            disabled={!selectedNumber}
+                        >
+                            <Settings className="h-4 w-4" />
+                        </Button>
                     </div>
                     {/* Search */}
                     <div className="relative">
@@ -800,7 +818,7 @@ export default function Chats() {
                         filteredChats.map((chat) => {
                             const chatId = chat.chatId || chat.remote_jid || '';
                             const isSelected = selectedChat?.chatId === chatId || selectedChat?.phone === chat.phone;
-                            
+
                             return (
                                 <div
                                     key={chatId}
@@ -818,23 +836,23 @@ export default function Chats() {
                                     )}
                                 >
                                     <div className="flex items-center gap-3">
-                                    {chatAvatars.has(chatId) ? (
-                                        <img
-                                            src={chatAvatars.get(chatId)}
-                                            alt={chat.name || chat.phone}
-                                            className="w-12 h-12 rounded-full object-cover"
-                                            onError={(e) => {
-                                                // Fallback to initials if image fails
-                                                e.target.style.display = 'none';
-                                                e.target.nextSibling.style.display = 'flex';
-                                            }}
-                                        />
-                                    ) : null}
-                                    <div 
-                                        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white ${chatAvatars.has(chatId) ? 'hidden' : ''}`}
-                                    >
-                                        {getChatInitials(chat)}
-                                    </div>
+                                        {chatAvatars.has(chatId) ? (
+                                            <img
+                                                src={chatAvatars.get(chatId)}
+                                                alt={chat.name || chat.phone}
+                                                className="w-12 h-12 rounded-full object-cover"
+                                                onError={(e) => {
+                                                    // Fallback to initials if image fails
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div
+                                            className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white ${chatAvatars.has(chatId) ? 'hidden' : ''}`}
+                                        >
+                                            {getChatInitials(chat)}
+                                        </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium truncate text-foreground dark:text-[#e9edef]">{chat.name || chat.phone || chatId}</p>
                                             <p className="text-sm text-muted-foreground dark:text-[#8696a0] truncate">
@@ -843,12 +861,27 @@ export default function Chats() {
                                         </div>
                                         {chat.lastMessageTime && (
                                             <span className="text-xs text-muted-foreground dark:text-[#8696a0] whitespace-nowrap">
-                                                {new Date(chat.lastMessageTime * 1000).toLocaleTimeString([], { 
-                                                    hour: '2-digit', 
-                                                    minute: '2-digit' 
+                                                {new Date(chat.lastMessageTime * 1000).toLocaleTimeString([], {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
                                                 })}
                                             </span>
                                         )}
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mt-1 pl-[3.75rem]">
+                                        {chatTags[chatId]?.map(tagId => {
+                                            const tag = tags.find(t => t.id === tagId);
+                                            if (!tag) return null;
+                                            return (
+                                                <span
+                                                    key={tag.id}
+                                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-white"
+                                                    style={{ backgroundColor: tag.color }}
+                                                >
+                                                    {tag.name}
+                                                </span>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             );
@@ -872,6 +905,17 @@ export default function Chats() {
                                 </span>
                                 <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
                             </div>
+                            <div className="ml-auto">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={() => setCurrentChatTagsId(selectedChat.chatId || selectedChat.remote_jid)}
+                                >
+                                    <Tag className="h-4 w-4" />
+                                    <span className="hidden sm:inline">{t('tags.labels') || 'Labels'}</span>
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Messages */}
@@ -886,307 +930,307 @@ export default function Chats() {
                             }}
                         >
                             {/* Overlay for better readability - very light overlay */}
-                            <div 
+                            <div
                                 className="absolute inset-0 pointer-events-none z-0"
                                 style={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.1)'
                                 }}
                             />
                             <div className="relative z-10 space-y-2">
-                            {/* Load More Messages Button */}
-                            {messages.length > 0 && (
-                                <div className="flex justify-center py-2">
-                                    <Button
-                                        onClick={loadMoreMessages}
-                                        disabled={!hasMoreMessages || loadingMoreMessages}
-                                        variant="outline"
-                                        className={cn(
-                                            "text-sm",
-                                            !hasMoreMessages && "opacity-50 cursor-not-allowed"
-                                        )}
-                                    >
-                                        {loadingMoreMessages 
-                                            ? (t('common.loading') || 'טוען...')
-                                            : hasMoreMessages
-                                                ? (t('chats_page.load_more_messages') || 'טען עוד הודעות')
-                                                : (t('chats_page.no_more_messages') || 'אין עוד הודעות')
-                                        }
-                                    </Button>
-                                </div>
-                            )}
-                            
-                            {messages.length === 0 && !messagesLoading ? (
-                                <div className="text-center text-muted-foreground dark:text-[#8696a0] py-8">
-                                    {t('common.no_data')}
-                                </div>
-                            ) : (
-                                messages.map((message, idx) => {
-                                    // Parse message like extension does
-                                    const item = message;
-                                    const typeMessage = item.typeMessage || '';
-                                    const isFromMe = item.type === 'outgoing' || item.fromMe === true;
-                                    
-                                    // Extract text from multiple possible locations (like extension)
-                                    // IMPORTANT: Check textMessage FIRST, then extendedTextMessage.text
-                                    let text = item.textMessage || 
-                                               (item.extendedTextMessage && item.extendedTextMessage.text) || 
-                                               (item.extendedTextMessageData && item.extendedTextMessageData.text) || 
-                                               (item.conversation) || 
-                                               item.content ||
-                                               '';
-                                    
-                                    // Debug log for first few messages
-                                    if (idx < 3) {
-                                        console.log(`[MESSAGE ${idx}]`, {
-                                            idMessage: item.idMessage,
-                                            typeMessage: typeMessage,
-                                            type: item.type,
-                                            textMessage: item.textMessage,
-                                            extendedTextMessage: item.extendedTextMessage,
-                                            conversation: item.conversation,
-                                            extractedText: text,
-                                            textLength: text ? text.length : 0,
-                                            hasText: !!text
-                                        });
-                                    }
-                                    
-                                    return (
-                                        <div
-                                            key={item.idMessage || item.id || `msg-${idx}`}
+                                {/* Load More Messages Button */}
+                                {messages.length > 0 && (
+                                    <div className="flex justify-center py-2">
+                                        <Button
+                                            onClick={loadMoreMessages}
+                                            disabled={!hasMoreMessages || loadingMoreMessages}
+                                            variant="outline"
                                             className={cn(
-                                                "flex",
-                                                isFromMe ? "justify-end" : "justify-start"
+                                                "text-sm",
+                                                !hasMoreMessages && "opacity-50 cursor-not-allowed"
                                             )}
                                         >
+                                            {loadingMoreMessages
+                                                ? (t('common.loading') || 'טוען...')
+                                                : hasMoreMessages
+                                                    ? (t('chats_page.load_more_messages') || 'טען עוד הודעות')
+                                                    : (t('chats_page.no_more_messages') || 'אין עוד הודעות')
+                                            }
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {messages.length === 0 && !messagesLoading ? (
+                                    <div className="text-center text-muted-foreground dark:text-[#8696a0] py-8">
+                                        {t('common.no_data')}
+                                    </div>
+                                ) : (
+                                    messages.map((message, idx) => {
+                                        // Parse message like extension does
+                                        const item = message;
+                                        const typeMessage = item.typeMessage || '';
+                                        const isFromMe = item.type === 'outgoing' || item.fromMe === true;
+
+                                        // Extract text from multiple possible locations (like extension)
+                                        // IMPORTANT: Check textMessage FIRST, then extendedTextMessage.text
+                                        let text = item.textMessage ||
+                                            (item.extendedTextMessage && item.extendedTextMessage.text) ||
+                                            (item.extendedTextMessageData && item.extendedTextMessageData.text) ||
+                                            (item.conversation) ||
+                                            item.content ||
+                                            '';
+
+                                        // Debug log for first few messages
+                                        if (idx < 3) {
+                                            console.log(`[MESSAGE ${idx}]`, {
+                                                idMessage: item.idMessage,
+                                                typeMessage: typeMessage,
+                                                type: item.type,
+                                                textMessage: item.textMessage,
+                                                extendedTextMessage: item.extendedTextMessage,
+                                                conversation: item.conversation,
+                                                extractedText: text,
+                                                textLength: text ? text.length : 0,
+                                                hasText: !!text
+                                            });
+                                        }
+
+                                        return (
                                             <div
+                                                key={item.idMessage || item.id || `msg-${idx}`}
                                                 className={cn(
-                                                    "max-w-[70%] rounded-lg px-3 py-2 shadow-sm text-[13px] leading-snug",
-                                                    isFromMe
-                                                        ? "bg-primary/90 dark:bg-[#005c4b] text-primary-foreground dark:text-[#e9edef] rounded-br-none"
-                                                        : "bg-secondary dark:bg-[#202c33] text-foreground dark:text-[#e9edef] rounded-bl-none"
+                                                    "flex",
+                                                    isFromMe ? "justify-end" : "justify-start"
                                                 )}
                                             >
-                                                {/* Image Message */}
-                                                {typeMessage === 'imageMessage' && (
-                                                    <div className="space-y-2">
-                                                        {item.jpegThumbnail ? (
-                                                            <img
-                                                                src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
-                                                                alt="image"
-                                                                className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
-                                                                onError={(e) => { e.target.style.display = 'none'; }}
-                                                            />
-                                                        ) : (item.urlFile || item.downloadUrl || item.mediaUrl) ? (
-                                                            <img
-                                                                src={item.urlFile || item.downloadUrl || item.mediaUrl}
-                                                                alt="image"
-                                                                className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
-                                                                onError={(e) => { e.target.style.display = 'none'; }}
-                                                            />
-                                                        ) : null}
-                                                        {(item.caption || text) && (
-                                                            <div className="text-sm">{item.caption || text}</div>
-                                                        )}
-                                                        {(item.urlFile || item.downloadUrl) && !item.jpegThumbnail && (
-                                                            <a
-                                                                href={item.urlFile || item.downloadUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                            >
-                                                                📷 {t('chats_page.open_image') || 'Open Image'}
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Video Message */}
-                                                {typeMessage === 'videoMessage' && (
-                                                    <div className="space-y-2">
-                                                        {item.jpegThumbnail && (
-                                                            <img
-                                                                src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
-                                                                alt="video"
-                                                                className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
-                                                            />
-                                                        )}
-                                                        <div>🎥 {t('chats_page.video_message') || 'Video Message'}</div>
-                                                        {(item.downloadUrl || item.url) && (
-                                                            <a
-                                                                href={item.downloadUrl || item.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                            >
-                                                                🎥 {t('chats_page.open_video') || 'Open Video'}
-                                                            </a>
-                                                        )}
-                                                        {text && (
-                                                            <div className="text-sm mt-2">{text}</div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Audio/Voice Message */}
-                                                {(typeMessage === 'audioMessage' || typeMessage === 'ptt') && (
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-lg">🎵</span>
-                                                            {(item.downloadUrl || item.url || item.mediaUrl || 
-                                                              (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))) ? (
-                                                                <audio
-                                                                    controls
-                                                                    preload="metadata"
-                                                                    className="max-w-[250px] h-8 outline-none"
-                                                                    style={{ width: '100%' }}
+                                                <div
+                                                    className={cn(
+                                                        "max-w-[70%] rounded-lg px-3 py-2 shadow-sm text-[13px] leading-snug",
+                                                        isFromMe
+                                                            ? "bg-primary/90 dark:bg-[#005c4b] text-primary-foreground dark:text-[#e9edef] rounded-br-none"
+                                                            : "bg-secondary dark:bg-[#202c33] text-foreground dark:text-[#e9edef] rounded-bl-none"
+                                                    )}
+                                                >
+                                                    {/* Image Message */}
+                                                    {typeMessage === 'imageMessage' && (
+                                                        <div className="space-y-2">
+                                                            {item.jpegThumbnail ? (
+                                                                <img
+                                                                    src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
+                                                                    alt="image"
+                                                                    className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
+                                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                                />
+                                                            ) : (item.urlFile || item.downloadUrl || item.mediaUrl) ? (
+                                                                <img
+                                                                    src={item.urlFile || item.downloadUrl || item.mediaUrl}
+                                                                    alt="image"
+                                                                    className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
+                                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                                />
+                                                            ) : null}
+                                                            {(item.caption || text) && (
+                                                                <div className="text-sm">{item.caption || text}</div>
+                                                            )}
+                                                            {(item.urlFile || item.downloadUrl) && !item.jpegThumbnail && (
+                                                                <a
+                                                                    href={item.urlFile || item.downloadUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
                                                                 >
-                                                                    <source 
-                                                                        src={item.downloadUrl || item.url || item.mediaUrl || 
-                                                                              (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))} 
-                                                                        type={item.mimeType || item.audioMessage?.mimeType || 'audio/ogg; codecs=opus'} 
-                                                                    />
-                                                                </audio>
-                                                            ) : (
-                                                                <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
-                                                                    {t('chats_page.audio_not_available') || 'Audio message (not available for download)'}
-                                                                </div>
+                                                                    📷 {t('chats_page.open_image') || 'Open Image'}
+                                                                </a>
                                                             )}
                                                         </div>
-                                                        {(item.seconds || item.duration || item.length || 
-                                                          (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration))) && (
-                                                            <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
-                                                                {(() => {
-                                                                    const duration = item.seconds || item.duration || item.length || 
-                                                                                     (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration)) || 0;
-                                                                    const minutes = Math.floor(duration / 60);
-                                                                    const secs = Math.floor(duration % 60);
-                                                                    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-                                                                })()}
+                                                    )}
+
+                                                    {/* Video Message */}
+                                                    {typeMessage === 'videoMessage' && (
+                                                        <div className="space-y-2">
+                                                            {item.jpegThumbnail && (
+                                                                <img
+                                                                    src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
+                                                                    alt="video"
+                                                                    className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
+                                                                />
+                                                            )}
+                                                            <div>🎥 {t('chats_page.video_message') || 'Video Message'}</div>
+                                                            {(item.downloadUrl || item.url) && (
+                                                                <a
+                                                                    href={item.downloadUrl || item.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
+                                                                >
+                                                                    🎥 {t('chats_page.open_video') || 'Open Video'}
+                                                                </a>
+                                                            )}
+                                                            {text && (
+                                                                <div className="text-sm mt-2">{text}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Audio/Voice Message */}
+                                                    {(typeMessage === 'audioMessage' || typeMessage === 'ptt') && (
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-lg">🎵</span>
+                                                                {(item.downloadUrl || item.url || item.mediaUrl ||
+                                                                    (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))) ? (
+                                                                    <audio
+                                                                        controls
+                                                                        preload="metadata"
+                                                                        className="max-w-[250px] h-8 outline-none"
+                                                                        style={{ width: '100%' }}
+                                                                    >
+                                                                        <source
+                                                                            src={item.downloadUrl || item.url || item.mediaUrl ||
+                                                                                (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))}
+                                                                            type={item.mimeType || item.audioMessage?.mimeType || 'audio/ogg; codecs=opus'}
+                                                                        />
+                                                                    </audio>
+                                                                ) : (
+                                                                    <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
+                                                                        {t('chats_page.audio_not_available') || 'Audio message (not available for download)'}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
-                                                        {text && (
-                                                            <div className="text-sm mt-2">{text}</div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Document Message */}
-                                                {typeMessage === 'documentMessage' && (
-                                                    <div className="space-y-2">
-                                                        <div>📄 {t('chats_page.document_message') || 'Document Message'}</div>
-                                                        {item.fileName && (
-                                                            <div className="font-semibold text-sm">{item.fileName}</div>
-                                                        )}
-                                                        {(item.downloadUrl || item.url) && (
-                                                            <a
-                                                                href={item.downloadUrl || item.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                            >
-                                                                📄 {t('chats_page.download_document') || 'Download Document'}
-                                                            </a>
-                                                        )}
-                                                        {text && (
-                                                            <div className="text-sm mt-2">{text}</div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Sticker Message */}
-                                                {typeMessage === 'stickerMessage' && (
-                                                    <div className="space-y-2">
-                                                        <div>🩹 {t('chats_page.sticker_message') || 'Sticker'}</div>
-                                                        {item.downloadUrl && (
-                                                            <a
-                                                                href={item.downloadUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                            >
-                                                                {t('chats_page.view_sticker') || 'View Sticker'}
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Location Message */}
-                                                {typeMessage === 'locationMessage' && (
-                                                    <div className="space-y-2">
-                                                        <div>📍 {t('chats_page.location_message') || 'Location'}</div>
-                                                        {item.latitude && item.longitude && (
-                                                            <a
-                                                                href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                            >
-                                                                {t('chats_page.view_location') || 'View Location'}
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Quoted Message */}
-                                                {typeMessage === 'quotedMessage' && (
-                                                    <div className="space-y-2">
-                                                        {item.quotedMessage && (
-                                                            <div className="text-xs opacity-75 border-l-2 pl-2 mb-2">
-                                                                {item.quotedMessage.textMessage || item.quotedMessage.text || '💬 הודעה מצוטטת'}
-                                                            </div>
-                                                        )}
-                                                        {text && (
+                                                            {(item.seconds || item.duration || item.length ||
+                                                                (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration))) && (
+                                                                    <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
+                                                                        {(() => {
+                                                                            const duration = item.seconds || item.duration || item.length ||
+                                                                                (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration)) || 0;
+                                                                            const minutes = Math.floor(duration / 60);
+                                                                            const secs = Math.floor(duration % 60);
+                                                                            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+                                                                        })()}
+                                                                    </div>
+                                                                )}
+                                                            {text && (
+                                                                <div className="text-sm mt-2">{text}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Document Message */}
+                                                    {typeMessage === 'documentMessage' && (
+                                                        <div className="space-y-2">
+                                                            <div>📄 {t('chats_page.document_message') || 'Document Message'}</div>
+                                                            {item.fileName && (
+                                                                <div className="font-semibold text-sm">{item.fileName}</div>
+                                                            )}
+                                                            {(item.downloadUrl || item.url) && (
+                                                                <a
+                                                                    href={item.downloadUrl || item.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
+                                                                >
+                                                                    📄 {t('chats_page.download_document') || 'Download Document'}
+                                                                </a>
+                                                            )}
+                                                            {text && (
+                                                                <div className="text-sm mt-2">{text}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Sticker Message */}
+                                                    {typeMessage === 'stickerMessage' && (
+                                                        <div className="space-y-2">
+                                                            <div>🩹 {t('chats_page.sticker_message') || 'Sticker'}</div>
+                                                            {item.downloadUrl && (
+                                                                <a
+                                                                    href={item.downloadUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
+                                                                >
+                                                                    {t('chats_page.view_sticker') || 'View Sticker'}
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Location Message */}
+                                                    {typeMessage === 'locationMessage' && (
+                                                        <div className="space-y-2">
+                                                            <div>📍 {t('chats_page.location_message') || 'Location'}</div>
+                                                            {item.latitude && item.longitude && (
+                                                                <a
+                                                                    href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
+                                                                >
+                                                                    {t('chats_page.view_location') || 'View Location'}
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Quoted Message */}
+                                                    {typeMessage === 'quotedMessage' && (
+                                                        <div className="space-y-2">
+                                                            {item.quotedMessage && (
+                                                                <div className="text-xs opacity-75 border-l-2 pl-2 mb-2">
+                                                                    {item.quotedMessage.textMessage || item.quotedMessage.text || '💬 הודעה מצוטטת'}
+                                                                </div>
+                                                            )}
+                                                            {text && (
+                                                                <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Deleted Message */}
+                                                    {typeMessage === 'deletedMessage' && (
+                                                        <p className="text-sm italic text-muted-foreground dark:text-[#8696a0]">
+                                                            🗑️ {t('chats_page.message_deleted') || 'Message deleted'}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Extended Text Message OR Regular Text Message - MUST be last to catch all text messages */}
+                                                    {!['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && text && (
+                                                        <div>
                                                             <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Deleted Message */}
-                                                {typeMessage === 'deletedMessage' && (
-                                                    <p className="text-sm italic text-muted-foreground dark:text-[#8696a0]">
-                                                        🗑️ {t('chats_page.message_deleted') || 'Message deleted'}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Fallback - if no text found but message exists - show what we can */}
+                                                    {!text && !['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && typeMessage && (
+                                                        <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
+                                                            📎 {typeMessage} {t('chats_page.message_not_supported') || '(not fully supported)'}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Fallback - if no typeMessage and no text, show empty message indicator */}
+                                                    {!typeMessage && !text && (
+                                                        <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
+                                                            {t('chats_page.empty_message') || 'Empty message'}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Timestamp */}
+                                                    <p className="text-[11px] text-muted-foreground dark:text-[#8696a0] mt-1 text-right">
+                                                        {item.timestamp ? new Date(typeof item.timestamp === 'number' ? (item.timestamp < 2e12 ? item.timestamp * 1000 : item.timestamp) : item.timestamp).toLocaleTimeString([], {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        }) : ''}
                                                     </p>
-                                                )}
-                                                
-                                                {/* Extended Text Message OR Regular Text Message - MUST be last to catch all text messages */}
-                                                {!['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && text && (
-                                                    <div>
-                                                        <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Fallback - if no text found but message exists - show what we can */}
-                                                {!text && !['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && typeMessage && (
-                                                    <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
-                                                        📎 {typeMessage} {t('chats_page.message_not_supported') || '(not fully supported)'}
-                                                    </p>
-                                                )}
-                                                
-                                                {/* Fallback - if no typeMessage and no text, show empty message indicator */}
-                                                {!typeMessage && !text && (
-                                                    <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
-                                                        {t('chats_page.empty_message') || 'Empty message'}
-                                                    </p>
-                                                )}
-                                                
-                                                {/* Timestamp */}
-                                                <p className="text-[11px] text-muted-foreground dark:text-[#8696a0] mt-1 text-right">
-                                                    {item.timestamp ? new Date(typeof item.timestamp === 'number' ? (item.timestamp < 2e12 ? item.timestamp * 1000 : item.timestamp) : item.timestamp).toLocaleTimeString([], {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    }) : ''}
-                                                </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                            {messagesLoading && messages.length === 0 && (
-                                <div className="text-center text-muted-foreground dark:text-[#8696a0] py-4">
-                                    {t('common.loading')}
-                                </div>
-                            )}
-                            <div ref={messagesEndRef} />
+                                        );
+                                    })
+                                )}
+                                {messagesLoading && messages.length === 0 && (
+                                    <div className="text-center text-muted-foreground dark:text-[#8696a0] py-4">
+                                        {t('common.loading')}
+                                    </div>
+                                )}
+                                <div ref={messagesEndRef} />
                             </div>
                         </div>
 
@@ -1225,6 +1269,25 @@ export default function Chats() {
                     </div>
                 )}
             </div>
+
+            <TagsManager
+                organizationId={selectedNumber?.organization_id}
+                open={showTagsManager}
+                onOpenChange={setShowTagsManager}
+            />
+
+            <ChatTagsSelector
+                open={!!currentChatTagsId}
+                onOpenChange={(open) => !open && setCurrentChatTagsId(null)}
+                tags={tags}
+                selectedTagIds={currentChatTagsId ? (chatTags[currentChatTagsId] || []) : []}
+                onAssign={(tagId) => currentChatTagsId && assignTagToChat(currentChatTagsId, tagId)}
+                onRemove={(tagId) => currentChatTagsId && removeTagFromChat(currentChatTagsId, tagId)}
+                onManageTags={() => {
+                    setCurrentChatTagsId(null);
+                    setShowTagsManager(true);
+                }}
+            />
         </div>
     );
 }
