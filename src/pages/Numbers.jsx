@@ -469,6 +469,7 @@ export default function Numbers() {
                                     </Button>
                                 </div>
                             </form>
+                        </CardContent>
                     </Card>
                 </div>
             )}
