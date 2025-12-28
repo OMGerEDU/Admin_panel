@@ -39,6 +39,7 @@ export default function Plans() {
   })
   const [billingEvents, setBillingEvents] = useState([])
   const [processingPlanId, setProcessingPlanId] = useState(null)
+  const [billingInterval, setBillingInterval] = useState('month') // 'month' | 'year'
 
   useEffect(() => {
     fetchPlans()
@@ -147,6 +148,7 @@ export default function Plans() {
         supabase,
         userId: session.user.id,
         plan,
+        interval: billingInterval,
       })
 
       // In production, you would redirect the user to the billing provider:
@@ -178,6 +180,29 @@ export default function Plans() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">{t('landing.plans.select')}</h2>
         <p className="text-muted-foreground">{t('landing.pricing')}</p>
+
+        {/* Billing Toggle */}
+        <div className="flex justify-center mt-6">
+          <div className="relative bg-muted p-1 rounded-lg inline-flex items-center">
+            <button
+              onClick={() => setBillingInterval('month')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'month' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {t('landing.plans.monthly') || 'Monthly'}
+            </button>
+            <button
+              onClick={() => setBillingInterval('year')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'year' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {t('landing.plans.yearly') || 'Yearly'}
+            </button>
+
+            {/* Discount Badge */}
+            <span className="absolute -top-3 -right-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
+              SAVE 25%
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Current plan & usage */}
@@ -279,18 +304,20 @@ export default function Plans() {
         </CardContent>
       </Card>
 
-      {currentSubscription && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-primary">
-              <span className="text-xl">💎</span>
-              <span>
-                {t('landing.plans.select')}: <span className="font-bold">{currentSubscription.plans?.name}</span> ({currentSubscription.status})
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {
+        currentSubscription && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-primary">
+                <span className="text-xl">💎</span>
+                <span>
+                  {t('landing.plans.select')}: <span className="font-bold">{currentSubscription.plans?.name}</span> ({currentSubscription.status})
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      }
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map(plan => {
@@ -306,9 +333,14 @@ export default function Plans() {
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   </div>
                   <div className="text-4xl font-bold">
-                    ${plan.price_monthly}
-                    <span className="text-base font-normal text-muted-foreground">{t('landing.plans.month')}</span>
+                    ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
+                    <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
                   </div>
+                  {billingInterval === 'year' && plan.price_monthly > 0 && (
+                    <div className="text-xs text-muted-foreground text-right mt-1">
+                      ${plan.price_yearly} {t('landing.plans.billed_yearly') || 'billed yearly'}
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
@@ -353,6 +385,6 @@ export default function Plans() {
           )
         })}
       </div>
-    </div>
+    </div >
   )
 }

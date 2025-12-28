@@ -2,6 +2,7 @@
 ALTER TABLE plans ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE plans ADD COLUMN IF NOT EXISTS features JSONB;
 ALTER TABLE plans ADD COLUMN IF NOT EXISTS invites_limit INTEGER DEFAULT 0;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS price_yearly DECIMAL(10, 2);
 
 -- Update plans with new pricing and limits
 
@@ -11,6 +12,7 @@ ALTER TABLE plans ADD COLUMN IF NOT EXISTS invites_limit INTEGER DEFAULT 0;
 UPDATE plans 
 SET 
   price_monthly = 0,
+  price_yearly = 0,
   numbers_limit = 1,
   instances_limit = 1,
   invites_limit = 0, -- No team members
@@ -18,10 +20,11 @@ SET
 WHERE name = 'Free';
 
 -- 2. Pro Plan
--- Price: $19, 5 numbers
+-- Price: $19/mo. Yearly: 19 * 12 * 0.75 = 171
 UPDATE plans 
 SET 
   price_monthly = 19,
+  price_yearly = 171,
   numbers_limit = 5,
   instances_limit = 5,
   invites_limit = 3,
@@ -44,9 +47,11 @@ BEGIN
 END $$;
 
 -- 4. Update Organization plan details
+-- Price: $44/mo. Yearly: 44 * 12 * 0.75 = 396
 UPDATE plans 
 SET 
   price_monthly = 44,
+  price_yearly = 396,
   numbers_limit = 20,
   instances_limit = 20,
   invites_limit = 10,
@@ -55,8 +60,8 @@ SET
 WHERE name = 'Organization';
 
 -- Ensure Organization plan exists if it was missing completely
-INSERT INTO plans (name, price_monthly, numbers_limit, instances_limit, invites_limit, description, features)
-SELECT 'Organization', 44, 20, 20, 10, 'For teams and organizations', '["Unlimited messages", "Team management", "Priority support", "Scheduled Messages"]'::jsonb
+INSERT INTO plans (name, price_monthly, price_yearly, numbers_limit, instances_limit, invites_limit, description, features)
+SELECT 'Organization', 44, 396, 20, 20, 10, 'For teams and organizations', '["Unlimited messages", "Team management", "Priority support", "Scheduled Messages"]'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM plans WHERE name = 'Organization');
 
 -- Verify

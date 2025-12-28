@@ -18,15 +18,21 @@ export async function startPlanCheckout({
   supabase = defaultSupabase,
   userId,
   plan,
+  interval = 'month', // 'month' or 'year'
 }) {
   if (!userId || !plan?.id) {
     throw new Error('Missing userId or plan information')
   }
 
+  // Determine actual price based on interval
+  const amount = interval === 'year' && plan.price_yearly != null
+    ? plan.price_yearly
+    : plan.price_monthly;
+
   // Placeholder checkout URL – in the future, replace with real provider URL
   const redirectUrl = `${BILLING_PROVIDER_BASE_URL}/checkout?plan=${encodeURIComponent(
     plan.id,
-  )}`
+  )}&interval=${interval}`
 
   // Update subscription immediately (test environment – no real payment)
   const { error } = await supabase.from('subscriptions').upsert(
@@ -34,6 +40,7 @@ export async function startPlanCheckout({
       user_id: userId,
       plan_id: plan.id,
       status: 'active',
+      // In a real app we might store interval here too
     },
     { onConflict: 'user_id' },
   )
@@ -47,10 +54,10 @@ export async function startPlanCheckout({
     await supabase.from('billing_events').insert({
       user_id: userId,
       plan_id: plan.id,
-      amount: plan.price_monthly,
+      amount: amount,
       currency: 'USD',
       status: 'paid',
-      description: `Test env direct plan change to ${plan.name}`,
+      description: `Test env direct plan change to ${plan.name} (${interval})`,
     })
   } catch (eventError) {
     // Ignore missing table / RLS issues in dev, just log for debugging
