@@ -1283,6 +1283,14 @@ export default function Chats() {
                 userId={user?.id}
                 open={showTagsManager}
                 onOpenChange={setShowTagsManager}
+                chats={chats.map(c => ({
+                    ...c,
+                    tags: chatTags[c.chatId || c.remote_jid] || []
+                }))}
+                onNavigateChat={(chatId) => {
+                    const chat = chats.find(c => c.chatId === chatId || c.remote_jid === chatId);
+                    if (chat) setSelectedChat(chat);
+                }}
             />
 
             <ChatTagsSelector
