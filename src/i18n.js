@@ -380,13 +380,22 @@ const resources = {
                 "assign_tags": "Assign Tags",
                 "no_tags_defined": "No tags defined yet.",
                 "create_first_tag": "Create Tag",
+                "create_first_tag_desc": "Create tags to organize your chats",
                 "labels": "Labels",
                 "manage_tags": "Manage Tags",
                 "create_new": "Create New Tag",
                 "tag_name": "Tag Name",
+                "tag_name_placeholder": "Enter tag name...",
                 "existing_tags": "Existing Tags",
                 "no_tags_yet": "No tags created yet.",
-                "confirm_delete": "Delete this tag?"
+                "no_tags_title": "No tags yet",
+                "no_tags_desc": "Create your first tag to get started",
+                "generate_sample": "Generate Sample Tags",
+                "confirm_delete": "Delete this tag?",
+                "view_chats": "View Chats",
+                "chats_with_tag": "Chats with tag",
+                "no_chats_with_tag": "No chats have this tag yet",
+                "tag_id": "#{{id}}"
             }
         }
     },
@@ -768,13 +777,22 @@ const resources = {
                 "assign_tags": "שייך תגיות",
                 "no_tags_defined": "עדיין לא הוגדרו תגיות.",
                 "create_first_tag": "צור תגית",
+                "create_first_tag_desc": "צור תגיות כדי לארגן את הצ'אטים שלך",
                 "labels": "תוויות",
                 "manage_tags": "ניהול תגיות",
                 "create_new": "צור תגית חדשה",
                 "tag_name": "שם התגית",
+                "tag_name_placeholder": "הכנס שם תגית...",
                 "existing_tags": "תגיות קיימות",
                 "no_tags_yet": "עדיין לא נוצרו תגיות.",
-                "confirm_delete": "למחוק את התגית הזו?"
+                "no_tags_title": "אין תגיות עדיין",
+                "no_tags_desc": "צור את התגית הראשונה שלך כדי להתחיל",
+                "generate_sample": "צור תגיות לדוגמה",
+                "confirm_delete": "למחוק את התגית הזו?",
+                "view_chats": "צפה בצ'אטים",
+                "chats_with_tag": "צ'אטים עם התגית",
+                "no_chats_with_tag": "אין צ'אטים עם התגית הזו עדיין",
+                "tag_id": "#{{id}}"
             }
         }
     }
