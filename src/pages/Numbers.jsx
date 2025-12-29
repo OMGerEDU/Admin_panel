@@ -55,6 +55,7 @@ export default function Numbers() {
         used: 0,
         limit: -1,
     });
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     useEffect(() => {
         fetchNumbers();
@@ -501,6 +502,11 @@ export default function Numbers() {
                     </Card>
                 </div>
             )}
+
+            <GreenApiHelpModal
+                isOpen={showHelpModal}
+                onClose={() => setShowHelpModal(false)}
+            />
         </div>
     );
 }

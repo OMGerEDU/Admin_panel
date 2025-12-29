@@ -81,11 +81,21 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
 
     // Add Tag
     const createTag = async (name, color) => {
-        if (!organizationId && !userId) return;
+        if (!userId) return; // UserId is required for created_by
 
         // Optimistic Update
         const tempId = 'temp_' + Date.now().toString();
-        const newTag = { id: tempId, name, color, organization_id: organizationId || null, user_id: organizationId ? null : userId };
+        // Ownership Logic: If organizationId exists, it belongs to Org (user_id is null). 
+        // If no organizationId, it belongs to User.
+        // Created By is always the current user.
+        const newTag = {
+            id: tempId,
+            name,
+            color,
+            organization_id: organizationId || null,
+            user_id: organizationId ? null : userId,
+            created_by: userId
+        };
 
         setTags(prev => [...prev, newTag]);
 
@@ -95,7 +105,8 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
                 name,
                 color,
                 organization_id: organizationId || null,
-                user_id: organizationId ? null : userId
+                user_id: organizationId ? null : userId,
+                created_by: userId
             })
             .select()
             .single();
