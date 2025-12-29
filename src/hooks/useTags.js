@@ -112,6 +112,24 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
         return data;
     };
 
+    // Update Tag
+    const updateTag = async (tagId, name, color) => {
+        // Optimistic
+        setTags(prev => prev.map(t => t.id === tagId ? { ...t, name, color } : t));
+
+        const { error } = await supabase
+            .from('tags')
+            .update({ name, color })
+            .eq('id', tagId);
+
+        if (error) {
+            console.error('Error updating tag:', error);
+            // Revert (requires previous state or fetch, simple revert here fetches)
+            fetchTags();
+            throw error;
+        }
+    };
+
     // Delete Tag
     const deleteTag = async (tagId) => {
         // Optimistic Update
@@ -185,5 +203,5 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
         }
     };
 
-    return { tags, chatTags, createTag, deleteTag, assignTagToChat, removeTagFromChat };
+    return { tags, chatTags, createTag, deleteTag, assignTagToChat, removeTagFromChat, updateTag };
 }

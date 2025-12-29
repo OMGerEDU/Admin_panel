@@ -61,9 +61,16 @@ export default function Dashboard() {
                     hasScheduledMessages
                 });
 
-                // Show modal if user hasn't completed onboarding
-                // (either no numbers or no scheduled messages)
-                if (!hasNumbers || !hasScheduledMessages) {
+                // Check account age (must be less than 48 hours)
+                const createdAt = new Date(user.created_at);
+                const now = new Date();
+                const hoursSinceCreation = Math.abs(now - createdAt) / 36e5;
+                const isNewUser = hoursSinceCreation < 48;
+
+                // Show modal ONLY if: 
+                // 1. Account < 48 hours old
+                // 2. No numbers connected (no chat connected)
+                if (isNewUser && !hasNumbers) {
                     setShowWelcomeModal(true);
                 }
             } catch (error) {
