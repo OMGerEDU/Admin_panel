@@ -10,15 +10,10 @@ export default function DashboardLayout() {
     const { user } = useAuth();
     const [showAutoFeedback, setShowAutoFeedback] = useState(false);
 
-    // If we are strictly checking for auth here, we ensure we don't render protected content
-    // validation is simplified for now
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
-
     // Check for 7-day feedback prompt
     useEffect(() => {
-        if (!user?.created_at) return;
+        if (!user) return; // Add check inside effect instead
+        if (!user.created_at) return;
 
         const checkFeedbackPrompt = () => {
             const dismissed = localStorage.getItem('feedback_dismissed');
@@ -36,6 +31,11 @@ export default function DashboardLayout() {
 
         checkFeedbackPrompt();
     }, [user]);
+
+    // If we are strictly checking for auth here, we ensure we don't render protected content
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
 
     return (
         <div className="flex min-h-screen bg-background text-foreground relative">
