@@ -285,7 +285,7 @@ async function fetchUserSubscription(session, userId) {
  * @param {string} baseUrl - Base URL for admin panel (default: https://admin-panel-788h-git-main-omgeredus-projects.vercel.app)
  * @returns {Promise<string|null>} Full URL to chat in admin panel, or null if not found
  */
-async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://admin-panel-788h-git-main-omgeredus-projects.vercel.app') {
+async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://ferns.builders-tech.com') {
   const supabase = await getSupabaseClient();
   
   try {
