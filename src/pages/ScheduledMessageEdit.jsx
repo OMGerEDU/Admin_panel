@@ -261,9 +261,10 @@ export default function ScheduledMessageEdit() {
             const fileExt = file.name.split('.').pop();
             const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-            // Upload to GreenBuilders bucket
+            // Upload to storage bucket
+            const bucketName = import.meta.env.VITE_STORAGE_BUCKET || 'GreenBuilders';
             const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('GreenBuilders')
+                .from(bucketName)
                 .upload(fileName, file, {
                     cacheControl: '3600',
                     upsert: false
@@ -275,7 +276,7 @@ export default function ScheduledMessageEdit() {
 
             // Get public URL
             const { data: urlData } = supabase.storage
-                .from('GreenBuilders')
+                .from(bucketName)
                 .getPublicUrl(fileName);
 
             if (!urlData?.publicUrl) {

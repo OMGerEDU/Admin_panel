@@ -1,10 +1,11 @@
 // API Base URL
-const API_BASE_URL = 'https://n8n-railway-custom-production-1086.up.railway.app'
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://n8n-railway-custom-production-1086.up.railway.app'
 
 // Helper function for API calls
 async function apiCall(endpoint, method = 'GET', body = null) {
   const url = `${API_BASE_URL}${endpoint}`
-  
+
   const options = {
     method,
     headers: {
@@ -18,7 +19,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 
   try {
     const response = await fetch(url, options)
-    
+
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(`HTTP ${response.status}: ${errorText}`)

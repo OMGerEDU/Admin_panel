@@ -76,7 +76,7 @@ export default function MainLayout({ children }) {
 
                 {/* Footer */}
                 <footer className="py-4 text-center text-sm text-[var(--text-secondary)] border-t border-[var(--border-color)]">
-                    &copy; {new Date().getFullYear()} Builders Extension. All rights reserved.
+                    &copy; {new Date().getFullYear()} Ferns. All rights reserved.
                 </footer>
             </div>
         </div>
