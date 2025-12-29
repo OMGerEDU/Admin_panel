@@ -168,6 +168,11 @@ export async function getMessageStatus(instanceId, token, chatId, messageId) {
   });
 }
 
+// 11. Get Instance Status (Health Check)
+export async function getStatusInstance(instanceId, token) {
+  return greenApiCall(instanceId, token, 'getStatusInstance');
+}
+
 // Phone normalization helper (Israeli-focused, similar to extension behavior)
 export function normalizePhoneNumber(phone) {
   let cleaned = phone.replace(/\D/g, '');

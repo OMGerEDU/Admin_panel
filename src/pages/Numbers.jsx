@@ -10,22 +10,46 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Search, Plus, MoreHorizontal, RefreshCw, X, Edit, Trash2, HelpCircle } from 'lucide-react';
 import { logger } from '../lib/logger';
 import GreenApiHelpModal from '../components/GreenApiHelpModal';
+import { getStatusInstance } from '../services/greenApi';
 
 // Simple Badge component since we don't have it in UI lib yet
-function StatusBadge({ status, t }) {
+function StatusBadge({ status, healthStatus, t }) {
+    // If we have a real-time health status, use that. Otherwise fall back to DB status.
+    // 'online' / 'offline' are from Green API.
+    // 'active' / 'inactive' are from our DB.
+
+    let displayStatus = 'pending';
+    if (healthStatus) {
+        displayStatus = healthStatus === 'online' || healthStatus === 'authorized' ? 'active' : 'inactive';
+    } else {
+        displayStatus = status === 'active' ? 'active' : 'inactive';
+    }
+
     const styles = {
         active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
         inactive: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-        pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+        pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+        loading: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 animate-pulse"
     };
+
     const statusText = {
         active: t('connected'),
         inactive: t('disconnected'),
-        pending: 'Pending'
+        pending: t('common.loading')
     };
+
+    // If explicit health status is loading
+    if (healthStatus === 'loading') {
+        return (
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles.loading}`}>
+                {t('common.loading')}...
+            </span>
+        );
+    }
+
     return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.pending}`}>
-            {statusText[status] || status}
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[displayStatus] || styles.pending}`}>
+            {statusText[displayStatus] || displayStatus}
         </span>
     );
 }
@@ -55,11 +79,48 @@ export default function Numbers() {
         used: 0,
         limit: -1,
     });
+    // Stores real-time health status: { [id]: 'online' | 'offline' | 'loading' }
+    const [healthStatuses, setHealthStatuses] = useState({});
 
     useEffect(() => {
         fetchNumbers();
         fetchNumbersUsage();
     }, [user]);
+
+    const checkAllInstancesHealth = async (instances) => {
+        if (!instances || instances.length === 0) return;
+
+        // Mark all as loading initially
+        const initialStatuses = {};
+        instances.forEach(num => {
+            initialStatuses[num.id] = 'loading';
+        });
+        setHealthStatuses(prev => ({ ...prev, ...initialStatuses }));
+
+        for (const num of instances) {
+            if (!num.instance_id || !num.api_token) {
+                setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
+                continue;
+            }
+
+            try {
+                const res = await getStatusInstance(num.instance_id, num.api_token);
+                if (res.success && res.data) {
+                    // Green API returns { statusInstance: "online" | "offline" | "authorized" ... }
+                    const status = res.data.statusInstance;
+                    setHealthStatuses(prev => ({ ...prev, [num.id]: status }));
+
+                    // Optional: Update DB if status changed significantly (e.g. valid to invalid)
+                    // But for now let's just show it in UI to avoid excessive DB writes
+                } else {
+                    setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
+                }
+            } catch (err) {
+                console.error(`Health check failed for ${num.instance_id}`, err);
+                setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
+            }
+        }
+    };
 
     const fetchNumbers = async () => {
         if (!user) return;
@@ -87,7 +148,12 @@ export default function Numbers() {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setNumbers(data || []);
+            const nums = data || [];
+            setNumbers(nums);
+
+            // Trigger health check
+            checkAllInstancesHealth(nums);
+
         } catch (error) {
             console.error('Error fetching numbers:', error);
         } finally {
@@ -338,7 +404,11 @@ export default function Numbers() {
                                             </TableCell>
                                             <TableCell>{number.instance_id || '-'}</TableCell>
                                             <TableCell>
-                                                <StatusBadge status={number.status || 'pending'} t={t} />
+                                                <StatusBadge
+                                                    status={number.status || 'pending'}
+                                                    healthStatus={healthStatuses[number.id]}
+                                                    t={t}
+                                                />
                                             </TableCell>
                                             <TableCell>{formatLastSeen(number.last_seen)}</TableCell>
                                             <TableCell className="text-right">
