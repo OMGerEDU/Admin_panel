@@ -34,7 +34,8 @@ export default function LandingPage() {
             <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between">
                     <div className="flex gap-2 items-center font-bold text-xl tracking-tight">
-                        <span className="text-[#00a884]">Green</span>Builders
+                        <img src="/fernslogo.png" alt="Ferns" className="h-8 w-8" />
+                        Ferns
                     </div>
                     <nav className="flex items-center gap-3">
                         {/* Theme toggle */}
@@ -178,39 +179,39 @@ export default function LandingPage() {
                                 <Sparkles className="h-5 w-5 text-primary" />
                                 <h3 className="font-bold text-xl">{t('landing.plans.free')}</h3>
                             </div>
-                        <div className="mt-4 text-4xl font-bold">$0</div>
-                        <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
-                        <ul className="mt-6 flex-1 space-y-3 text-sm">
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 2 {t('landing.plans.numbers')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.basic_webhooks')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 1 {t('landing.plans.users')}</li>
-                        </ul>
-                        <Link to="/signup">
-                            <Button className="mt-8 w-full" variant="outline">{t('landing.plans.select')}</Button>
-                        </Link>
-                    </div>
+                            <div className="mt-4 text-4xl font-bold">$0</div>
+                            <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
+                            <ul className="mt-6 flex-1 space-y-3 text-sm">
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 2 {t('landing.plans.numbers')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.basic_webhooks')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 1 {t('landing.plans.users')}</li>
+                            </ul>
+                            <Link to="/signup">
+                                <Button className="mt-8 w-full" variant="outline">{t('landing.plans.select')}</Button>
+                            </Link>
+                        </div>
 
-                    {/* Pro Plan */}
-                    <div className="flex flex-col items-center text-center rounded-lg border bg-background p-6 shadow-md border-primary/20 relative">
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-blue-600 px-3 py-1 text-xs text-white shadow-md font-medium">
-                            {t('landing.plans.popular')}
+                        {/* Pro Plan */}
+                        <div className="flex flex-col items-center text-center rounded-lg border bg-background p-6 shadow-md border-primary/20 relative">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-blue-600 px-3 py-1 text-xs text-white shadow-md font-medium">
+                                {t('landing.plans.popular')}
+                            </div>
+                            <div className="flex items-center gap-2 justify-center">
+                                <Crown className="h-5 w-5 text-yellow-500" />
+                                <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
+                            </div>
+                            <div className="mt-4 text-4xl font-bold">$29</div>
+                            <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
+                            <ul className="mt-6 flex-1 space-y-3 text-sm">
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 10 {t('landing.plans.numbers')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.advanced_webhooks')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.priority_log_retention')}</li>
+                                <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 5 {t('landing.plans.team_members')}</li>
+                            </ul>
+                            <Link to="/signup">
+                                <Button className="mt-8 w-full">{t('landing.plans.select')}</Button>
+                            </Link>
                         </div>
-                        <div className="flex items-center gap-2 justify-center">
-                            <Crown className="h-5 w-5 text-yellow-500" />
-                            <h3 className="font-bold text-xl">{t('landing.plans.pro')}</h3>
-                        </div>
-                        <div className="mt-4 text-4xl font-bold">$29</div>
-                        <div className="text-sm text-muted-foreground">{t('landing.plans.month')}</div>
-                        <ul className="mt-6 flex-1 space-y-3 text-sm">
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 10 {t('landing.plans.numbers')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.advanced_webhooks')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> {t('landing.plans.priority_log_retention')}</li>
-                            <li className="flex"><Check className="mr-2 h-4 w-4 text-primary" /> 5 {t('landing.plans.team_members')}</li>
-                        </ul>
-                        <Link to="/signup">
-                            <Button className="mt-8 w-full">{t('landing.plans.select')}</Button>
-                        </Link>
-                    </div>
 
                         {/* Agency Plan */}
                         <div className="flex flex-col items-center text-center rounded-lg border bg-background p-6 shadow-sm">
@@ -232,16 +233,16 @@ export default function LandingPage() {
                         </div>
                     </div>
                 </section>
-        </main>
+            </main>
 
-        {/* Footer */}
-        <footer className="py-6 md:px-8 md:py-0">
-            <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-                <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                    {t('landing.footer')}
-                </p>
-            </div>
-        </footer>
+            {/* Footer */}
+            <footer className="py-6 md:px-8 md:py-0">
+                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+                    <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                        {t('landing.footer')}
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 }
