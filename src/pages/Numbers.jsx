@@ -13,6 +13,7 @@ import GreenApiHelpModal from '../components/GreenApiHelpModal';
 import { getStatusInstance } from '../services/greenApi';
 
 // Simple Badge component since we don't have it in UI lib yet
+// Simple Badge component since we don't have it in UI lib yet
 function StatusBadge({ status, healthStatus, t }) {
     // If we have a real-time health status, use that. Otherwise fall back to DB status.
     // 'online' / 'offline' are from Green API.
@@ -38,18 +39,11 @@ function StatusBadge({ status, healthStatus, t }) {
         pending: t('common.loading')
     };
 
-    // If explicit health status is loading
-    if (healthStatus === 'loading') {
-        return (
-            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles.loading}`}>
-                {t('common.loading')}...
-            </span>
-        );
-    }
+    const isLoading = healthStatus === 'loading';
 
     return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[displayStatus] || styles.pending}`}>
-            {statusText[displayStatus] || displayStatus}
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${isLoading ? styles.loading : (styles[displayStatus] || styles.pending)}`}>
+            {isLoading ? `${t('common.loading')}...` : (statusText[displayStatus] || displayStatus)}
         </span>
     );
 }
@@ -61,6 +55,7 @@ export default function Numbers() {
     const [numbers, setNumbers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [editingNumber, setEditingNumber] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
     const [formData, setFormData] = useState({
@@ -337,6 +332,10 @@ export default function Numbers() {
 
     return (
         <div className="space-y-6">
+            <GreenApiHelpModal
+                isOpen={showHelpModal}
+                onClose={() => setShowHelpModal(false)}
+            />
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">{t('numbers_page.title')}</h2>
