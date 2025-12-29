@@ -64,7 +64,8 @@ const resources = {
                 "connect_continue": "Connect & Continue",
                 "connect_start_chatting": "Connect & Start Chatting",
                 "connecting": "Connecting...",
-                "where_to_find": "Where to find?"
+                "where_to_find": "Where to find?",
+                "click_to_zoom": "Click to zoom"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -287,6 +288,15 @@ const resources = {
                 "list_title": "Connected Accounts",
                 "list_desc": "List of all your Green-API accounts and instances"
             },
+            "green_api": {
+                "guide_title": "How to get Green API Credentials",
+                "guide_desc": "Follow these steps to get your Instance ID and API Token.",
+                "step1": "Go to Green API Console",
+                "step1_desc": "Login or create an account on the Green API console to manage your instances.",
+                "open_console": "Open Console",
+                "step2": "Copy Credentials",
+                "step2_desc": "Select your instance and copy the \"InstanceId\" and \"ApiTokenInstance\" as shown below:"
+            },
             "onboarding": {
                 "welcome_title": "Welcome to Ferns! 🎉",
                 "welcome_description": "Let's get you started in 2 simple steps",
@@ -442,7 +452,8 @@ const resources = {
                 "connect_continue": "התחבר והמשך",
                 "connect_start_chatting": "התחבר והתחל לצ'אט",
                 "connecting": "מתחבר...",
-                "where_to_find": "איפה למצוא?"
+                "where_to_find": "איפה למצוא?",
+                "click_to_zoom": "לחץ להגדלה"
             },
             "numbers_page": {
                 "title": "מספרים",
@@ -664,6 +675,15 @@ const resources = {
                 "subtitle": "נהל את חיבורי חשבונות ה-Ferns שלך",
                 "list_title": "חשבונות מחוברים",
                 "list_desc": "רשימת כל חשבונות ו-מופעי ה-Green-API שלך"
+            },
+            "green_api": {
+                "guide_title": "איך להשיג פרטי חיבור ל-Green API",
+                "guide_desc": "עקוב אחר הצעדים הבאים כדי להשיג את ה-Instance ID וה-API Token שלך.",
+                "step1": "לך לקונסולה של Green API",
+                "step1_desc": "התחבר או צור חשבון בקונסולה של Green API כדי לנהל את המופעים שלך.",
+                "open_console": "פתח קונסולה",
+                "step2": "העתק פרטי גישה",
+                "step2_desc": "בחר את המופע שלך והעתק את ה-\"InstanceId\" ואת ה-\"ApiTokenInstance\" כפי שמוצג למטה:"
             },
             "onboarding": {
                 "welcome_title": "ברוכים הבאים ל-Ferns! 🎉",
