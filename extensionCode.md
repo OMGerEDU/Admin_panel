@@ -791,10 +791,10 @@ async function fetchUserSubscription(session, userId) {
  * Finds numberId from Supabase and builds URL with phone number
  * @param {string} instanceId - Green API instance ID
  * @param {string} phoneNumber - Phone number (e.g., "972501234567" or "972501234567@c.us")
- * @param {string} baseUrl - Base URL for admin panel (default: https://admin-panel-788h-git-main-omgeredus-projects.vercel.app)
+ * @param {string} baseUrl - Base URL for admin panel (default: https://ferns.builders-tech.com)
  * @returns {Promise<string|null>} Full URL to chat in admin panel, or null if not found
  */
-async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://admin-panel-788h-git-main-omgeredus-projects.vercel.app') {
+async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://ferns.builders-tech.com') {
   const supabase = await getSupabaseClient();
   
   try {
@@ -15792,10 +15792,10 @@ async function fetchUserSubscription(session, userId) {
  * Finds numberId from Supabase and builds URL with phone number
  * @param {string} instanceId - Green API instance ID
  * @param {string} phoneNumber - Phone number (e.g., "972501234567" or "972501234567@c.us")
- * @param {string} baseUrl - Base URL for admin panel (default: https://admin-panel-788h-git-main-omgeredus-projects.vercel.app)
+ * @param {string} baseUrl - Base URL for admin panel (default: https://ferns.builders-tech.com)
  * @returns {Promise<string|null>} Full URL to chat in admin panel, or null if not found
  */
-async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://admin-panel-788h-git-main-omgeredus-projects.vercel.app') {
+async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://ferns.builders-tech.com') {
   const supabase = await getSupabaseClient();
   
   try {
@@ -16318,10 +16318,10 @@ async function fetchUserSubscription(session, userId) {
  * Finds numberId from Supabase and builds URL with phone number
  * @param {string} instanceId - Green API instance ID
  * @param {string} phoneNumber - Phone number (e.g., "972501234567" or "972501234567@c.us")
- * @param {string} baseUrl - Base URL for admin panel (default: https://admin-panel-788h-git-main-omgeredus-projects.vercel.app)
+ * @param {string} baseUrl - Base URL for admin panel (default: https://ferns.builders-tech.com)
  * @returns {Promise<string|null>} Full URL to chat in admin panel, or null if not found
  */
-async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://admin-panel-788h-git-main-omgeredus-projects.vercel.app') {
+async function getChatUrlFromJid(instanceId, phoneNumber, session = null, baseUrl = 'https://ferns.builders-tech.com') {
   const supabase = await getSupabaseClient();
   
   try {
@@ -22204,7 +22204,7 @@ body {
 const GREEN_API_BASE = "https://api.greenapi.com";
 
 // Plans / pricing configuration
-const PLANS_PAGE_URL = "https://admin-panel-788h-git-main-omgeredus-projects.vercel.app/app/plans";
+const PLANS_PAGE_URL = "https://ferns.builders-tech.com/app/plans";
 const PLAN_LABELS = { Free: "חינם", Pro: "מקצועי", Agency: "סוכנות" };
 const PLAN_KEYS = { Free: "free", Pro: "pro", Agency: "agency" };
 const PLAN_ORDER = ["free", "pro", "agency"];

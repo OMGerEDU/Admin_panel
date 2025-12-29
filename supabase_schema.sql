@@ -1024,7 +1024,7 @@ end;
 $$;
 
 -- Schedule cron job to dispatch due messages every minute
--- NOTE: Replace <YOUR_DOMAIN> with your actual Vercel domain (e.g., 'admin-panel-788h-git-main-omgeredus-projects.vercel.app')
+-- NOTE: Replace <YOUR_DOMAIN> with your actual Vercel domain (e.g., 'ferns.builders-tech.com')
 -- NOTE: Replace YOUR_CRON_SECRET_HERE with your actual CRON_SECRET value from Vercel environment variables
 -- To schedule, run this SQL in Supabase SQL Editor:
 /*

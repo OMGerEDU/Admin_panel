@@ -37,14 +37,36 @@ export default function DashboardLayout() {
         checkFeedbackPrompt();
     }, [user]);
 
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [window.location.pathname]);
+
     return (
         <div className="flex min-h-screen bg-background text-foreground relative">
             {/* Desktop Sidebar */}
             <Sidebar className="hidden md:block" />
 
+            {/* Mobile Sidebar */}
+            <Sidebar
+                className={mobileMenuOpen ? "block fixed inset-y-0 left-0 z-50 w-64 shadow-xl" : "hidden"}
+                isMobile={true}
+                onClose={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Mobile Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 md:hidden backdrop-blur-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
             <div className="flex-1 flex flex-col min-w-0">
-                <Header />
-                <main className="flex-1 p-6 overflow-auto bg-muted/20 relative">
+                <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+                <main className="flex-1 p-4 md:p-6 overflow-auto bg-muted/20 relative">
                     <Outlet />
 
                     {/* Floating Feedback Button */}

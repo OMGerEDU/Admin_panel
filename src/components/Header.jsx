@@ -5,11 +5,11 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
-import { Sun, Moon, Languages, LogOut, ChevronRight, Home, Sparkles, Crown, Building2 } from 'lucide-react';
+import { Sun, Moon, Languages, LogOut, ChevronRight, Home, Sparkles, Crown, Building2, Menu } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { fetchCurrentSubscriptionAndPlan } from '../lib/planLimits';
 
-export function Header() {
+export function Header({ onMobileMenuToggle }) {
     const { theme, toggleTheme } = useTheme();
     const { toggleLang, lang } = useLanguage();
     const { user, signOut } = useAuth();
@@ -59,13 +59,13 @@ export function Header() {
     const getBreadcrumbs = () => {
         const path = location.pathname;
         const parts = path.split('/').filter(Boolean);
-        
+
         if (parts.length === 0 || (parts.length === 1 && parts[0] === 'app')) {
             return [{ label: t('dashboard'), path: '/app/dashboard' }];
         }
 
         const breadcrumbs = [{ label: t('dashboard'), path: '/app/dashboard' }];
-        
+
         const routeMap = {
             'dashboard': t('dashboard'),
             'chats': t('chats'),
@@ -92,17 +92,26 @@ export function Header() {
     const breadcrumbs = getBreadcrumbs();
 
     return (
-        <header className="flex h-16 items-center border-b bg-background px-6 justify-between sticky top-0 z-10">
+        <header className="flex h-16 items-center border-b bg-background px-4 md:px-6 justify-between sticky top-0 z-10">
             <div className="flex items-center gap-2 font-semibold text-lg">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden mr-2"
+                    onClick={onMobileMenuToggle}
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
+
                 {breadcrumbs.map((crumb, index) => (
                     <React.Fragment key={crumb.path}>
                         {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                         {index === breadcrumbs.length - 1 ? (
-                            <span className="text-foreground">{crumb.label}</span>
+                            <span className="text-foreground text-sm md:text-base truncate max-w-[150px] md:max-w-none">{crumb.label}</span>
                         ) : (
                             <button
                                 onClick={() => navigate(crumb.path)}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
+                                className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
                             >
                                 {index === 0 ? <Home className="h-4 w-4" /> : crumb.label}
                             </button>
@@ -111,7 +120,7 @@ export function Header() {
                 ))}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
                 <Button variant="ghost" size="icon" onClick={toggleTheme}>
                     {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </Button>
@@ -125,7 +134,7 @@ export function Header() {
                     <button
                         type="button"
                         onClick={() => navigate('/app/plans')}
-                        className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20 transition-colors"
+                        className="hidden md:flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20 transition-colors"
                         title={t('landing.plans.select')}
                     >
                         {planName.toLowerCase() === 'free' && (
@@ -141,7 +150,7 @@ export function Header() {
                     </button>
                 )}
                 <div className="flex items-center gap-2 border-l pl-4 ml-2 rtl:border-r rtl:border-l-0 rtl:pr-4 rtl:pl-0">
-                    <div className="text-sm font-medium hidden sm:block">
+                    <div className="text-sm font-medium hidden md:block">
                         {user?.email}
                     </div>
                     <Button variant="ghost" size="icon" onClick={handleSignOut} title={t('logout')}>

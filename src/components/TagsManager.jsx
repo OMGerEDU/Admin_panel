@@ -18,9 +18,9 @@ const PRESET_COLORS = [
     '#64748B', // slate-500
 ];
 
-export function TagsManager({ organizationId, open, onOpenChange }) {
+export function TagsManager({ organizationId, userId, open, onOpenChange }) {
     const { t } = useTranslation();
-    const { tags, createTag, deleteTag } = useTags(organizationId);
+    const { tags, createTag, deleteTag } = useTags(organizationId, null, userId);
     const [newTagName, setNewTagName] = useState('');
     const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
     const [isCreating, setIsCreating] = useState(false);
