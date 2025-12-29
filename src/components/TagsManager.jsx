@@ -154,7 +154,7 @@ export function TagsManager({ organizationId, userId, open, onOpenChange, chats 
                                             style={{ backgroundColor: newTagColor, borderColor: newTagColor }}
                                         />
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-3 grid grid-cols-5 gap-2 bg-background/95 backdrop-blur shadow-xl border-white/10">
+                                    <PopoverContent className="w-64 p-3 grid grid-cols-5 gap-2 bg-background/95 backdrop-blur shadow-xl border-white/10">
                                         {PRESET_COLORS.map((color) => (
                                             <button
                                                 key={color}
@@ -222,7 +222,7 @@ export function TagsManager({ organizationId, userId, open, onOpenChange, chats 
                                                                 style={{ backgroundColor: editColor }}
                                                             />
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-3 grid grid-cols-5 gap-2">
+                                                        <PopoverContent className="w-64 p-3 grid grid-cols-5 gap-2 bg-background/95 backdrop-blur shadow-xl border-white/10">
                                                             {PRESET_COLORS.map((color) => (
                                                                 <button
                                                                     key={color}

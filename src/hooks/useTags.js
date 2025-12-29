@@ -9,6 +9,8 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
     const fetchTags = useCallback(async () => {
         if (!organizationId && !userId) return; // Need at least one
 
+        console.log('[useTags] Fetching tags for:', { organizationId, userId });
+
         let query = supabase.from('tags').select('*');
 
         if (organizationId) {
@@ -20,6 +22,7 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
         const { data, error } = await query;
 
         if (!error) {
+            console.log('[useTags] Fetched tags:', data?.length);
             setTags(data || []);
         } else {
             console.error('Error fetching tags:', error);

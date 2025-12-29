@@ -30,7 +30,7 @@ export function TagsViewModal({ tag, chats, open, onClose, onNavigate }) {
                         </div>
                         <span className="font-bold">{tag.name}</span>
                         <span className="text-sm font-normal text-muted-foreground ml-auto bg-muted/50 px-3 py-1 rounded-full">
-                            {taggedChats.length} {t('chats.chats') || 'Chats'}
+                            {taggedChats.length} {t('chats') || 'Chats'}
                         </span>
                     </DialogTitle>
                 </DialogHeader>
