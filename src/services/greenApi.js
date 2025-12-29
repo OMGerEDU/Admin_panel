@@ -229,50 +229,12 @@ export function normalizePhoneForAPI(raw) {
 
 // Get last incoming messages (like extension)
 export async function getLastIncomingMessages(instanceId, token, minutes = 1440) {
-  const url = `${GREEN_API_BASE}/waInstance${instanceId}/lastIncomingMessages/${token}?minutes=${minutes}`;
-
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      await logger.error('Failed to fetch last incoming messages', {
-        status: response.status,
-        errorText: errorText.slice(0, 500),
-      });
-      return { success: false, error: `HTTP ${response.status}: ${errorText}` };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
-  } catch (error) {
-    await logger.error('Error fetching last incoming messages', { error: error.message });
-    return { success: false, error: error.message || 'Failed to fetch last incoming messages' };
-  }
+  return greenApiCall(instanceId, token, `lastIncomingMessages?minutes=${minutes}`);
 }
 
 // Get last outgoing messages (like extension)
 export async function getLastOutgoingMessages(instanceId, token) {
-  const url = `${GREEN_API_BASE}/waInstance${instanceId}/lastOutgoingMessages/${token}`;
-
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      await logger.error('Failed to fetch last outgoing messages', {
-        status: response.status,
-        errorText: errorText.slice(0, 500),
-      });
-      return { success: false, error: `HTTP ${response.status}: ${errorText}` };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
-  } catch (error) {
-    await logger.error('Error fetching last outgoing messages', { error: error.message });
-    return { success: false, error: error.message || 'Failed to fetch last outgoing messages' };
-  }
+  return greenApiCall(instanceId, token, 'lastOutgoingMessages');
 }
 
 // Convenience helper: load chats with basic enrichment (name/avatar where possible)

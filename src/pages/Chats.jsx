@@ -1272,6 +1272,7 @@ export default function Chats() {
 
             <TagsManager
                 organizationId={selectedNumber?.organization_id}
+                userId={user?.id}
                 open={showTagsManager}
                 onOpenChange={setShowTagsManager}
             />
