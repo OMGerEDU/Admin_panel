@@ -12,9 +12,7 @@ export default function DashboardLayout() {
 
     // If we are strictly checking for auth here, we ensure we don't render protected content
     // validation is simplified for now
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Check for 7-day feedback prompt
     useEffect(() => {
@@ -37,12 +35,16 @@ export default function DashboardLayout() {
         checkFeedbackPrompt();
     }, [user]);
 
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
     // Close mobile menu on route change
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [window.location.pathname]);
+
+    // If we are strictly checking for auth here, we ensure we don't render protected content
+    // validation is simplified for now
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
 
     return (
         <div className="flex min-h-screen bg-background text-foreground relative">
