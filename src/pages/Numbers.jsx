@@ -13,7 +13,6 @@ import GreenApiHelpModal from '../components/GreenApiHelpModal';
 import { getStatusInstance } from '../services/greenApi';
 
 // Simple Badge component since we don't have it in UI lib yet
-// Simple Badge component since we don't have it in UI lib yet
 function StatusBadge({ status, healthStatus, t }) {
     // If we have a real-time health status, use that. Otherwise fall back to DB status.
     // 'online' / 'offline' are from Green API.
