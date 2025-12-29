@@ -101,18 +101,24 @@ export default function Numbers() {
             try {
                 const res = await getStatusInstance(num.instance_id, num.api_token);
                 if (res.success && res.data) {
-                    // Green API returns { statusInstance: "online" | "offline" | "authorized" ... }
                     const status = res.data.statusInstance;
                     setHealthStatuses(prev => ({ ...prev, [num.id]: status }));
-
-                    // Optional: Update DB if status changed significantly (e.g. valid to invalid)
-                    // But for now let's just show it in UI to avoid excessive DB writes
                 } else {
+                    // If error is explicit (e.g. 401/403/429 handled by greenApiCall)
                     setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
                 }
             } catch (err) {
-                console.error(`Health check failed for ${num.instance_id}`, err);
-                setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
+                // Check if it's a CORS/Network type error
+                const isNetworkError = err.message === 'Failed to fetch' || err.name === 'TypeError';
+                // Only log network errors once or as warnings to avoid console spam
+                if (isNetworkError) {
+                    console.warn(`Health check network error for ${num.instance_id} (likely CORS or Blocked):`, err);
+                    // We can set a special status if we want, or just 'offline'
+                    setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
+                } else {
+                    console.error(`Health check failed for ${num.instance_id}`, err);
+                    setHealthStatuses(prev => ({ ...prev, [num.id]: 'offline' }));
+                }
             }
         }
     };

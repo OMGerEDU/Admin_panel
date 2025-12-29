@@ -14,6 +14,17 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
     return { success: false, error: 'Missing Green API instanceId or token' };
   }
 
+  // Validate format to prevent garbage requests (e.g. accidental Hebrew or backticks)
+  if (!/^\d{10}$/.test(instanceId)) {
+    console.warn('Invalid instance ID format:', instanceId);
+    return { success: false, error: 'Invalid instance ID format (must be 10 digits)' };
+  }
+  // Token is usually 50 chars alphanumeric, but let's just ensure it's safe chars
+  if (!/^[a-zA-Z0-9]+$/.test(token)) {
+    console.warn('Invalid token format');
+    return { success: false, error: 'Invalid token format' };
+  }
+
   const url = `${GREEN_API_BASE}/waInstance${instanceId}/${endpoint}/${token}`;
 
   const config = {
