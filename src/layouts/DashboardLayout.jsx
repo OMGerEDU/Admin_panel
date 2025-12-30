@@ -10,13 +10,8 @@ export default function DashboardLayout() {
     const { user } = useAuth();
     const [showAutoFeedback, setShowAutoFeedback] = useState(false);
 
-<<<<<<< HEAD
-=======
-    // If we are strictly checking for auth here, we ensure we don't render protected content
-    // validation is simplified for now
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
->>>>>>> d3c476f945fec254ce24764e0a1238da3e654f89
     // Check for 7-day feedback prompt
     useEffect(() => {
         if (!user) return; // Add check inside effect instead
@@ -39,9 +34,6 @@ export default function DashboardLayout() {
         checkFeedbackPrompt();
     }, [user]);
 
-<<<<<<< HEAD
-    // If we are strictly checking for auth here, we ensure we don't render protected content
-=======
     // Close mobile menu on route change
     useEffect(() => {
         setMobileMenuOpen(false);
@@ -49,7 +41,6 @@ export default function DashboardLayout() {
 
     // If we are strictly checking for auth here, we ensure we don't render protected content
     // validation is simplified for now
->>>>>>> d3c476f945fec254ce24764e0a1238da3e654f89
     if (!user) {
         return <Navigate to="/login" replace />;
     }
