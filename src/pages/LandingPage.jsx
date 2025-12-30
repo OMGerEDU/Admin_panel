@@ -20,7 +20,13 @@ import {
     Smartphone,
     CheckCircle2,
     XCircle,
-    Star
+    CheckCircle2,
+    XCircle,
+    Star,
+    Tag,
+    Clock,
+    Megaphone,
+    Webhook
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
@@ -297,17 +303,19 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
     </motion.div>
 );
 
-const PainSection = () => {
+const DailyChaosSection = () => {
     const { t } = useTranslation();
 
-    const pains = [
-        { icon: Layers, title: t('landing.pain.item1.title'), desc: t('landing.pain.item1.desc') },
-        { icon: Activity, title: t('landing.pain.item2.title'), desc: t('landing.pain.item2.desc') },
-        { icon: AlertTriangle, title: t('landing.pain.item3.title'), desc: t('landing.pain.item3.desc') }
+    const chaosItems = [
+        { icon: XCircle, text: "פספוס לידים בגלל עומס או חוסר מענה" },
+        { icon: AlertTriangle, text: "בלגן בוואטסאפ – הודעות נעלמות בין עשרות צ'אטים" },
+        { icon: Layers, text: "מעבר מסורבל בין אקסלים, יומנים ומערכות CRM" },
+        { icon: Activity, text: "חוסר שליטה על מה שקורה בעסק בזמן אמת" },
+        { icon: Smartphone, text: "תלות מוחלטת בטלפון האישי שלך לניהול העסק" },
     ];
 
     return (
-        <section className="py-20 relative">
+        <section className="py-20 relative bg-red-50/50 dark:bg-red-900/10">
             <div className="container mx-auto px-4 text-center">
                 <motion.div
                     initial="hidden"
@@ -317,26 +325,27 @@ const PainSection = () => {
                 >
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-12">
                         <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
-                            {t('landing.pain.heading')}
+                            הכאוס היומיומי שמעכב את העסק שלך
                         </span>
                     </h2>
                 </motion.div>
 
-                <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    {pains.map((pain, idx) => (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    {chaosItems.map((item, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1 }}
-                            className="bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/10 p-6 rounded-2xl hover:bg-red-100 dark:hover:bg-red-500/10 transition-colors"
+                            className="bg-white dark:bg-red-950/30 border border-red-100 dark:border-red-500/20 p-6 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm hover:shadow-md"
                         >
-                            <div className="mx-auto w-12 h-12 bg-red-500/10 dark:bg-red-500/20 rounded-full flex items-center justify-center text-red-500 dark:text-red-400 mb-4">
-                                <pain.icon size={24} />
+                            <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center text-red-500 dark:text-red-400 mb-4">
+                                <item.icon size={24} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{pain.title}</h3>
-                            <p className="text-slate-600 dark:text-gray-400 text-sm">{pain.desc}</p>
+                            <p className="text-lg font-medium text-slate-800 dark:text-gray-200">
+                                {item.text}
+                            </p>
                         </motion.div>
                     ))}
                 </div>
@@ -383,6 +392,106 @@ const FeaturesSection = () => {
     );
 };
 
+const FeatureSolutionsSection = () => {
+    const solutions = [
+        {
+            icon: Tag,
+            title: "תיוג חכם וסדר",
+            pain: "בלאגן בצ׳אטים - הכל נראה אותו דבר, אי אפשר למצוא כלום",
+            solution: "תגים צבעוניים שעושים סדר בעיניים - ליד, לקוח, דחוף",
+            color: "text-blue-500",
+            bg: "bg-blue-500/10",
+            border: "border-blue-200 dark:border-blue-500/20"
+        },
+        {
+            icon: Clock,
+            title: "הודעות מתוזמנות",
+            pain: "לשכוח לחזור ללקוח, לפספס ימי הולדת או מועדים חשובים",
+            solution: "תזמון הודעות מראש לזמן המושלם - שגר ושכח",
+            color: "text-purple-500",
+            bg: "bg-purple-500/10", // Using explicit color classes for safety
+            border: "border-purple-200 dark:border-purple-500/20"
+        },
+        {
+            icon: Megaphone,
+            title: "אוטומציות ודיוור",
+            pain: "לשלוח הודעה אחת אחת ידנית ל-100 לקוחות - סיוט מתמשך",
+            solution: "שליחה מרוכזת לכולם בקליק אחד פשוט ומהיר",
+            color: "text-orange-500",
+            bg: "bg-orange-500/10",
+            border: "border-orange-200 dark:border-orange-500/20"
+        },
+        {
+            icon: Webhook,
+            title: "חיבור למערכות (API)",
+            pain: "להעתיק ידנית נתונים מהאתר או מה-CRM לוואטסאפ",
+            solution: "הכל מסתנכרן אוטומטית למערכות שלך בזמן אמת",
+            color: "text-green-500",
+            bg: "bg-green-500/10",
+            border: "border-green-200 dark:border-green-500/20"
+        }
+    ];
+
+    return (
+        <section className="py-20 relative bg-white dark:bg-[#0F172A]">
+            <div className="container mx-auto px-4">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                        פתרונות חכמים לכאבים אמיתיים
+                    </h2>
+                    <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
+                        אל תתן לטכנולוגיה לעכב אותך - תן לה לעבוד בשבילך
+                    </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    {solutions.map((item, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1 }}
+                            className={`p-8 rounded-2xl border ${item.border} bg-white dark:bg-white/5 hover:shadow-xl transition-all duration-300 group`}
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className={`p-3 rounded-xl ${item.bg} ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                                    <item.icon size={28} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                                        {item.title}
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        <div className="flex gap-3">
+                                            <div className="mt-1 min-w-[20px]">
+                                                <XCircle className="w-5 h-5 text-red-500" />
+                                            </div>
+                                            <p className="text-slate-500 dark:text-gray-400 text-sm leading-relaxed">
+                                                {item.pain}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <div className="mt-1 min-w-[20px]">
+                                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                            </div>
+                                            <p className="text-slate-800 dark:text-gray-200 font-medium text-sm leading-relaxed">
+                                                {item.solution}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const ClientAvatar = ({ name, url, delay }) => (
     <motion.div
         initial={{ opacity: 0, scale: 0 }}
@@ -398,7 +507,7 @@ const ClientAvatar = ({ name, url, delay }) => (
                 <span className="text-xl font-bold text-[#10B981]">{name.charAt(0)}</span>
             )}
         </div>
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm py-1 px-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm text-white bg-[#0F172A]/90 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
             {name}
         </div>
     </motion.div>
@@ -408,18 +517,18 @@ const SocialProofSection = () => {
     const { t } = useTranslation();
 
     const clients = [
-        { name: t('landing.social.clients.omri'), imageUrl: 'https://e-club.biz/wp-content/uploads/2025/03/WhatsApp-Image-2025-03-27-at-15.48.25.jpeg' },
-        { name: t('landing.social.clients.bsr'), imageUrl: 'https://pic1.calcalist.co.il/picserver3/crop_images/2025/03/03/rJMSUlQsyg/rJMSUlQsyg_9_0_262_147_0_xx-large.jpg' },
-        { name: t('landing.social.clients.daniel'), imageUrl: 'https://yt3.googleusercontent.com/Ti137VSspBSwMddYf-Pcpr_LM1bALCF3R4oQJWCh-QSqHFXMDq8fAEwoEmx4zaRZjf9R4mLOLQ=s900-c-k-c0x00ffffff-no-rj' },
-        { name: t('landing.social.clients.ilan'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDS5dvIWsTVh2IbLc-dRf0LSQdA1e6JFwJoQ&s' },
-        { name: t('landing.social.clients.guy'), imageUrl: 'https://cdn.funder.co.il/fimgni/i/a/Guy-Nathan.jpg' },
-        { name: t('landing.social.clients.bi_meniv'), imageUrl: 'https://bmeniv.co.il/wp-content/uploads/2025/02/WhatsApp-Image-2025-02-24-at-16.44.26.jpeg' },
-        { name: t('landing.social.clients.matan'), imageUrl: 'https://i.scdn.co/image/ab67656300005f1fa64ab8cbdeaace2b6759d1ad' },
-        { name: t('landing.social.clients.tal'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
+        { name: 'עומרי כהן', imageUrl: 'https://e-club.biz/wp-content/uploads/2025/03/WhatsApp-Image-2025-03-27-at-15.48.25.jpeg' },
+        { name: 'קבוצת ב.ס.ר', imageUrl: 'https://pic1.calcalist.co.il/picserver3/crop_images/2025/03/03/rJMSUlQsyg/rJMSUlQsyg_9_0_262_147_0_xx-large.jpg' },
+        { name: 'דניאל מולדבסקי', imageUrl: 'https://yt3.googleusercontent.com/Ti137VSspBSwMddYf-Pcpr_LM1bALCF3R4oQJWCh-QSqHFXMDq8fAEwoEmx4zaRZjf9R4mLOLQ=s900-c-k-c0x00ffffff-no-rj' },
+        { name: 'עו״ד אילן', imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDS5dvIWsTVh2IbLc-dRf0LSQdA1e6JFwJoQ&s' },
+        { name: 'גיא נתן', imageUrl: 'https://cdn.funder.co.il/fimgni/i/a/Guy-Nathan.jpg' },
+        { name: 'בי מניב', imageUrl: 'https://bmeniv.co.il/wp-content/uploads/2025/02/WhatsApp-Image-2025-02-24-at-16.44.26.jpeg' },
+        { name: 'מתן ניסטור', imageUrl: 'https://i.scdn.co/image/ab67656300005f1fa64ab8cbdeaace2b6759d1ad' },
+        { name: 'טל מועלם', imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
     ];
 
     const scrollToPricing = () => {
-        const pricingSection = document.getElementById('pricing');
+        const pricingSection = document.getElementById('offer');
         if (pricingSection) {
             pricingSection.scrollIntoView({ behavior: 'smooth' });
         }
@@ -594,7 +703,8 @@ export default function LandingPage() {
             <Navbar />
             <HeroSection />
             <SocialProofSection />
-            <PainSection />
+            <DailyChaosSection />
+            <FeatureSolutionsSection />
             <FeaturesSection />
             <PricingSection />
             <Footer />
