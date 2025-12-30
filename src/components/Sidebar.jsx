@@ -33,7 +33,7 @@ export function Sidebar({ className, isMobile, onClose }) {
     const settingsChildren = [
         { href: '/app/settings', label: t('settings'), icon: Settings },
         { href: '/app/organization', label: t('organization_settings') || 'Organization', icon: Building2 },
-        { href: '/app/plans', label: t('landing.plans.select'), icon: LayoutDashboard },
+        { href: '/app/plans', label: t('landing.pricing.plans.select'), icon: LayoutDashboard },
 
         { href: '/app/logs', label: t('logs'), icon: FileText },
 
