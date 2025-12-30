@@ -30,6 +30,16 @@ import {
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
 
+// Import Client Images
+import omriImg from '../assets/clients/omri.jpg';
+import bsrImg from '../assets/clients/bsr.jpg';
+import danielImg from '../assets/clients/daniel.jpg';
+import ilanImg from '../assets/clients/ilan.jpg';
+import guyImg from '../assets/clients/guy.jpg';
+import biMenivImg from '../assets/clients/bi_meniv.jpg';
+import matanImg from '../assets/clients/matan.jpg';
+import talImg from '../assets/clients/tal.jpg';
+
 // --- Animations ---
 const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
@@ -71,7 +81,7 @@ const Navbar = () => {
             <div className="container mx-auto px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <img
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69419a22f9aa11079dc26e01/59c0c29b5_icon32.png"
+                        src="/fernslogo.png"
                         alt="Ferns Logo"
                         className="w-8 h-8"
                     />
@@ -85,12 +95,12 @@ const Navbar = () => {
                     <button onClick={toggleTheme} className="text-slate-600 dark:text-gray-300 hover:text-[#10B981] dark:hover:text-white transition-colors">
                         {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
-                    <Link to="/app/login">
+                    <Link to="/login">
                         <Button variant="ghost" className="text-slate-600 dark:text-white hover:text-[#10B981] hover:bg-slate-100 dark:hover:bg-white/5">
                             {t('landing.nav.login')}
                         </Button>
                     </Link>
-                    <Link to="/app/register">
+                    <Link to="/register">
                         <Button className="bg-[#10B981] hover:bg-[#059669] text-white border-none shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all hover:-translate-y-0.5">
                             {t('landing.nav.cta')}
                         </Button>
@@ -112,10 +122,10 @@ const Navbar = () => {
                         className="md:hidden bg-white dark:bg-[#0F172A] border-t border-slate-200 dark:border-white/10 overflow-hidden shadow-lg"
                     >
                         <div className="p-4 flex flex-col gap-4">
-                            <Link to="/app/login" className="text-slate-900 dark:text-white py-2 block" onClick={() => setMobileMenuOpen(false)}>
+                            <Link to="/login" className="text-slate-900 dark:text-white py-2 block" onClick={() => setMobileMenuOpen(false)}>
                                 {t('landing.nav.login')}
                             </Link>
-                            <Link to="/app/register" onClick={() => setMobileMenuOpen(false)}>
+                            <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                                 <Button className="w-full bg-[#10B981] hover:bg-[#059669] text-white">
                                     {t('landing.nav.cta')}
                                 </Button>
@@ -172,7 +182,7 @@ const HeroSection = () => {
                         </motion.p>
 
                         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                            <Link to="/app/register">
+                            <Link to="/register">
                                 <Button size="lg" className="w-full sm:w-auto bg-[#10B981] hover:bg-[#059669] text-white text-lg px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1">
                                     {t('landing.hero.cta_primary')}
                                 </Button>
@@ -516,14 +526,14 @@ const SocialProofSection = () => {
     const { t } = useTranslation();
 
     const clients = [
-        { name: 'עומרי כהן', imageUrl: 'https://e-club.biz/wp-content/uploads/2025/03/WhatsApp-Image-2025-03-27-at-15.48.25.jpeg' },
-        { name: 'קבוצת ב.ס.ר', imageUrl: 'https://pic1.calcalist.co.il/picserver3/crop_images/2025/03/03/rJMSUlQsyg/rJMSUlQsyg_9_0_262_147_0_xx-large.jpg' },
-        { name: 'דניאל מולדבסקי', imageUrl: 'https://yt3.googleusercontent.com/Ti137VSspBSwMddYf-Pcpr_LM1bALCF3R4oQJWCh-QSqHFXMDq8fAEwoEmx4zaRZjf9R4mLOLQ=s900-c-k-c0x00ffffff-no-rj' },
-        { name: 'עו״ד אילן', imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDS5dvIWsTVh2IbLc-dRf0LSQdA1e6JFwJoQ&s' },
-        { name: 'גיא נתן', imageUrl: 'https://cdn.funder.co.il/fimgni/i/a/Guy-Nathan.jpg' },
-        { name: 'בי מניב', imageUrl: 'https://bmeniv.co.il/wp-content/uploads/2025/02/WhatsApp-Image-2025-02-24-at-16.44.26.jpeg' },
-        { name: 'מתן ניסטור', imageUrl: 'https://i.scdn.co/image/ab67656300005f1fa64ab8cbdeaace2b6759d1ad' },
-        { name: 'טל מועלם', imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
+        { name: 'עומרי כהן', imageUrl: omriImg },
+        { name: 'קבוצת ב.ס.ר', imageUrl: bsrImg },
+        { name: 'דניאל מולדבסקי', imageUrl: danielImg },
+        { name: 'עו״ד אילן', imageUrl: ilanImg },
+        { name: 'גיא נתן', imageUrl: guyImg },
+        { name: 'בי מניב', imageUrl: biMenivImg },
+        { name: 'מתן ניסטור', imageUrl: matanImg },
+        { name: 'טל מועלם', imageUrl: talImg }
     ];
 
     const scrollToPricing = () => {
@@ -595,7 +605,7 @@ const PricingCard = ({ tier, price, period, features, recommended, ctaKey }) => 
             ))}
         </ul>
 
-        <Link to="/app/register">
+        <Link to="/register">
             <Button className={`w-full ${recommended
                 ? 'bg-[#10B981] hover:bg-[#059669] text-white shadow-lg'
                 : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white'}`}>
@@ -676,7 +686,7 @@ const Footer = () => {
             <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="flex items-center gap-2">
                     <img
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69419a22f9aa11079dc26e01/59c0c29b5_icon32.png"
+                        src="/fernslogo.png"
                         alt="Ferns Logo"
                         className="w-6 h-6 grayscale opacity-70"
                     />
