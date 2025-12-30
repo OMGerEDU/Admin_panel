@@ -20,8 +20,7 @@ import {
     Smartphone,
     CheckCircle2,
     XCircle,
-    CheckCircle2,
-    XCircle,
+
     Star,
     Tag,
     Clock,
