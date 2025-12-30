@@ -2,9 +2,7 @@ import { supabase } from '../lib/supabaseClient';
 import {
   getChats,
   getChatHistory,
-  receiveNotification,
-  deleteNotification,
-  getChatInfo,
+  getLastIncomingMessages,
 } from './greenApi';
 
 /**
@@ -90,7 +88,7 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
               displayName;
           }
         } catch {
-          // Ignore enrichment errors – we still upsert basic info
+          // Ignore enrichment errors
         }
       }
 
@@ -197,7 +195,7 @@ export async function syncMessagesToSupabase(
 
       // Build media metadata (exactly like extension's makeBubble)
       let mediaMeta = null;
-      
+
       if (type === 'imageMessage' || type === 'image') {
         // Image message - save all media info (handle nested imageMessage object)
         const imageMsg = msg.imageMessage || msg;
@@ -324,7 +322,7 @@ export async function fullSync(numberId, instanceId, token, messageLimit = 50) {
   // Batch sync with delay to avoid rate limits
   for (let i = 0; i < chatsToSync.length; i++) {
     const chat = chatsToSync[i];
-    
+
     // Add small delay between chats to avoid rate limiting
     if (i > 0) {
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -360,7 +358,45 @@ export async function pollNewMessages(instanceId, token, onNewMessage) {
   try {
     const result = await receiveNotification(instanceId, token);
 
-    if (!result.success || !result.data) {
+    // FAILURE CASE: Check for Webhook conflict
+    if (!result.success) {
+      // If error indicates custom webhook is set (400 Bad Request)
+      if (result.error && (result.error.includes('custom webhook url') || result.error.includes('400'))) {
+        console.warn('[POLLING] Custom webhook detected, falling back to history polling.');
+
+        // Polling Fallback: Check last 1 minute of income messages
+        const historyResult = await getLastIncomingMessages(instanceId, token, 1);
+
+        if (historyResult.success && Array.isArray(historyResult.data)) {
+          // Filter for very recent messages (last 30 seconds to be safe)
+          const nowSeconds = Math.floor(Date.now() / 1000);
+          const cutoff = nowSeconds - 30;
+
+          const recentMessages = historyResult.data.filter(msg => {
+            const ts = msg.timestamp || 0;
+            return ts >= cutoff;
+          });
+
+          // If we found recent messages, trigger the callback for each
+          if (recentMessages.length > 0) {
+            console.log(`[POLLING] Found ${recentMessages.length} recent messages via history fallback.`);
+            if (onNewMessage) {
+              // We pass just the message object, simulating the 'incomingMessageReceived' payload
+              // Chats.jsx mainly needs to know *something* arrived to trigger a refresh.
+              // We pass the last one to be representative.
+              await onNewMessage(recentMessages[0], null);
+
+              // Note: We don't delete these form the queue because they are from history/storage, not the notification queue.
+            }
+          }
+
+          return { success: true, fallback: true, count: recentMessages.length };
+        }
+      }
+      return { success: false, error: result.error };
+    }
+
+    if (!result.data) {
       return { success: false };
     }
 

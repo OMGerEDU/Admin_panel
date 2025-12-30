@@ -25,7 +25,27 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
     return { success: false, error: 'Invalid token format' };
   }
 
-  const url = `${GREEN_API_BASE}/waInstance${instanceId}/${endpoint}/${token}`;
+  // Handle query parameters
+  let queryStr = '';
+  if (options.queryParams) {
+    const params = new URLSearchParams(options.queryParams);
+    queryStr = `?${params.toString()}`;
+  }
+
+  // Handle endpoints that already might have query strings (legacy support)
+  // If endpoint has '?', we split it. But ideally we use options.queryParams.
+  let cleanEndpoint = endpoint;
+  if (endpoint.includes('?')) {
+    const parts = endpoint.split('?');
+    cleanEndpoint = parts[0];
+    if (!queryStr) {
+      queryStr = `?${parts[1]}`;
+    } else {
+      queryStr += `&${parts[1]}`;
+    }
+  }
+
+  const url = `${GREEN_API_BASE}/waInstance${instanceId}/${cleanEndpoint}/${token}${queryStr}`;
 
   const config = {
     method: options.method || 'GET',
@@ -59,7 +79,7 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
         const errorText = await response.text();
         await logger.error('Green API HTTP error', {
           status: response.status,
-          endpoint,
+          endpoint: cleanEndpoint,
           errorText: errorText.slice(0, 500),
         });
         throw new Error(`Green API ${response.status}: ${errorText}`);
@@ -71,7 +91,7 @@ async function greenApiCall(instanceId, token, endpoint, options = {}) {
       console.error('WhatsApp API error:', error);
       if (retries <= 1) {
         await logger.error('Green API request failed after retries', {
-          endpoint,
+          endpoint: cleanEndpoint,
           error: error.message || 'Green API error',
         });
       }
@@ -229,7 +249,9 @@ export function normalizePhoneForAPI(raw) {
 
 // Get last incoming messages (like extension)
 export async function getLastIncomingMessages(instanceId, token, minutes = 1440) {
-  return greenApiCall(instanceId, token, `lastIncomingMessages?minutes=${minutes}`);
+  return greenApiCall(instanceId, token, 'lastIncomingMessages', {
+    queryParams: { minutes },
+  });
 }
 
 // Get last outgoing messages (like extension)
