@@ -61,9 +61,16 @@ export default function Dashboard() {
                     hasScheduledMessages
                 });
 
-                // Show modal if user hasn't completed onboarding
-                // (either no numbers or no scheduled messages)
-                if (!hasNumbers || !hasScheduledMessages) {
+                // Check account age (must be less than 48 hours)
+                const createdAt = new Date(user.created_at);
+                const now = new Date();
+                const hoursSinceCreation = Math.abs(now - createdAt) / 36e5;
+                const isNewUser = hoursSinceCreation < 48;
+
+                // Show modal ONLY if: 
+                // 1. Account < 48 hours old
+                // 2. No numbers connected (no chat connected)
+                if (isNewUser && !hasNumbers) {
                     setShowWelcomeModal(true);
                 }
             } catch (error) {
@@ -76,10 +83,10 @@ export default function Dashboard() {
 
     const fetchDashboardData = async () => {
         if (!user) return;
-        
+
         try {
             setLoading(true);
-            
+
             // Fetch numbers for the user
             const { data: numbers, error: numbersError } = await supabase
                 .from('numbers')
@@ -94,7 +101,7 @@ export default function Dashboard() {
             // Fetch recent errors from logs (last 24 hours)
             const yesterday = new Date();
             yesterday.setHours(yesterday.getHours() - 24);
-            
+
             const { count: errorCount } = await supabase
                 .from('logs')
                 .select('*', { count: 'exact', head: true })
@@ -136,33 +143,33 @@ export default function Dashboard() {
     };
 
     const statsData = [
-        { 
-            title: t('total_numbers'), 
-            value: stats.totalNumbers.toString(), 
-            icon: Smartphone, 
-            color: "text-blue-500", 
-            desc: `${stats.activeNumbers} ${t('active')}` 
+        {
+            title: t('total_numbers'),
+            value: stats.totalNumbers.toString(),
+            icon: Smartphone,
+            color: "text-blue-500",
+            desc: `${stats.activeNumbers} ${t('active')}`
         },
-        { 
-            title: t('system_status'), 
-            value: t('healthy'), 
-            icon: CheckCircle2, 
-            color: "text-green-500", 
-            desc: t('all_systems_operational') 
+        {
+            title: t('system_status'),
+            value: t('healthy'),
+            icon: CheckCircle2,
+            color: "text-green-500",
+            desc: t('all_systems_operational')
         },
-        { 
-            title: t('recent_errors'), 
-            value: stats.recentErrors.toString(), 
-            icon: AlertTriangle, 
-            color: "text-yellow-500", 
-            desc: t('last_24_hours') 
+        {
+            title: t('recent_errors'),
+            value: stats.recentErrors.toString(),
+            icon: AlertTriangle,
+            color: "text-yellow-500",
+            desc: t('last_24_hours')
         },
-        { 
-            title: t('api_usage'), 
-            value: stats.apiUsage > 0 ? `${(stats.apiUsage / 1000).toFixed(1)}k` : "0", 
-            icon: Activity, 
-            color: "text-violet-500", 
-            desc: t('requests_today') 
+        {
+            title: t('api_usage'),
+            value: stats.apiUsage > 0 ? `${(stats.apiUsage / 1000).toFixed(1)}k` : "0",
+            icon: Activity,
+            color: "text-violet-500",
+            desc: t('requests_today')
         }
     ];
 
@@ -202,7 +209,7 @@ export default function Dashboard() {
                 hasScheduledMessages={onboardingState.hasScheduledMessages}
                 onComplete={handleOnboardingComplete}
             />
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">{t('dashboard')}</h2>
                     <p className="text-muted-foreground">
@@ -224,20 +231,20 @@ export default function Dashboard() {
                     <div className="col-span-4 text-center py-8 text-muted-foreground">{t('common.loading')}</div>
                 ) : (
                     statsData.map((stat, i) => (
-                    <Card key={i}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                {stat.title}
-                            </CardTitle>
-                            <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {stat.desc}
-                            </p>
-                        </CardContent>
-                    </Card>
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    {stat.title}
+                                </CardTitle>
+                                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stat.value}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    {stat.desc}
+                                </p>
+                            </CardContent>
+                        </Card>
                     ))
                 )}
             </div>
@@ -290,9 +297,9 @@ export default function Dashboard() {
                                             </p>
                                         </div>
                                         <div className="text-xs text-muted-foreground">
-                                            {new Date(log.created_at).toLocaleTimeString([], { 
-                                                hour: '2-digit', 
-                                                minute: '2-digit' 
+                                            {new Date(log.created_at).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
                                             })}
                                         </div>
                                     </div>

@@ -9,6 +9,8 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
     const fetchTags = useCallback(async () => {
         if (!organizationId && !userId) return; // Need at least one
 
+        console.log('[useTags] Fetching tags for:', { organizationId, userId });
+
         let query = supabase.from('tags').select('*');
 
         if (organizationId) {
@@ -20,6 +22,7 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
         const { data, error } = await query;
 
         if (!error) {
+            console.log('[useTags] Fetched tags:', data?.length);
             setTags(data || []);
         } else {
             console.error('Error fetching tags:', error);
@@ -81,11 +84,21 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
 
     // Add Tag
     const createTag = async (name, color) => {
-        if (!organizationId && !userId) return;
+        if (!userId) return; // UserId is required for created_by
 
         // Optimistic Update
         const tempId = 'temp_' + Date.now().toString();
-        const newTag = { id: tempId, name, color, organization_id: organizationId || null, user_id: organizationId ? null : userId };
+        // Ownership Logic: If organizationId exists, it belongs to Org (user_id is null). 
+        // If no organizationId, it belongs to User.
+        // Created By is always the current user.
+        const newTag = {
+            id: tempId,
+            name,
+            color,
+            organization_id: organizationId || null,
+            user_id: organizationId ? null : userId,
+            created_by: userId
+        };
 
         setTags(prev => [...prev, newTag]);
 
@@ -95,7 +108,8 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
                 name,
                 color,
                 organization_id: organizationId || null,
-                user_id: organizationId ? null : userId
+                user_id: organizationId ? null : userId,
+                created_by: userId
             })
             .select()
             .single();
@@ -110,6 +124,24 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
             setTags(prev => prev.map(t => t.id === tempId ? data : t));
         }
         return data;
+    };
+
+    // Update Tag
+    const updateTag = async (tagId, name, color) => {
+        // Optimistic
+        setTags(prev => prev.map(t => t.id === tagId ? { ...t, name, color } : t));
+
+        const { error } = await supabase
+            .from('tags')
+            .update({ name, color })
+            .eq('id', tagId);
+
+        if (error) {
+            console.error('Error updating tag:', error);
+            // Revert (requires previous state or fetch, simple revert here fetches)
+            fetchTags();
+            throw error;
+        }
     };
 
     // Delete Tag
@@ -185,5 +217,5 @@ export function useTags(organizationId, instanceId, userId) { // Added userId
         }
     };
 
-    return { tags, chatTags, createTag, deleteTag, assignTagToChat, removeTagFromChat };
+    return { tags, chatTags, createTag, deleteTag, assignTagToChat, removeTagFromChat, updateTag };
 }

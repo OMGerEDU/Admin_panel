@@ -21,6 +21,7 @@ import OrganizationOverview from './pages/OrganizationOverview'
 import Plans from './pages/Plans'
 import ScheduledMessages from './pages/ScheduledMessages'
 import ScheduledMessageEdit from './pages/ScheduledMessageEdit'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 import './index.css'
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
               <Route element={<RootLayout />}>
                 {/* Public */}
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
                 {/* Auth */}
                 <Route element={<AuthLayout />}>

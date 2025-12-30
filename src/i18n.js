@@ -64,7 +64,8 @@ const resources = {
                 "connect_continue": "Connect & Continue",
                 "connect_start_chatting": "Connect & Start Chatting",
                 "connecting": "Connecting...",
-                "where_to_find": "Where to find?"
+                "where_to_find": "Where to find?",
+                "click_to_zoom": "Click to zoom"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -287,6 +288,15 @@ const resources = {
                 "list_title": "Connected Accounts",
                 "list_desc": "List of all your Green-API accounts and instances"
             },
+            "green_api": {
+                "guide_title": "How to get Green API Credentials",
+                "guide_desc": "Follow these steps to get your Instance ID and API Token.",
+                "step1": "Go to Green API Console",
+                "step1_desc": "Login or create an account on the Green API console to manage your instances.",
+                "open_console": "Open Console",
+                "step2": "Copy Credentials",
+                "step2_desc": "Select your instance and copy the \"InstanceId\" and \"ApiTokenInstance\" as shown below:"
+            },
             "onboarding": {
                 "welcome_title": "Welcome to Ferns! 🎉",
                 "welcome_description": "Let's get you started in 2 simple steps",
@@ -370,13 +380,22 @@ const resources = {
                 "assign_tags": "Assign Tags",
                 "no_tags_defined": "No tags defined yet.",
                 "create_first_tag": "Create Tag",
+                "create_first_tag_desc": "Create tags to organize your chats",
                 "labels": "Labels",
                 "manage_tags": "Manage Tags",
                 "create_new": "Create New Tag",
                 "tag_name": "Tag Name",
+                "tag_name_placeholder": "Enter tag name...",
                 "existing_tags": "Existing Tags",
                 "no_tags_yet": "No tags created yet.",
-                "confirm_delete": "Delete this tag?"
+                "no_tags_title": "No tags yet",
+                "no_tags_desc": "Create your first tag to get started",
+                "generate_sample": "Generate Sample Tags",
+                "confirm_delete": "Delete this tag?",
+                "view_chats": "View Chats",
+                "chats_with_tag": "Chats with tag",
+                "no_chats_with_tag": "No chats have this tag yet",
+                "tag_id": "#{{id}}"
             }
         }
     },
@@ -442,7 +461,8 @@ const resources = {
                 "connect_continue": "התחבר והמשך",
                 "connect_start_chatting": "התחבר והתחל לצ'אט",
                 "connecting": "מתחבר...",
-                "where_to_find": "איפה למצוא?"
+                "where_to_find": "איפה למצוא?",
+                "click_to_zoom": "לחץ להגדלה"
             },
             "numbers_page": {
                 "title": "מספרים",
@@ -665,6 +685,15 @@ const resources = {
                 "list_title": "חשבונות מחוברים",
                 "list_desc": "רשימת כל חשבונות ו-מופעי ה-Green-API שלך"
             },
+            "green_api": {
+                "guide_title": "איך להשיג פרטי חיבור ל-Green API",
+                "guide_desc": "עקוב אחר הצעדים הבאים כדי להשיג את ה-Instance ID וה-API Token שלך.",
+                "step1": "לך לקונסולה של Green API",
+                "step1_desc": "התחבר או צור חשבון בקונסולה של Green API כדי לנהל את המופעים שלך.",
+                "open_console": "פתח קונסולה",
+                "step2": "העתק פרטי גישה",
+                "step2_desc": "בחר את המופע שלך והעתק את ה-\"InstanceId\" ואת ה-\"ApiTokenInstance\" כפי שמוצג למטה:"
+            },
             "onboarding": {
                 "welcome_title": "ברוכים הבאים ל-Ferns! 🎉",
                 "welcome_description": "בואו נתחיל ב-2 צעדים פשוטים",
@@ -748,13 +777,22 @@ const resources = {
                 "assign_tags": "שייך תגיות",
                 "no_tags_defined": "עדיין לא הוגדרו תגיות.",
                 "create_first_tag": "צור תגית",
+                "create_first_tag_desc": "צור תגיות כדי לארגן את הצ'אטים שלך",
                 "labels": "תוויות",
                 "manage_tags": "ניהול תגיות",
                 "create_new": "צור תגית חדשה",
                 "tag_name": "שם התגית",
+                "tag_name_placeholder": "הכנס שם תגית...",
                 "existing_tags": "תגיות קיימות",
                 "no_tags_yet": "עדיין לא נוצרו תגיות.",
-                "confirm_delete": "למחוק את התגית הזו?"
+                "no_tags_title": "אין תגיות עדיין",
+                "no_tags_desc": "צור את התגית הראשונה שלך כדי להתחיל",
+                "generate_sample": "צור תגיות לדוגמה",
+                "confirm_delete": "למחוק את התגית הזו?",
+                "view_chats": "צפה בצ'אטים",
+                "chats_with_tag": "צ'אטים עם התגית",
+                "no_chats_with_tag": "אין צ'אטים עם התגית הזו עדיין",
+                "tag_id": "#{{id}}"
             }
         }
     }

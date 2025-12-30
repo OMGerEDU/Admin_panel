@@ -10,6 +10,13 @@ export default function DashboardLayout() {
     const { user } = useAuth();
     const [showAutoFeedback, setShowAutoFeedback] = useState(false);
 
+<<<<<<< HEAD
+=======
+    // If we are strictly checking for auth here, we ensure we don't render protected content
+    // validation is simplified for now
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+>>>>>>> d3c476f945fec254ce24764e0a1238da3e654f89
     // Check for 7-day feedback prompt
     useEffect(() => {
         if (!user) return; // Add check inside effect instead
@@ -32,7 +39,17 @@ export default function DashboardLayout() {
         checkFeedbackPrompt();
     }, [user]);
 
+<<<<<<< HEAD
     // If we are strictly checking for auth here, we ensure we don't render protected content
+=======
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [window.location.pathname]);
+
+    // If we are strictly checking for auth here, we ensure we don't render protected content
+    // validation is simplified for now
+>>>>>>> d3c476f945fec254ce24764e0a1238da3e654f89
     if (!user) {
         return <Navigate to="/login" replace />;
     }
@@ -42,9 +59,24 @@ export default function DashboardLayout() {
             {/* Desktop Sidebar */}
             <Sidebar className="hidden md:block" />
 
+            {/* Mobile Sidebar */}
+            <Sidebar
+                className={mobileMenuOpen ? "block fixed inset-y-0 left-0 z-50 w-64 shadow-xl" : "hidden"}
+                isMobile={true}
+                onClose={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Mobile Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 md:hidden backdrop-blur-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
             <div className="flex-1 flex flex-col min-w-0">
-                <Header />
-                <main className="flex-1 p-6 overflow-auto bg-muted/20 relative">
+                <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+                <main className="flex-1 p-4 md:p-6 overflow-auto bg-muted/20 relative">
                     <Outlet />
 
                     {/* Floating Feedback Button */}

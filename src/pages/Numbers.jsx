@@ -73,8 +73,12 @@ export default function Numbers() {
         used: 0,
         limit: -1,
     });
+<<<<<<< HEAD
     // Stores real-time health status: { [id]: 'online' | 'offline' | 'loading' }
     const [healthStatuses, setHealthStatuses] = useState({});
+=======
+    const [showHelpModal, setShowHelpModal] = useState(false);
+>>>>>>> d3c476f945fec254ce24764e0a1238da3e654f89
 
     useEffect(() => {
         fetchNumbers();
@@ -376,7 +380,7 @@ export default function Numbers() {
                             className="max-w-sm"
                         />
                     </div>
-                    <div className="rounded-md border">
+                    <div className="rounded-md border overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -575,6 +579,11 @@ export default function Numbers() {
                     </Card>
                 </div>
             )}
+
+            <GreenApiHelpModal
+                isOpen={showHelpModal}
+                onClose={() => setShowHelpModal(false)}
+            />
         </div>
     );
 }
