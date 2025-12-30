@@ -316,11 +316,11 @@ const DailyChaosSection = () => {
     const { t } = useTranslation();
 
     const chaosItems = [
-        { icon: XCircle, text: "פספוס לידים בגלל עומס או חוסר מענה" },
-        { icon: AlertTriangle, text: "בלגן בוואטסאפ – הודעות נעלמות בין עשרות צ'אטים" },
-        { icon: Layers, text: "מעבר מסורבל בין אקסלים, יומנים ומערכות CRM" },
-        { icon: Activity, text: "חוסר שליטה על מה שקורה בעסק בזמן אמת" },
-        { icon: Smartphone, text: "תלות מוחלטת בטלפון האישי שלך לניהול העסק" },
+        { icon: XCircle, text: t('landing.chaos.item1') },
+        { icon: AlertTriangle, text: t('landing.chaos.item2') },
+        { icon: Layers, text: t('landing.chaos.item3') },
+        { icon: Activity, text: t('landing.chaos.item4') },
+        { icon: Smartphone, text: t('landing.chaos.item5') },
     ];
 
     return (
@@ -334,7 +334,7 @@ const DailyChaosSection = () => {
                 >
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-12">
                         <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
-                            הכאוס היומיומי שמעכב את העסק שלך
+                            {t('landing.chaos.heading')}
                         </span>
                     </h2>
                 </motion.div>
@@ -402,39 +402,41 @@ const FeaturesSection = () => {
 };
 
 const FeatureSolutionsSection = () => {
+    const { t } = useTranslation();
+
     const solutions = [
         {
             icon: Tag,
-            title: "תיוג חכם וסדר",
-            pain: "בלאגן בצ׳אטים - הכל נראה אותו דבר, אי אפשר למצוא כלום",
-            solution: "תגים צבעוניים שעושים סדר בעיניים - ליד, לקוח, דחוף",
+            title: t('landing.solutions.tag.title'),
+            pain: t('landing.solutions.tag.pain'),
+            solution: t('landing.solutions.tag.solution'),
             color: "text-blue-500",
             bg: "bg-blue-500/10",
             border: "border-blue-200 dark:border-blue-500/20"
         },
         {
             icon: Clock,
-            title: "הודעות מתוזמנות",
-            pain: "לשכוח לחזור ללקוח, לפספס ימי הולדת או מועדים חשובים",
-            solution: "תזמון הודעות מראש לזמן המושלם - שגר ושכח",
+            title: t('landing.solutions.scheduled.title'),
+            pain: t('landing.solutions.scheduled.pain'),
+            solution: t('landing.solutions.scheduled.solution'),
             color: "text-purple-500",
             bg: "bg-purple-500/10", // Using explicit color classes for safety
             border: "border-purple-200 dark:border-purple-500/20"
         },
         {
             icon: Megaphone,
-            title: "אוטומציות ודיוור",
-            pain: "לשלוח הודעה אחת אחת ידנית ל-100 לקוחות - סיוט מתמשך",
-            solution: "שליחה מרוכזת לכולם בקליק אחד פשוט ומהיר",
+            title: t('landing.solutions.automation.title'),
+            pain: t('landing.solutions.automation.pain'),
+            solution: t('landing.solutions.automation.solution'),
             color: "text-orange-500",
             bg: "bg-orange-500/10",
             border: "border-orange-200 dark:border-orange-500/20"
         },
         {
             icon: Webhook,
-            title: "חיבור למערכות (API)",
-            pain: "להעתיק ידנית נתונים מהאתר או מה-CRM לוואטסאפ",
-            solution: "הכל מסתנכרן אוטומטית למערכות שלך בזמן אמת",
+            title: t('landing.solutions.api.title'),
+            pain: t('landing.solutions.api.pain'),
+            solution: t('landing.solutions.api.solution'),
             color: "text-green-500",
             bg: "bg-green-500/10",
             border: "border-green-200 dark:border-green-500/20"
@@ -446,10 +448,10 @@ const FeatureSolutionsSection = () => {
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-                        פתרונות חכמים לכאבים אמיתיים
+                        {t('landing.solutions.heading')}
                     </h2>
                     <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
-                        אל תתן לטכנולוגיה לעכב אותך - תן לה לעבוד בשבילך
+                        {t('landing.solutions.subheading')}
                     </p>
                 </div>
 
@@ -571,7 +573,7 @@ const SocialProofSection = () => {
                     onClick={scrollToPricing}
                     className="bg-[#10B981] hover:bg-[#059669] text-white px-8 py-6 text-lg rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1"
                 >
-                    רוצה לראות איך זה יכול לעבוד אצלך?
+                    {t('landing.social.cta_see_how')}
                 </Button>
             </div>
         </section>
