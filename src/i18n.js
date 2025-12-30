@@ -132,50 +132,97 @@ const resources = {
                 "invite_code_help": "Ask an admin to send you an invite link or code. Leave empty to sign up without an organization."
             },
             "landing": {
-                "hero_title": "Manage WhatsApp Numbers in One Place",
-                "hero_subtitle": "Enterprise-grade dashboard for monitoring, logging, and automating your WhatsApp infrastructure.",
-                "get_started": "Get Started",
-                "features": "Features",
-                "pricing": "Pricing",
-                "view_demo": "View Demo",
-                "footer": "Built by Builders..",
-                "features_list": {
-                    "instant_connection": "Instant Connection",
-                    "instant_connection_desc": "Connect your WA instances in seconds with QR code scanning.",
-                    "auto_recovery": "Auto-Recovery",
-                    "auto_recovery_desc": "Automatic webhook retries and disconnection alerts.",
-                    "secure_tokens": "Secure Tokens",
-                    "secure_tokens_desc": "Encrypted storage for all your API keys and secrets.",
-                    "real_time_analytics": "Real-time Analytics",
-                    "real_time_analytics_desc": "Monitor message throughput and error rates live.",
-                    "role_management": "Role Management",
-                    "role_management_desc": "Granular permissions for admins and team members.",
-                    "uptime": "99.9% Uptime",
-                    "uptime_desc": "Built on reliable infrastructure for mission-critical apps."
+                "hero": {
+                    "headline": "Know your WhatsApp systems are working—before your clients notice.",
+                    "subheadline": "A central command center for agencies and businesses managing multiple WhatsApp API connections. Zero blind spots. Total control.",
+                    "cta_primary": "Connect your first number",
+                    "cta_secondary": "View system demo",
+                    "trust_badge": "Trusted by 50+ agencies & businesses"
                 },
-                "plans": {
-                    "free": "Free",
-                    "pro": "Pro",
-                    "agency": "Agency",
-                    "popular": "Popular",
-                    "features": "Features",
-                    "select": "Choose Plan",
-                    "monthly": "Monthly",
-                    "yearly": "Yearly",
-                    "billed_yearly": "billed yearly",
-                    "month": "/month",
-                    "numbers": "Numbers",
-                    "scheduled_messages": "Scheduled Messages",
-                    "customer_support": "Customer Support",
-                    "priority_support": "Priority Support",
-                    "users": "Users",
-                    "team_members": "Team Members",
-                    "basic_webhooks": "Basic Webhooks",
-                    "advanced_webhooks": "Advanced webhooks",
-                    "priority_log_retention": "Priority Log Retention",
-                    "dedicated_support": "Dedicated Support",
-                    "custom_integrations": "Custom Integrations",
-                    "unlimited": "Unlimited"
+                "pain": {
+                    "headline": "Running multiple WhatsApp numbers in the dark?",
+                    "point_1": "Are your bots actually online?",
+                    "point_2": "Which instance just disconnected?",
+                    "point_3": "How many API errors happened while you slept?",
+                    "impact": "Don't wait for a client to call you angry. Fix problems before they cause damage."
+                },
+                "benefits": {
+                    "headline": "Turn Chaos into Control",
+                    "b1_title": "Zero Blind Spots",
+                    "b1_desc": "Unified dashboard for all your numbers. See status, battery, and connection health in one glance.",
+                    "b2_title": "Scale Without Chaos",
+                    "b2_desc": "Manage 10 or 100 instances with the same ease. Organize by client or department.",
+                    "b3_title": "Stay Operational",
+                    "b3_desc": "Real-time 'System Status' indicators. Know immediately when a number needs attention.",
+                    "b4_title": "Live in Minutes",
+                    "b4_desc": "Smart onboarding guides you to your first connected number in under 2 minutes."
+                },
+                "audience": {
+                    "headline": "Built for High-Stakes Operations",
+                    "tab_agencies": "For Agencies",
+                    "tab_businesses": "For Businesses",
+                    "agencies_list": [
+                        "Manage countless client numbers confidently",
+                        "Detect disconnections before clients do",
+                        "Role-based access for your team"
+                    ],
+                    "businesses_list": [
+                        "Ensure uptime for critical support channels",
+                        "Protect revenue from silent failures",
+                        "Centralized billing and oversight"
+                    ]
+                },
+                "social_proof": {
+                    "stat_1_value": "99.9%",
+                    "stat_1_label": "Uptime Monitoring",
+                    "stat_2_value": "1M+",
+                    "stat_2_label": "Messages Tracked",
+                    "quote": "Ferns gave us the visibility we were missing. We stopped checking phones manually and started scaling.",
+                    "quote_author": "CTO, Marketing Agency"
+                },
+                "pricing": {
+                    "headline": "Simple, Scalable Pricing",
+                    "subheadline": "Start free. Scale as you grow. No per-number hidden fees.",
+                    "risk_reversal": "14-day money-back guarantee on all paid plans.",
+                    "cta": "Start Free Trial",
+                    "plans": {
+                        "free": {
+                            "name": "Starter",
+                            "price": "Free",
+                            "desc": "Perfect for testing and small setups.",
+                            "features": ["2 Numbers", "Basic Webhooks", "1 User", "Community Support"]
+                        },
+                        "pro": {
+                            "name": "Growth",
+                            "price": "$29",
+                            "desc": "For growing businesses and small agencies.",
+                            "badge": "Most Popular",
+                            "features": ["10 Numbers", "Advanced Webhooks", "5 Team Members", "Priority Logs", "Email Support"]
+                        },
+                        "agency": {
+                            "name": "Scale",
+                            "price": "$99",
+                            "desc": "Full control for serious operations.",
+                            "features": ["Unlimited Numbers", "Unlimited Users", "Custom Integrations", "Dedicated Support", "SLA"]
+                        }
+                    }
+                },
+                "faq": {
+                    "headline": "Technical & Operational FAQ",
+                    "q1": "Do I need a Green API account?",
+                    "a1": "Yes. Ferns is a management layer on top of Green API. You simply plug in your Instance ID and Token.",
+                    "q2": "Is my data secure?",
+                    "a2": "Absolutely. We use Supabase for enterprise-grade security. Your tokens are encrypted and stored locally or securely in our DB.",
+                    "q3": "Can I use the Chrome Extension?",
+                    "a3": "Yes! Ferns includes a powerful Chrome Extension for generating 'Click to Chat' links and managing numbers on the fly."
+                },
+                "footer": {
+                    "rights": "© 2025 Ferns. All rights reserved.",
+                    "links": {
+                        "privacy": "Privacy Policy",
+                        "support": "Support",
+                        "login": "Login"
+                    }
                 }
             },
             "organization_settings": "Organization Settings",
@@ -529,50 +576,97 @@ const resources = {
                 "invite_code_help": "בקש ממנהל הארגון לשלוח לך לינק או קוד הזמנה. אפשר להשאיר ריק כדי להירשם בלי ארגון."
             },
             "landing": {
-                "hero_title": "נהל מספרי WhatsApp במקום אחד",
-                "hero_subtitle": "מערכת ארגונית לניטור, לוגים ואוטומציה של תשתיות ה-WhatsApp שלך.",
-                "get_started": "התחל עכשיו",
-                "features": "פיצ'רים",
-                "pricing": "מחירים",
-                "view_demo": "צפה בהדגמה",
-                "footer": "נבנה על ידי Builders. קוד המקור זמין ב-GitHub.",
-                "features_list": {
-                    "instant_connection": "חיבור מיידי",
-                    "instant_connection_desc": "חבר מופעי WA תוך שניות עם סריקת QR.",
-                    "auto_recovery": "שחזור אוטומטי",
-                    "auto_recovery_desc": "ניסיונות webhook אוטומטיים והתראות ניתוק.",
-                    "secure_tokens": "אסימונים מאובטחים",
-                    "secure_tokens_desc": "אחסון מוצפן לכל מפתחות ה-API והסודות שלך.",
-                    "real_time_analytics": "אנליטיקה בזמן אמת",
-                    "real_time_analytics_desc": "עקוב אחר תפוקת הודעות ושיעורי שגיאות בזמן אמת.",
-                    "role_management": "ניהול תפקידים",
-                    "role_management_desc": "הרשאות מפורטות למנהלים וחברי צוות.",
-                    "uptime": "99.9% זמן פעילות",
-                    "uptime_desc": "נבנה על תשתית אמינה ליישומים קריטיים."
+                "hero": {
+                    "headline": "דע שמערכות ה-WhatsApp שלך עובדות – לפני שהלקוחות שמים לב.",
+                    "subheadline": "מרכז שליטה ובקרה לסוכנויות ועסקים המנהלים חיבורי WhatsApp מרובים. אפס נקודות עיוורות. שליטה מלאה.",
+                    "cta_primary": "חבר את המספר הראשון",
+                    "cta_secondary": "צפה בהדגמה",
+                    "trust_badge": "בשימוש ע\"י 50+ סוכנויות ועסקים"
                 },
-                "plans": {
-                    "free": "חינם",
-                    "pro": "מקצועי",
-                    "agency": "סוכנות",
-                    "popular": "פופולרי",
-                    "features": "פיצ'רים כוללים",
-                    "select": "בחר תוכנית",
-                    "monthly": "חודשי",
-                    "yearly": "שנתי",
-                    "billed_yearly": "מחויב שנתית",
-                    "month": "/חודש",
-                    "numbers": "מספרים",
-                    "scheduled_messages": "הודעות מתוזמנות",
-                    "customer_support": "שירות לקוחות",
-                    "priority_support": "תמיכה בעדיפות",
-                    "users": "משתמשים",
-                    "team_members": "חברי צוות",
-                    "basic_webhooks": "Webhooks בסיסיים",
-                    "advanced_webhooks": "Webhooks מתקדמים",
-                    "priority_log_retention": "שמירת לוגים עדיפות",
-                    "dedicated_support": "תמיכה ייעודית",
-                    "custom_integrations": "אינטגרציות מותאמות",
-                    "unlimited": "ללא הגבלה"
+                "pain": {
+                    "headline": "מנהל מספרים בחושך?",
+                    "point_1": "האם הבוטים שלך באמת מחוברים?",
+                    "point_2": "איזה מופע הרגע התנתק?",
+                    "point_3": "כמה שגיאות API קרו בזמן שישנת?",
+                    "impact": "אל תחכה ללקוח עצבני. תקן תקלות לפני שהן גורמות נזק."
+                },
+                "benefits": {
+                    "headline": "הפוך כאוס לשליטה",
+                    "b1_title": "אפס נקודות עיוורות",
+                    "b1_desc": "לוח מחוונים מאוחד לכל המספרים. סטטוס, סוללה ובריאות חיבור במבט אחד.",
+                    "b2_title": "לגדול בלי להשתגע",
+                    "b2_desc": "נהל 10 או 100 מופעים באותה קלות. ארגן לפי לקוחות או מחלקות.",
+                    "b3_title": "הישאר מבצעי",
+                    "b3_desc": "אינדיקטורים לסטטוס מערכת בזמן אמת. דע מיד כשמספר דורש תשומת לב.",
+                    "b4_title": "באוויר תוך דקות",
+                    "b4_desc": "תהליך קליטה חכם שיוביל אותך למספר המחובר הראשון תוך פחות מ-2 דקות."
+                },
+                "audience": {
+                    "headline": "נבנה עבור פעילות קריטית",
+                    "tab_agencies": "לסוכנויות",
+                    "tab_businesses": "לעסקים",
+                    "agencies_list": [
+                        "נהל אינספור מספרי לקוחות בביטחון",
+                        "זהה התנתקויות לפני הלקוח",
+                        "הרשאות גישה מבוססות תפקיד לצוות שלך"
+                    ],
+                    "businesses_list": [
+                        "הבטח זמינות לערוצי תמיכה קריטיים",
+                        "הגן על ההכנסות מכשלים שקטים",
+                        "חיוב ופיקוח במקום אחד"
+                    ]
+                },
+                "social_proof": {
+                    "stat_1_value": "99.9%",
+                    "stat_1_label": "ניטור זמינות",
+                    "stat_2_value": "1M+",
+                    "stat_2_label": "הודעות נוטרו",
+                    "quote": "Ferns נתן לנו את השקיפות שהייתה חסרה לנו. הפסקנו לבדוק טלפונים ידנית והתחלנו לגדול.",
+                    "quote_author": "סמנכ\"ל טכנולוגיות, סוכנות שיווק"
+                },
+                "pricing": {
+                    "headline": "מחיר פשוט והוגן",
+                    "subheadline": "התחל בחינם. שלם ככל שתגדל. ללא עמלות נסתרות לכל מספר.",
+                    "risk_reversal": "14 יום החזר כספי מובטח על כל התוכניות.",
+                    "cta": "התחל ניסיון חינם",
+                    "plans": {
+                        "free": {
+                            "name": "מתחילים",
+                            "price": "חינם",
+                            "desc": "מושלם לבדיקות וסטאפים קטנים.",
+                            "features": ["2 מספרים", "Webhooks בסיסיים", "משתמש אחד", "תמיכה בקהילה"]
+                        },
+                        "pro": {
+                            "name": "צמיחה",
+                            "price": "$29",
+                            "desc": "לעסקים צומחים וסוכנויות קטנות.",
+                            "badge": "הכי פופולרי",
+                            "features": ["10 מספרים", "Webhooks מתקדמים", "5 חברי צוות", "לוגים בעדיפות", "תמיכה במייל"]
+                        },
+                        "agency": {
+                            "name": "סוכנות",
+                            "price": "$99",
+                            "desc": "שליטה מלאה לאופרציות רציניות.",
+                            "features": ["מספרים ללא הגבלה", "משתמשים ללא הגבלה", "אינטגרציות מותאמות", "תמיכה ייעודית", "הסכם SLA"]
+                        }
+                    }
+                },
+                "faq": {
+                    "headline": "שאלות נפוצות",
+                    "q1": "האם אני צריך חשבון Green API?",
+                    "a1": "כן. Ferns היא שכבת ניהול על גבי Green API. אתה פשוט מחבר את ה-Instance ID וה-Token שלך.",
+                    "q2": "האם המידע שלי מאובטח?",
+                    "a2": "בהחלט. אנו משתמשים ב-Supabase לאבטחה ברמת Enterprise. הטוקנים שלך מוצפנים ונשמרים לוקאלית או בשרת המאובטח.",
+                    "q3": "האם אפשר להשתמש בתוסף לכרום?",
+                    "a3": "כן! Ferns כולל תוסף כרום חזק ליצירת לינקים ל-WhatsApp וניהול מספרים תוך כדי גלישה."
+                },
+                "footer": {
+                    "rights": "© 2025 Ferns. כל הזכויות שמורות.",
+                    "links": {
+                        "privacy": "מדיניות פרטיות",
+                        "support": "תמיכה",
+                        "login": "התחברות"
+                    }
                 }
             },
             "organization_settings": "הגדרות ארגון",
