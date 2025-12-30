@@ -193,26 +193,51 @@ const HeroSection = () => {
                                 </div>
 
                                 <div className="space-y-4">
-                                    {[1, 2, 3].map((i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-2 h-2 rounded-full ${i === 2 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.6)]'}`} />
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm text-gray-200 font-medium">Instance #{9000 + i}</span>
-                                                    <span className="text-xs text-gray-500">{i === 2 ? 'Disconnected' : 'Active • 98% Uptime'}</span>
-                                                </div>
-                                            </div>
-                                            <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
-                                                {i === 2 ? 'ERR_401' : '200 OK'}
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                            <div className="flex flex-col">
+                                                <span className="text-sm text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_1_id')}</span>
+                                                <span className="text-xs text-gray-500">{t('landing.hero.dashboard_mock.instance_1_status')}</span>
                                             </div>
                                         </div>
-                                    ))}
+                                        <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
+                                            {t('landing.hero.dashboard_mock.instance_1_code')}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                                            <div className="flex flex-col">
+                                                <span className="text-sm text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_2_id')}</span>
+                                                <span className="text-xs text-gray-500">{t('landing.hero.dashboard_mock.instance_2_status')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
+                                            {t('landing.hero.dashboard_mock.instance_2_code')}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                            <div className="flex flex-col">
+                                                <span className="text-sm text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_3_id')}</span>
+                                                <span className="text-xs text-gray-500">{t('landing.hero.dashboard_mock.instance_3_status')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
+                                            {t('landing.hero.dashboard_mock.instance_3_code')}
+                                        </div>
+                                    </div>
+
                                     <div className="h-2 bg-white/5 rounded-full overflow-hidden mt-6">
                                         <div className="h-full w-[85%] bg-[#10B981]" />
                                     </div>
                                     <div className="flex justify-between text-xs text-gray-400">
-                                        <span>System Load</span>
-                                        <span>85%</span>
+                                        <span>{t('landing.hero.dashboard_mock.load_label')}</span>
+                                        <span>{t('landing.hero.dashboard_mock.load_value')}</span>
                                     </div>
                                 </div>
                             </div>
