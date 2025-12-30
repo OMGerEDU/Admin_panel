@@ -195,6 +195,8 @@ const resources = {
                         "scheduled_messages": "Scheduled Messages",
                         "customer_support": "Customer Support",
                         "priority_support": "Priority Support",
+                        "unlimited": "Unlimited",
+                        "billed_yearly": "billed yearly",
                         "free": {
                             "name": "Starter",
                             "price": "Free",
@@ -604,6 +606,8 @@ const resources = {
                         "scheduled_messages": "הודעות מתוזמנות",
                         "customer_support": "שירות לקוחות",
                         "priority_support": "תמיכה בעדיפות",
+                        "unlimited": "ללא הגבלה",
+                        "billed_yearly": "חיוב שנתי",
                         "free": {
                             "name": "מתחילים",
                             "price": "חינם",

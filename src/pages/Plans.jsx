@@ -180,16 +180,16 @@ export default function Plans() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">{t('landing.plans.select')}</h2>
-        <p className="text-muted-foreground">{t('landing.pricing')}</p>
+        <h2 className="text-3xl font-bold tracking-tight">{t('landing.pricing.plans.select')}</h2>
+        <p className="text-muted-foreground">{t('landing.pricing.subheadline')}</p>
 
       </div>
 
       {/* Current plan & usage */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('landing.plans.select')}</CardTitle>
-          <CardDescription>{t('landing.pricing')}</CardDescription>
+          <CardTitle>{t('landing.pricing.plans.select')}</CardTitle>
+          <CardDescription>{t('landing.pricing.subheadline')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div>
@@ -291,7 +291,7 @@ export default function Plans() {
               <div className="flex items-center gap-2 text-primary">
                 <span className="text-xl">💎</span>
                 <span>
-                  {t('landing.plans.select')}: <span className="font-bold">{currentSubscription.plans?.name}</span> ({currentSubscription.status})
+                  {t('landing.pricing.plans.select')}: <span className="font-bold">{currentSubscription.plans?.name}</span> ({currentSubscription.status})
                 </span>
               </div>
             </CardContent>
@@ -305,13 +305,13 @@ export default function Plans() {
             onClick={() => setBillingInterval('month')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'month' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            {t('landing.plans.monthly') || 'Monthly'}
+            {t('landing.pricing.plans.month') || 'Monthly'}
           </button>
           <button
             onClick={() => setBillingInterval('year')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${billingInterval === 'year' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            {t('landing.plans.yearly') || 'Yearly'}
+            {t('landing.pricing.plans.yearly') || 'Yearly'}
           </button>
 
           {/* Discount Badge */}
@@ -343,13 +343,13 @@ export default function Plans() {
                       )}
                       <div>
                         ${billingInterval === 'year' ? Math.round(plan.price_yearly / 12) : plan.price_monthly}
-                        <span className="text-base font-normal text-muted-foreground">/{t('landing.plans.month')}</span>
+                        <span className="text-base font-normal text-muted-foreground">/{t('landing.pricing.plans.month')}</span>
                       </div>
                     </div>
                     {billingInterval === 'year' && plan.price_monthly > 0 && (
                       <div className="text-xs text-muted-foreground mt-1">
                         <span className="line-through opacity-70 mr-1">${plan.price_monthly * 12}</span>
-                        ${plan.price_yearly} {t('landing.plans.billed_yearly') || 'billed yearly'}
+                        ${plan.price_yearly} {t('landing.pricing.plans.billed_yearly') || 'billed yearly'}
                       </div>
                     )}
                   </div>
@@ -359,15 +359,15 @@ export default function Plans() {
                 <ul className="mb-8 space-y-3 text-sm flex-grow">
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
-                    {plan.numbers_limit === -1 ? t('landing.plans.unlimited') : plan.numbers_limit} {t('landing.plans.numbers')}
+                    {plan.numbers_limit === -1 ? t('landing.pricing.plans.unlimited') : plan.numbers_limit} {t('landing.pricing.plans.numbers')}
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
-                    {plan.numbers_limit === -1 ? t('landing.plans.unlimited') : plan.numbers_limit} {t('landing.plans.numbers')}
+                    {plan.numbers_limit === -1 ? t('landing.pricing.plans.unlimited') : plan.numbers_limit} {t('landing.pricing.plans.numbers')}
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
-                    {plan.invites_limit === -1 ? t('landing.plans.unlimited') : plan.invites_limit} {t('landing.plans.team_members')}
+                    {plan.invites_limit === -1 ? t('landing.pricing.plans.unlimited') : plan.invites_limit} {t('landing.pricing.plans.team_members')}
                   </li>
                   <li className="flex items-center gap-2">
                     {plan.name === 'Free' ? (
@@ -376,7 +376,7 @@ export default function Plans() {
                       <Check className="h-4 w-4 text-green-500" />
                     )}
                     <span className={plan.name === 'Free' ? 'text-muted-foreground' : ''}>
-                      {t('landing.plans.scheduled_messages')}
+                      {t('landing.pricing.plans.scheduled_messages')}
                     </span>
                   </li>
                   {plan.name !== 'Free' && (
@@ -384,8 +384,8 @@ export default function Plans() {
                       <Check className="h-4 w-4 text-green-500" />
                       <span>
                         {plan.name === 'Organization' || plan.name === 'Agency'
-                          ? t('landing.plans.priority_support')
-                          : t('landing.plans.customer_support')}
+                          ? t('landing.pricing.plans.priority_support')
+                          : t('landing.pricing.plans.customer_support')}
                       </span>
                     </li>
                   )}
@@ -401,10 +401,10 @@ export default function Plans() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   {isCurrent
-                    ? t('landing.plans.select')
+                    ? t('landing.pricing.plans.select')
                     : processingPlanId === plan.id
                       ? 'Processing...'
-                      : t('landing.plans.select')}
+                      : t('landing.pricing.plans.select')}
                 </Button>
               </CardContent>
             </Card>
