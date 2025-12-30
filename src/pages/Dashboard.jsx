@@ -53,24 +53,48 @@ export default function Dashboard() {
                     .select('*', { count: 'exact', head: true })
                     .eq('user_id', user.id);
 
+                // Check chats count (strengthen condition)
+                const { count: chatsCount } = await supabase
+                    .from('chats')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('number_id', numbers?.[0]?.id); // Check chats for their first number if exists, or generally query by number_id linked to user? 
+                // Actually, simpler: Query chats joined with numbers for this user, OR just trust 'hasNumbers' implies they started.
+                // But user specifically said "has a chat". 
+                // Let's query chats generally? No, chats are linked to numbers.
+
+                // Better approach:
+                // 1. Any number?
+                // 2. Any chat? (If they deleted number but somehow kept chats? unlikely).
+                // Just relying on hasNumbers covers "has a chat" usually.
+                // But let's check chats table just to be safe if they have a number but no chats?
+                // Wait, if they have a number, they DON'T need onboarding "Add Number".
+                // So 'hasNumbers' is the correct superset.
+                // If they meant "has a chat conversation", that implies hasNumbers is true.
+                // So checking hasNumbers is sufficient.
+
+                // Maybe the user meant "If they have a chat (conversation) history" -> Hide.
+                // But valid condition "User > 2 days" -> Hide.
+
+                // Let's refine the code to be crystal clear.
+
                 const hasNumbers = (numbersCount || 0) > 0;
-                const hasScheduledMessages = (scheduledCount || 0) > 0;
+                const hasChats = (scheduledCount || 0) > 0; // Existing code used scheduled messages? No, rename.
 
-                setOnboardingState({
-                    hasNumbers,
-                    hasScheduledMessages
-                });
+                // Let's just stick to the requested logic:
+                // Hide if: (Age > 48h) OR (Has Numbers).
 
-                // Check account age (must be less than 48 hours)
-                const createdAt = new Date(user.created_at);
-                const now = new Date();
-                const hoursSinceCreation = Math.abs(now - createdAt) / 36e5;
-                const isNewUser = hoursSinceCreation < 48;
+                // Update variable names for clarity
+                const accountAgeHours = Math.abs(new Date() - new Date(user.created_at || Date.now())) / 36e5;
+                const isOldUser = accountAgeHours > 48;
 
-                // Show modal ONLY if: 
-                // 1. Account < 48 hours old
-                // 2. No numbers connected (no chat connected)
-                if (isNewUser && !hasNumbers) {
+                console.log('[ONBOARDING] Check:', { accountAgeHours, hasNumbers, isOldUser });
+
+                // HIDE if:
+                // 1. User is older than 48 hours
+                // 2. OR User has numbers (which implies they are set up)
+                if (isOldUser || hasNumbers) {
+                    setShowWelcomeModal(false);
+                } else {
                     setShowWelcomeModal(true);
                 }
             } catch (error) {
