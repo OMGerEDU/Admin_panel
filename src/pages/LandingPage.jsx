@@ -526,14 +526,14 @@ const SocialProofSection = () => {
     const { t } = useTranslation();
 
     const clients = [
-        { name: 'עומרי כהן', imageUrl: omriImg },
-        { name: 'קבוצת ב.ס.ר', imageUrl: bsrImg },
-        { name: 'דניאל מולדבסקי', imageUrl: danielImg },
-        { name: 'עו״ד אילן', imageUrl: ilanImg },
-        { name: 'גיא נתן', imageUrl: guyImg },
-        { name: 'בי מניב', imageUrl: biMenivImg },
-        { name: 'מתן ניסטור', imageUrl: matanImg },
-        { name: 'טל מועלם', imageUrl: talImg }
+        { name: 'עומרי כהן', url: omriImg },
+        { name: 'קבוצת ב.ס.ר', url: bsrImg },
+        { name: 'דניאל מולדבסקי', url: danielImg },
+        { name: 'עו״ד אילן', url: ilanImg },
+        { name: 'גיא נתן', url: guyImg },
+        { name: 'בי מניב', url: biMenivImg },
+        { name: 'מתן ניסטור', url: matanImg },
+        { name: 'טל מועלם', url: talImg }
     ];
 
     const scrollToPricing = () => {
