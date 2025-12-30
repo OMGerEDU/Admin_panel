@@ -403,14 +403,14 @@ const SocialProofSection = () => {
     const { t } = useTranslation();
 
     const clients = [
-        { name: 'עומרי כהן', imageUrl: 'https://e-club.biz/wp-content/uploads/2025/03/WhatsApp-Image-2025-03-27-at-15.48.25.jpeg' },
-        { name: 'קבוצת ב.ס.ר', imageUrl: 'https://pic1.calcalist.co.il/picserver3/crop_images/2025/03/03/rJMSUlQsyg/rJMSUlQsyg_9_0_262_147_0_xx-large.jpg' },
-        { name: 'דניאל מולדבסקי', imageUrl: 'https://yt3.googleusercontent.com/Ti137VSspBSwMddYf-Pcpr_LM1bALCF3R4oQJWCh-QSqHFXMDq8fAEwoEmx4zaRZjf9R4mLOLQ=s900-c-k-c0x00ffffff-no-rj' },
-        { name: 'עו״ד אילן', imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDS5dvIWsTVh2IbLc-dRf0LSQdA1e6JFwJoQ&s' },
-        { name: 'גיא נתן', imageUrl: 'https://cdn.funder.co.il/fimgni/i/a/Guy-Nathan.jpg' },
-        { name: 'בי מניב', imageUrl: 'https://bmeniv.co.il/wp-content/uploads/2025/02/WhatsApp-Image-2025-02-24-at-16.44.26.jpeg' },
-        { name: 'מתן ניסטור', imageUrl: 'https://i.scdn.co/image/ab67656300005f1fa64ab8cbdeaace2b6759d1ad' },
-        { name: 'טל מועלם', imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
+        { name: t('landing.social.clients.omri'), imageUrl: 'https://e-club.biz/wp-content/uploads/2025/03/WhatsApp-Image-2025-03-27-at-15.48.25.jpeg' },
+        { name: t('landing.social.clients.bsr'), imageUrl: 'https://pic1.calcalist.co.il/picserver3/crop_images/2025/03/03/rJMSUlQsyg/rJMSUlQsyg_9_0_262_147_0_xx-large.jpg' },
+        { name: t('landing.social.clients.daniel'), imageUrl: 'https://yt3.googleusercontent.com/Ti137VSspBSwMddYf-Pcpr_LM1bALCF3R4oQJWCh-QSqHFXMDq8fAEwoEmx4zaRZjf9R4mLOLQ=s900-c-k-c0x00ffffff-no-rj' },
+        { name: t('landing.social.clients.ilan'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDS5dvIWsTVh2IbLc-dRf0LSQdA1e6JFwJoQ&s' },
+        { name: t('landing.social.clients.guy'), imageUrl: 'https://cdn.funder.co.il/fimgni/i/a/Guy-Nathan.jpg' },
+        { name: t('landing.social.clients.bi_meniv'), imageUrl: 'https://bmeniv.co.il/wp-content/uploads/2025/02/WhatsApp-Image-2025-02-24-at-16.44.26.jpeg' },
+        { name: t('landing.social.clients.matan'), imageUrl: 'https://i.scdn.co/image/ab67656300005f1fa64ab8cbdeaace2b6759d1ad' },
+        { name: t('landing.social.clients.tal'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
     ];
 
     return (
@@ -478,8 +478,8 @@ const PricingSection = () => {
     const plans = [
         {
             tier: t('landing.pricing.starter.title'),
-            price: '$0',
-            period: '/mo',
+            price: t('landing.pricing.starter.price'),
+            period: t('landing.pricing.starter.period'),
             features: [
                 t('landing.pricing.starter.feat1'),
                 t('landing.pricing.starter.feat2'),
@@ -489,8 +489,8 @@ const PricingSection = () => {
         },
         {
             tier: t('landing.pricing.pro.title'),
-            price: '$49',
-            period: '/mo',
+            price: t('landing.pricing.pro.price'),
+            period: t('landing.pricing.pro.period'),
             recommended: true,
             features: [
                 t('landing.pricing.pro.feat1'),
@@ -502,8 +502,8 @@ const PricingSection = () => {
         },
         {
             tier: t('landing.pricing.scale.title'),
-            price: '$199',
-            period: '/mo',
+            price: t('landing.pricing.scale.price'),
+            period: t('landing.pricing.scale.period'),
             features: [
                 t('landing.pricing.scale.feat1'),
                 t('landing.pricing.scale.feat2'),
