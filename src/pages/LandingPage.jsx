@@ -19,7 +19,8 @@ import {
     ArrowLeft,
     Smartphone,
     CheckCircle2,
-    XCircle
+    XCircle,
+    Star
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
@@ -61,7 +62,7 @@ const Navbar = () => {
     }, []);
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0F172A]/90 backdrop-blur-md border-b border-white/10 py-3' : 'bg-transparent py-5'}`}>
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/10 py-3 shadow-sm dark:shadow-none' : 'bg-transparent py-5'}`}>
             <div className="container mx-auto px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <img
@@ -69,18 +70,18 @@ const Navbar = () => {
                         alt="Ferns Logo"
                         className="w-8 h-8"
                     />
-                    <span className="text-xl font-bold text-white tracking-tight">Ferns</span>
+                    <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Ferns</span>
                 </div>
 
                 <div className="hidden md:flex items-center gap-6">
-                    <button onClick={toggleLanguage} className="text-gray-300 hover:text-white transition-colors">
+                    <button onClick={toggleLanguage} className="text-slate-600 dark:text-gray-300 hover:text-[#10B981] dark:hover:text-white transition-colors">
                         <Globe className="w-5 h-5" />
                     </button>
-                    <button onClick={toggleTheme} className="text-gray-300 hover:text-white transition-colors">
+                    <button onClick={toggleTheme} className="text-slate-600 dark:text-gray-300 hover:text-[#10B981] dark:hover:text-white transition-colors">
                         {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
                     <Link to="/app/login">
-                        <Button variant="ghost" className="text-white hover:text-[#10B981] hover:bg-white/5">
+                        <Button variant="ghost" className="text-slate-600 dark:text-white hover:text-[#10B981] hover:bg-slate-100 dark:hover:bg-white/5">
                             {t('landing.nav.login')}
                         </Button>
                     </Link>
@@ -91,7 +92,7 @@ const Navbar = () => {
                     </Link>
                 </div>
 
-                <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                <button className="md:hidden text-slate-900 dark:text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                     {mobileMenuOpen ? <X /> : <Menu />}
                 </button>
             </div>
@@ -103,10 +104,10 @@ const Navbar = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-[#0F172A] border-t border-white/10 overflow-hidden"
+                        className="md:hidden bg-white dark:bg-[#0F172A] border-t border-slate-200 dark:border-white/10 overflow-hidden shadow-lg"
                     >
                         <div className="p-4 flex flex-col gap-4">
-                            <Link to="/app/login" className="text-white py-2 block" onClick={() => setMobileMenuOpen(false)}>
+                            <Link to="/app/login" className="text-slate-900 dark:text-white py-2 block" onClick={() => setMobileMenuOpen(false)}>
                                 {t('landing.nav.login')}
                             </Link>
                             <Link to="/app/register" onClick={() => setMobileMenuOpen(false)}>
@@ -114,11 +115,11 @@ const Navbar = () => {
                                     {t('landing.nav.cta')}
                                 </Button>
                             </Link>
-                            <div className="flex gap-4 pt-4 border-t border-white/10">
-                                <button onClick={toggleLanguage} className="text-gray-300 flex items-center gap-2">
+                            <div className="flex gap-4 pt-4 border-t border-slate-200 dark:border-white/10">
+                                <button onClick={toggleLanguage} className="text-slate-600 dark:text-gray-300 flex items-center gap-2">
                                     <Globe className="w-4 h-4" /> {i18n.language === 'en' ? 'Hebrew' : 'English'}
                                 </button>
-                                <button onClick={toggleTheme} className="text-gray-300 flex items-center gap-2">
+                                <button onClick={toggleTheme} className="text-slate-600 dark:text-gray-300 flex items-center gap-2">
                                     {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} Theme
                                 </button>
                             </div>
@@ -157,11 +158,11 @@ const HeroSection = () => {
                             {t('landing.hero.badge')}
                         </motion.div>
 
-                        <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
+                        <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white leading-tight mb-6">
                             {t('landing.hero.title')}
                         </motion.h1>
 
-                        <motion.p variants={fadeInUp} className="text-lg text-gray-400 mb-8 max-w-xl mx-auto lg:mx-0">
+                        <motion.p variants={fadeInUp} className="text-lg text-slate-600 dark:text-gray-400 mb-8 max-w-xl mx-auto lg:mx-0">
                             {t('landing.hero.subtitle')}
                         </motion.p>
 
@@ -182,60 +183,60 @@ const HeroSection = () => {
                     >
                         <div className="relative">
                             {/* Glass Card "Dashboard" */}
-                            <div className="bg-[#1E293B]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-500">
-                                <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
+                            <div className="bg-white/80 dark:bg-[#1E293B]/60 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl dark:shadow-none transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                                <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-white/5 pb-4">
                                     <div className="flex gap-2">
                                         <div className="w-3 h-3 rounded-full bg-red-500/50" />
                                         <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                                         <div className="w-3 h-3 rounded-full bg-green-500/50" />
                                     </div>
-                                    <div className="text-xs text-gray-500 font-mono">system_status.log</div>
+                                    <div className="text-xs text-slate-500 dark:text-gray-500 font-mono">system_status.log</div>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                                             <div className="flex flex-col">
-                                                <span className="text-sm text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_1_id')}</span>
-                                                <span className="text-xs text-gray-500">{t('landing.hero.dashboard_mock.instance_1_status')}</span>
+                                                <span className="text-sm text-slate-800 dark:text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_1_id')}</span>
+                                                <span className="text-xs text-slate-500 dark:text-gray-500">{t('landing.hero.dashboard_mock.instance_1_status')}</span>
                                             </div>
                                         </div>
-                                        <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
+                                        <div className="px-2 py-1 rounded text-xs bg-slate-200 dark:bg-black/20 text-slate-600 dark:text-gray-400 font-mono">
                                             {t('landing.hero.dashboard_mock.instance_1_code')}
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
                                             <div className="flex flex-col">
-                                                <span className="text-sm text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_2_id')}</span>
-                                                <span className="text-xs text-gray-500">{t('landing.hero.dashboard_mock.instance_2_status')}</span>
+                                                <span className="text-sm text-slate-800 dark:text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_2_id')}</span>
+                                                <span className="text-xs text-slate-500 dark:text-gray-500">{t('landing.hero.dashboard_mock.instance_2_status')}</span>
                                             </div>
                                         </div>
-                                        <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
+                                        <div className="px-2 py-1 rounded text-xs bg-slate-200 dark:bg-black/20 text-slate-600 dark:text-gray-400 font-mono">
                                             {t('landing.hero.dashboard_mock.instance_2_code')}
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                                             <div className="flex flex-col">
-                                                <span className="text-sm text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_3_id')}</span>
-                                                <span className="text-xs text-gray-500">{t('landing.hero.dashboard_mock.instance_3_status')}</span>
+                                                <span className="text-sm text-slate-800 dark:text-gray-200 font-medium">{t('landing.hero.dashboard_mock.instance_3_id')}</span>
+                                                <span className="text-xs text-slate-500 dark:text-gray-500">{t('landing.hero.dashboard_mock.instance_3_status')}</span>
                                             </div>
                                         </div>
-                                        <div className="px-2 py-1 rounded text-xs bg-black/20 text-gray-400 font-mono">
+                                        <div className="px-2 py-1 rounded text-xs bg-slate-200 dark:bg-black/20 text-slate-600 dark:text-gray-400 font-mono">
                                             {t('landing.hero.dashboard_mock.instance_3_code')}
                                         </div>
                                     </div>
 
-                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden mt-6">
+                                    <div className="h-2 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden mt-6">
                                         <div className="h-full w-[85%] bg-[#10B981]" />
                                     </div>
-                                    <div className="flex justify-between text-xs text-gray-400">
+                                    <div className="flex justify-between text-xs text-slate-500 dark:text-gray-400">
                                         <span>{t('landing.hero.dashboard_mock.load_label')}</span>
                                         <span>{t('landing.hero.dashboard_mock.load_value')}</span>
                                     </div>
@@ -244,7 +245,7 @@ const HeroSection = () => {
 
                             {/* Floating Alert Card */}
                             <motion.div
-                                className="absolute -bottom-6 -left-6 bg-[#0F172A] border border-red-500/30 p-4 rounded-xl shadow-xl flex items-center gap-3 max-w-[250px]"
+                                className="absolute -bottom-6 -left-6 bg-white dark:bg-[#0F172A] border border-red-500/30 p-4 rounded-xl shadow-xl flex items-center gap-3 max-w-[250px]"
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                             >
@@ -252,14 +253,14 @@ const HeroSection = () => {
                                     <AlertTriangle size={20} />
                                 </div>
                                 <div>
-                                    <div className="text-sm font-bold text-white">{t('landing.hero.alert_title')}</div>
-                                    <div className="text-xs text-gray-400">{t('landing.hero.alert_desc')}</div>
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">{t('landing.hero.alert_title')}</div>
+                                    <div className="text-xs text-slate-500 dark:text-gray-400">{t('landing.hero.alert_desc')}</div>
                                 </div>
                             </motion.div>
 
                             {/* Floating Success Card */}
                             <motion.div
-                                className="absolute -top-6 -right-6 bg-[#0F172A] border border-[#10B981]/30 p-4 rounded-xl shadow-xl flex items-center gap-3 max-w-[250px]"
+                                className="absolute -top-6 -right-6 bg-white dark:bg-[#0F172A] border border-[#10B981]/30 p-4 rounded-xl shadow-xl flex items-center gap-3 max-w-[250px]"
                                 animate={{ y: [0, 10, 0] }}
                                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                             >
@@ -267,8 +268,8 @@ const HeroSection = () => {
                                     <CheckCircle2 size={20} />
                                 </div>
                                 <div>
-                                    <div className="text-sm font-bold text-white">{t('landing.hero.success_title')}</div>
-                                    <div className="text-xs text-gray-400">{t('landing.hero.success_desc')}</div>
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">{t('landing.hero.success_title')}</div>
+                                    <div className="text-xs text-slate-500 dark:text-gray-400">{t('landing.hero.success_desc')}</div>
                                 </div>
                             </motion.div>
                         </div>
@@ -286,13 +287,13 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
             visible: { opacity: 1, y: 0, transition: { delay, duration: 0.5 } }
         }}
         whileHover={{ y: -5 }}
-        className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded-2xl hover:border-[#10B981]/30 transition-all group"
+        className="bg-white dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 p-6 rounded-2xl hover:border-[#10B981]/30 transition-all group shadow-lg dark:shadow-none"
     >
         <div className="w-12 h-12 bg-[#10B981]/10 rounded-xl flex items-center justify-center text-[#10B981] mb-4 group-hover:scale-110 transition-transform duration-300">
             <Icon size={24} />
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-        <p className="text-gray-400 leading-relaxed">{desc}</p>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
+        <p className="text-slate-600 dark:text-gray-400 leading-relaxed">{desc}</p>
     </motion.div>
 );
 
@@ -314,8 +315,8 @@ const PainSection = () => {
                     viewport={{ once: true }}
                     variants={fadeInUp}
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-12">
-                        <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
+                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-12">
+                        <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
                             {t('landing.pain.heading')}
                         </span>
                     </h2>
@@ -329,13 +330,13 @@ const PainSection = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1 }}
-                            className="bg-red-500/5 border border-red-500/10 p-6 rounded-2xl hover:bg-red-500/10 transition-colors"
+                            className="bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/10 p-6 rounded-2xl hover:bg-red-100 dark:hover:bg-red-500/10 transition-colors"
                         >
-                            <div className="mx-auto w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center text-red-400 mb-4">
+                            <div className="mx-auto w-12 h-12 bg-red-500/10 dark:bg-red-500/20 rounded-full flex items-center justify-center text-red-500 dark:text-red-400 mb-4">
                                 <pain.icon size={24} />
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-2">{pain.title}</h3>
-                            <p className="text-gray-400 text-sm">{pain.desc}</p>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{pain.title}</h3>
+                            <p className="text-slate-600 dark:text-gray-400 text-sm">{pain.desc}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -355,13 +356,13 @@ const FeaturesSection = () => {
     ];
 
     return (
-        <section className="py-20 bg-[#0F172A]">
+        <section className="py-20 bg-slate-50 dark:bg-[#0F172A]">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                         {t('landing.features.heading')}
                     </h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">
+                    <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto">
                         {t('landing.features.subheading')}
                     </p>
                 </div>
@@ -390,10 +391,14 @@ const ClientAvatar = ({ name, url, delay }) => (
         transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
         className="group relative"
     >
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#10B981]/50 p-1 bg-[#10B981]/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300">
-            <img src={url} alt={name} className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" />
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#10B981]/50 p-1 bg-[#10B981]/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300 flex items-center justify-center overflow-hidden">
+            {url ? (
+                <img src={url} alt={name} className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" />
+            ) : (
+                <span className="text-xl font-bold text-[#10B981]">{name.charAt(0)}</span>
+            )}
         </div>
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm py-1 px-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
             {name}
         </div>
     </motion.div>
@@ -413,23 +418,43 @@ const SocialProofSection = () => {
         { name: t('landing.social.clients.tal'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
     ];
 
+    const scrollToPricing = () => {
+        const pricingSection = document.getElementById('pricing');
+        if (pricingSection) {
+            pricingSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
         <section className="py-20 relative overflow-hidden">
             <div className="absolute inset-0 bg-[#10B981]/5 mask-image-gradient" />
             <div className="container mx-auto px-4 text-center relative z-10">
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-12">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-12">
                     {t('landing.social.heading')}
                 </h2>
 
-                <div className="flex flex-wrap justify-center gap-6 md:gap-10 mb-10 max-w-4xl mx-auto">
+                <div className="grid grid-cols-4 gap-6 md:gap-10 mb-10 max-w-4xl mx-auto justify-items-center">
                     {clients.map((client, idx) => (
                         <ClientAvatar key={idx} {...client} delay={idx * 0.1} />
                     ))}
                 </div>
 
-                <p className="text-[#10B981] font-medium text-lg">
+                <div className="flex justify-center gap-1 mb-6">
+                    {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                    ))}
+                </div>
+
+                <p className="text-[#10B981] font-medium text-lg mb-8">
                     {t('landing.social.stats')}
                 </p>
+
+                <Button
+                    onClick={scrollToPricing}
+                    className="bg-[#10B981] hover:bg-[#059669] text-white px-8 py-6 text-lg rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1"
+                >
+                    רוצה לראות איך זה יכול לעבוד אצלך?
+                </Button>
             </div>
         </section>
     );
@@ -440,22 +465,22 @@ const PricingCard = ({ tier, price, period, features, recommended, ctaKey }) => 
         whileHover={{ y: -10 }}
         className={`relative rounded-2xl p-8 border backdrop-blur-sm transition-all duration-300 ${recommended
             ? 'bg-[#10B981]/10 border-[#10B981] shadow-[0_0_30px_rgba(16,185,129,0.15)] z-10 scale-105'
-            : 'bg-white/5 border-white/10 hover:border-[#10B981]/30'}`}
+            : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-[#10B981]/30 hover:shadow-xl dark:hover:shadow-none'}`}
     >
         {recommended && (
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 Most Popular
             </div>
         )}
-        <h3 className="text-xl font-bold text-white mb-2">{tier}</h3>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{tier}</h3>
         <div className="flex items-baseline gap-1 mb-6">
-            <span className="text-4xl font-bold text-white">{price}</span>
-            <span className="text-gray-400">{period}</span>
+            <span className="text-4xl font-bold text-slate-900 dark:text-white">{price}</span>
+            <span className="text-slate-500 dark:text-gray-400">{period}</span>
         </div>
 
         <ul className="space-y-4 mb-8">
             {features.map((feat, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
+                <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-gray-300">
                     <Check className="w-5 h-5 text-[#10B981] shrink-0" />
                     <span>{feat}</span>
                 </li>
@@ -465,7 +490,7 @@ const PricingCard = ({ tier, price, period, features, recommended, ctaKey }) => 
         <Link to="/app/register">
             <Button className={`w-full ${recommended
                 ? 'bg-[#10B981] hover:bg-[#059669] text-white shadow-lg'
-                : 'bg-white/10 hover:bg-white/20 text-white'}`}>
+                : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white'}`}>
                 {ctaKey}
             </Button>
         </Link>
@@ -515,13 +540,13 @@ const PricingSection = () => {
     ];
 
     return (
-        <section className="py-20 relative">
+        <section id="offer" className="py-20 relative">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                         {t('landing.pricing.heading')}
                     </h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">
+                    <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto">
                         {t('landing.pricing.subheading')}
                     </p>
                 </div>
@@ -539,7 +564,7 @@ const PricingSection = () => {
 const Footer = () => {
     const { t } = useTranslation();
     return (
-        <footer className="border-t border-white/10 py-12 bg-[#0F172A]">
+        <footer className="border-t border-slate-200 dark:border-white/10 py-12 bg-slate-100 dark:bg-[#0F172A]">
             <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="flex items-center gap-2">
                     <img
@@ -547,12 +572,12 @@ const Footer = () => {
                         alt="Ferns Logo"
                         className="w-6 h-6 grayscale opacity-70"
                     />
-                    <span className="text-gray-500 text-sm">© 2025 Ferns. {t('landing.footer.rights')}</span>
+                    <span className="text-slate-500 dark:text-gray-500 text-sm">© 2025 Ferns. {t('landing.footer.rights')}</span>
                 </div>
 
-                <div className="flex gap-6 text-sm text-gray-500">
-                    <a href="#" className="hover:text-white transition-colors">{t('landing.footer.privacy')}</a>
-                    <a href="#" className="hover:text-white transition-colors">{t('landing.footer.terms')}</a>
+                <div className="flex gap-6 text-sm text-slate-500 dark:text-gray-500">
+                    <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.privacy')}</a>
+                    <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.terms')}</a>
                 </div>
             </div>
         </footer>
@@ -564,14 +589,8 @@ const Footer = () => {
 export default function LandingPage() {
     const { i18n } = useTranslation();
 
-    useEffect(() => {
-        // Force dark mode for landing page aesthetics generally, or respect system? 
-        // The prompt requested standard dark theme.
-        document.documentElement.classList.add('dark');
-    }, []);
-
     return (
-        <div className={`min-h-screen bg-[#0F172A] text-white selection:bg-[#10B981] selection:text-white font-rubik ${i18n.language === 'he' ? 'rtl' : 'ltr'}`} dir={i18n.language === 'he' ? 'rtl' : 'ltr'}>
+        <div className={`min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-white selection:bg-[#10B981] selection:text-white font-rubik ${i18n.language === 'he' ? 'rtl' : 'ltr'}`} dir={i18n.language === 'he' ? 'rtl' : 'ltr'}>
             <Navbar />
             <HeroSection />
             <SocialProofSection />
