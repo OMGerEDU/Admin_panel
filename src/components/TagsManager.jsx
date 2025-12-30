@@ -21,23 +21,9 @@ const PRESET_COLORS = [
     '#64748B', // slate-500
 ];
 
-<<<<<<< HEAD
-export function TagsManager({ organizationId, userId, open, onOpenChange }) {
-    const { t } = useTranslation();
-    const { tags, createTag, deleteTag } = useTags(organizationId, null, userId);
-=======
 export function TagsManager({ organizationId, userId, open, onOpenChange, chats = [], onNavigateChat }) {
     const { t } = useTranslation();
     const { tags, createTag, deleteTag, updateTag } = useTags(organizationId, null, userId);
-    // updateTag is hypothetical in previous hook, but specified in spec. 
-    // I will need to make sure updateTag function exists in useTags hook or implement inline if simple enough,
-    // but better to assume I need to add it to generic hook or just do simple update here if hook misses it.
-    // Wait, useTags view in history didn't show updateTag. I should probably add it to useTags.js first or handle it?
-    // Let's assume for now I will add updateTag to useTags.js in next step if missing, 
-    // OR I can implement a direct supabase update here if needed, but hook is cleaner.
-    // I'll stick to hook pattern. I will add updateTag to useTags.js in a moment.
-
->>>>>>> d3c476f945fec254ce24764e0a1238da3e654f89
     const [newTagName, setNewTagName] = useState('');
     const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
     const [isCreating, setIsCreating] = useState(false);
