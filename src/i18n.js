@@ -138,7 +138,7 @@ const resources = {
                 },
                 "hero": {
                     "badge": "Live System Status",
-                    "title": "Know your WhatsApp systems are working—before your clients notice.",
+                    "title": "Managing dozens of numbers blindly isn't business. It's a gamble.",
                     "subtitle": "A central command center for agencies and businesses managing multiple WhatsApp API connections. Zero blind spots. Total control.",
                     "cta_primary": "Connect your first number",
                     "cta_secondary": "View system demo",
@@ -227,7 +227,7 @@ const resources = {
                     },
                     "pro": {
                         "title": "Growth",
-                        "price": "$49",
+                        "price": "$39",
                         "period": "/mo",
                         "feat1": "Up to 5 Numbers",
                         "feat2": "Real-time Alerts",
@@ -237,7 +237,7 @@ const resources = {
                     },
                     "scale": {
                         "title": "Scale",
-                        "price": "$199",
+                        "price": "$9.99",
                         "period": "/mo",
                         "feat1": "Unlimited Numbers",
                         "feat2": "API Access",
@@ -702,7 +702,7 @@ const resources = {
                     },
                     "pro": {
                         "title": "Growth",
-                        "price": "$49",
+                        "price": "$39",
                         "period": "/חודש",
                         "feat1": "עד 5 מספרים",
                         "feat2": "התראות זמן אמת",
@@ -712,7 +712,7 @@ const resources = {
                     },
                     "scale": {
                         "title": "Scale",
-                        "price": "$199",
+                        "price": "$39",
                         "period": "/חודש",
                         "feat1": "מספרים ללא הגבלה",
                         "feat2": "גישת API",
