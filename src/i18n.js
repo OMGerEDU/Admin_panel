@@ -227,7 +227,7 @@ const resources = {
                     },
                     "pro": {
                         "title": "Growth",
-                        "price": "$39",
+                        "price": "$9.99",
                         "period": "/mo",
                         "feat1": "Up to 5 Numbers",
                         "feat2": "Real-time Alerts",
@@ -237,7 +237,7 @@ const resources = {
                     },
                     "scale": {
                         "title": "Scale",
-                        "price": "$9.99",
+                        "price": "$39",
                         "period": "/mo",
                         "feat1": "Unlimited Numbers",
                         "feat2": "API Access",
@@ -702,7 +702,7 @@ const resources = {
                     },
                     "pro": {
                         "title": "Growth",
-                        "price": "$39",
+                        "price": "$9.99",
                         "period": "/חודש",
                         "feat1": "עד 5 מספרים",
                         "feat2": "התראות זמן אמת",
