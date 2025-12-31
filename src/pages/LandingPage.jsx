@@ -511,9 +511,9 @@ const ClientAvatar = ({ name, url, delay }) => (
         transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
         className="group relative"
     >
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#10B981]/50 p-1 bg-[#10B981]/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300 flex items-center justify-center overflow-hidden">
+        <div className="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-[#10B981]/50 p-1 bg-[#10B981]/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300 flex items-center justify-center overflow-hidden">
             {url ? (
-                <img src={url} alt={name} className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" />
+                <img src={url} alt={name} className="w-full h-full rounded-full object-cover transition-all duration-300" />
             ) : (
                 <span className="text-xl font-bold text-[#10B981]">{name.charAt(0)}</span>
             )}
