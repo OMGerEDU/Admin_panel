@@ -451,6 +451,10 @@ const resources = {
                 "add_recipient": "Add Recipient",
                 "add_recipient": "Add Recipient",
                 "no_recipients": "No recipients",
+                "delay_seconds": "Delay between messages (seconds)",
+                "delay_desc": "Adding a delay helps prevent number blocking by spreading out the sending time.",
+                "spam_warning_title": "Avoid Number Blocking",
+                "spam_warning_desc": "Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.",
                 "upgrade_title": "Upgrade to Schedule Messages",
                 "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!"
             },
@@ -976,6 +980,10 @@ const resources = {
                 "add_recipient": "הוסף נמען",
                 "add_recipient": "הוסף נמען",
                 "no_recipients": "אין נמענים",
+                "delay_seconds": "השהיה בין הודעות (שניות)",
+                "delay_desc": "הוספת השהיה עוזרת למנוע חסימת המספר על ידי פיזור זמן השליחה.",
+                "spam_warning_title": "מנע חסימת מספר",
+                "spam_warning_desc": "שליחת הודעות רבות בבת אחת עלולה לגרום לחסימת המספר שלך על ידי וואטסאפ. אנו ממליצים להוסיף השהיה בין הודעות או לפצל רשימות גדולות.",
                 "upgrade_title": "שדרג כדי לתזמן הודעות",
                 "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!"
             },

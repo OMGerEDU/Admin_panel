@@ -480,10 +480,46 @@ export default function ScheduledMessages() {
                         {t('scheduled.subtitle') || 'Schedule WhatsApp messages to be sent automatically'}
                     </p>
                 </div>
-                <Button onClick={handleCreate}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t('scheduled.create') || 'Create New'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => {
+                        const now = new Date();
+                        const pendingDue = messages.filter(m =>
+                            m.status === 'pending' &&
+                            new Date(m.scheduled_at) <= now &&
+                            m.is_active
+                        );
+
+                        // Check if we are in local development
+                        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+                        let msg = `Found ${pendingDue.length} pending messages that seem overdue.\n`;
+                        if (pendingDue.length > 0) {
+                            msg += `First one due at: ${new Date(pendingDue[0].scheduled_at).toLocaleString()} (Local)\n`;
+                            msg += `UTC Time stored: ${pendingDue[0].scheduled_at}\n\n`;
+                        }
+
+                        msg += `Diagnosis:\n`;
+                        if (pendingDue.length > 0) {
+                            if (isLocal) {
+                                msg += `⚠️ You are on localhost. The automatic dispatcher (Cron Job) usually runs on the Cloud (Vercel/Supabase). It does NOT trigger your local machine unless you are running a custom script.\n`;
+                                msg += `If you are connected to the Production Database, the Cloud Dispatcher should pick this up eventually.\n`;
+                            } else {
+                                msg += `The Dispatcher might be down or delayed. Check Supabase Cron Logs.\n`;
+                            }
+                        } else {
+                            msg += `No overdue messages found. System seems healthy or no messages are scheduled for now.\n`;
+                        }
+
+                        alert(msg);
+                    }}>
+                        <AlertCircle className="mr-2 h-4 w-4" />
+                        Check Status
+                    </Button>
+                    <Button onClick={handleCreate}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t('scheduled.create') || 'Create New'}
+                    </Button>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -660,6 +696,9 @@ export default function ScheduledMessages() {
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
                                                     {formatSchedule(msg)}
+                                                </span>
+                                                <span className="text-[10px] bg-muted px-1 rounded font-mono" title="Stored UTC Time">
+                                                    UTC: {msg.scheduled_at}
                                                 </span>
                                             </div>
 
