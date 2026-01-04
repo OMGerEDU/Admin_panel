@@ -696,7 +696,7 @@ const Footer = () => {
                 </div>
 
                 <div className="flex gap-6 text-sm text-slate-500 dark:text-gray-500">
-                    <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.privacy')}</a>
+                    <Link to="/privacy-policy" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.privacy')}</Link>
                     <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.terms')}</a>
                 </div>
             </div>
