@@ -212,3 +212,19 @@ WHERE sm.status = 'pending'
 4. בדוק את ה-cron execution history
 5. בדוק את ה-scheduled_at ב-DB
 
+
+### בעיה 6: Vercel Rewrite חוסם את ה-API
+
+**תסמינים:**
+- קריאה ל-`/api/dispatch` מחזירה את ה-HTML של ה-SPA (דף הבית) במקום JSON.
+- הודעת שגיאה ב-Supabase Cron: `Unexpected token < in JSON at position 0` (כי הוא מקבל HTML).
+
+**פתרון:**
+1. עדכן את `vercel.json` כדי להחריג את `/api` מה-rewrite:
+```json
+{
+  "source": "/((?!api/.*).*)",
+  "destination": "/index.html"
+}
+```
+2. ודא שדחפת את השינוי ל-git.
