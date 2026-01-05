@@ -101,6 +101,7 @@ export default function ScheduledMessageEdit() {
         template_description: '',
         delay_seconds: 0, // Delay between messages in seconds
         selectedDays: [], // Array of integers 0-6
+        selectedMonthDays: [], // Array of integers 1-30
     });
 
     useEffect(() => {
@@ -176,6 +177,7 @@ export default function ScheduledMessageEdit() {
                         recurrence_type: messageData.recurrence_type || 'daily',
                         day_of_week: messageData.day_of_week || 0,
                         selectedDays: [messageData.day_of_week ?? 0], // Initialize with current day
+                        selectedMonthDays: [messageData.day_of_month ?? new Date().getDate()], // Initialize with current day of month
                         scheduled_date: israelDate,
                         scheduled_time: israelTime,
                         media_url: messageData.media_url || '',
@@ -373,7 +375,9 @@ export default function ScheduledMessageEdit() {
                 scheduled_at: scheduledAt.toISOString(),
                 is_recurring: formData.is_recurring,
                 recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
+                recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
                 day_of_week: formData.is_recurring && formData.recurrence_type === 'weekly' ? formData.day_of_week : null,
+                day_of_month: formData.is_recurring && formData.recurrence_type === 'monthly' ? formData.day_of_month : null,
                 time_of_day: formData.scheduled_time,
                 is_active: true,
                 media_url: formData.media_url || null,
@@ -397,6 +401,13 @@ export default function ScheduledMessageEdit() {
                     return;
                 }
                 daysToProcess = formData.selectedDays;
+            } else if (formData.is_recurring && formData.recurrence_type === 'monthly') {
+                if (!formData.selectedMonthDays || formData.selectedMonthDays.length === 0) {
+                    alert(t('scheduled.select_at_least_one_day') || 'Please select at least one day');
+                    setSaving(false);
+                    return;
+                }
+                daysToProcess = formData.selectedMonthDays;
             }
 
             // Loop through selected days and save (or update)
@@ -453,12 +464,37 @@ export default function ScheduledMessageEdit() {
                     targetDate.setUTCDate(baseDate.getUTCDate() + daysToAdd);
 
                     initialScheduledAt = targetDate;
+                } else if (formData.is_recurring && formData.recurrence_type === 'monthly' && dayIndex !== null) {
+                    // Monthly Logic
+                    // dayIndex is 1-30
+                    const targetDayOfMonth = dayIndex;
+                    const baseDate = new Date(scheduledAt);
+                    const currentDayOfMonth = baseDate.getUTCDate();
+
+                    let targetDate = new Date(baseDate);
+
+                    // If target day is in future of current month, set to this month
+                    // If past, set to next month
+                    // However, we must also respect the Time.
+                    // Actually, simplest logic: Set strictly to This Month's target day. If that date is before NOW, add 1 month.
+
+                    // Set to target day of THIS month
+                    targetDate.setUTCDate(targetDayOfMonth);
+
+                    // Compare with original baseDate (which effectively represents "Start Time" / "Now")
+                    // If targetDate < baseDate, it means we missed it this month, so next month.
+                    if (targetDate < baseDate) {
+                        targetDate.setUTCMonth(targetDate.getUTCMonth() + 1);
+                    }
+
+                    initialScheduledAt = targetDate;
                 }
 
                 // Prepare payload for THIS specific message iteration
                 const currentPayload = {
                     ...payload,
-                    day_of_week: dayIndex, // Will be null if not weekly
+                    day_of_week: formData.recurrence_type === 'weekly' ? dayIndex : null,
+                    day_of_month: formData.recurrence_type === 'monthly' ? dayIndex : null,
                     scheduled_at: initialScheduledAt.toISOString(),
                 };
 
@@ -856,6 +892,42 @@ export default function ScheduledMessageEdit() {
                                         <div className="text-xs text-muted-foreground mt-1">
                                             {formData.selectedDays.length > 0
                                                 ? formData.selectedDays.sort().map(d => t(`common.days.${DAYS_OF_WEEK[d].toLowerCase()}`) || DAYS_OF_WEEK[d]).join(', ')
+                                                : t('scheduled.no_days_selected') || 'No days selected'}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {formData.recurrence_type === 'monthly' && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium block">
+                                            {t('scheduled.days_of_month') || 'Days of Month'}
+                                        </label>
+                                        <div className="flex gap-2 flex-wrap max-w-md">
+                                            {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
+                                                const isSelected = formData.selectedMonthDays.includes(day);
+                                                return (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newDays = isSelected
+                                                                ? formData.selectedMonthDays.filter(d => d !== day)
+                                                                : [...formData.selectedMonthDays, day];
+                                                            setFormData({ ...formData, selectedMonthDays: newDays });
+                                                        }}
+                                                        className={`w-8 h-8 rounded text-sm font-medium transition-colors ring-1 ring-inset ${isSelected
+                                                            ? 'bg-primary text-primary-foreground ring-primary'
+                                                            : 'bg-background text-foreground ring-input hover:bg-accent hover:text-accent-foreground'
+                                                            }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            {formData.selectedMonthDays.length > 0
+                                                ? formData.selectedMonthDays.sort((a, b) => a - b).join(', ')
                                                 : t('scheduled.no_days_selected') || 'No days selected'}
                                         </div>
                                     </div>
