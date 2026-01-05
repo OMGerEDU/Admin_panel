@@ -98,14 +98,25 @@ export default function Login() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Input
-                                type="password"
-                                placeholder={t('login.password')}
-                                value={password}
-                                required
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={loading}
-                            />
+                            <div className="flex items-center justify-between">
+                                <Input
+                                    type="password"
+                                    placeholder={t('login.password')}
+                                    value={password}
+                                    required
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={loading}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="flex justify-end">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-xs text-primary hover:text-primary/80 hover:underline"
+                                >
+                                    {t('login.forgot_password')}
+                                </Link>
+                            </div>
                         </div>
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                             <label className="flex items-center gap-2 cursor-pointer select-none">

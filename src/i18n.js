@@ -107,13 +107,33 @@ const resources = {
             },
             "login": {
                 "title": "Welcome Back",
-                "subtitle": "Enter your credentials to access your account",
+                "subtitle": "Enter your credentials to access the admin panel",
                 "email": "Email",
                 "password": "Password",
-                "submit": "Sign In",
                 "remember_me": "Remember me",
-                "forgot_password": "Forgot password?",
+                "submit": "Sign In",
+                "forgot_password": "Forgot Password?",
+                "error_generic": "An unexpected error occurred",
                 "no_account": "Don't have an account?"
+            },
+            "auth": {
+                "back_to_login": "Back to Login",
+                "passwords_do_not_match": "Passwords do not match",
+                "new_password": "New Password",
+                "confirm_password": "Confirm New Password",
+                "forgot_password": {
+                    "title": "Reset Password",
+                    "subtitle": "Enter your email to receive a reset link",
+                    "submit": "Send Reset Link",
+                    "success_message": "Check your email for the reset link",
+                    "error_message": "Failed to send reset email"
+                },
+                "update_password": {
+                    "title": "Update Password",
+                    "subtitle": "Enter your new password below",
+                    "submit": "Update Password",
+                    "error_message": "Failed to update password"
+                }
             },
             "signup": {
                 "title": "Create an account",
@@ -540,6 +560,25 @@ const resources = {
                 "remember_me": "זכור אותי",
                 "forgot_password": "שכחת סיסמה?",
                 "no_account": "אין לך חשבון?"
+            },
+            "auth": {
+                "back_to_login": "חזרה להתחברות",
+                "passwords_do_not_match": "הסיסמאות אינן תואמות",
+                "new_password": "סיסמה חדשה",
+                "confirm_password": "אימות סיסמה חדשה",
+                "forgot_password": {
+                    "title": "איפוס סיסמה",
+                    "subtitle": "הזן את המייל שלך לקבלת קישור לאיפוס",
+                    "submit": "שלח קישור לאיפוס",
+                    "success_message": "בדוק את המייל שלך לקבלת קישור לאיפוס",
+                    "error_message": "שליחת המייל נכשלה"
+                },
+                "update_password": {
+                    "title": "עדכון סיסמה",
+                    "subtitle": "הזן את הסיסמה החדשה שלך להלן",
+                    "submit": "עדכן סיסמה",
+                    "error_message": "עדכון הסיסמה נכשל"
+                }
             },
             "signup": {
                 "title": "צור חשבון",

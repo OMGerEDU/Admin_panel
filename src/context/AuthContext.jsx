@@ -87,12 +87,26 @@ export function AuthProvider({ children }) {
         return { error };
     };
 
+    const resetPassword = async (email) => {
+        // Redirect to the update-password route in our app
+        const redirectTo = `${window.location.origin}/update-password`;
+        return await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo,
+        });
+    };
+
+    const updatePassword = async (newPassword) => {
+        return await supabase.auth.updateUser({ password: newPassword });
+    };
+
     const value = {
         session,
         user,
         signIn,
         signUp,
         signOut,
+        resetPassword,
+        updatePassword,
     };
 
     return (
