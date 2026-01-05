@@ -4,7 +4,7 @@ export default function handler(req, res) {
         message: 'API is working!',
         time: new Date().toISOString(),
         env_check: {
-            has_url: !!process.env.SUPABASE_URL,
+            has_url: !!(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
             has_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
             has_secret: !!process.env.CRON_SECRET
         }
