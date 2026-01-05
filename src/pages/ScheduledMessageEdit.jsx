@@ -904,7 +904,7 @@ export default function ScheduledMessageEdit() {
                                         </label>
                                         <div className="flex gap-2 flex-wrap max-w-md">
                                             {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
-                                                const isSelected = formData.selectedMonthDays.includes(day);
+                                                const isSelected = (formData.selectedMonthDays || []).includes(day);
                                                 return (
                                                     <button
                                                         key={day}
