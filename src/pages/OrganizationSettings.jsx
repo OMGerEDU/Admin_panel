@@ -227,7 +227,7 @@ export default function OrganizationSettings() {
 
             if (error) throw error;
 
-            const link = `${window.location.origin}/signup?invite=${data.token}`;
+            const link = `${window.location.origin}/register?invite=${data.token}`;
             await navigator.clipboard?.writeText(link);
             alert('Invite link created and copied to clipboard.');
 
@@ -362,11 +362,10 @@ export default function OrganizationSettings() {
                                     </TableCell>
                                     <TableCell>{member.profiles?.email || '-'}</TableCell>
                                     <TableCell>
-                                        <span className={`text-xs px-2 py-1 rounded ${
-                                            member.role === 'admin' || org.owner_id === member.profiles?.id
+                                        <span className={`text-xs px-2 py-1 rounded ${member.role === 'admin' || org.owner_id === member.profiles?.id
                                                 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                                                 : 'bg-muted'
-                                        }`}>
+                                            }`}>
                                             {org.owner_id === member.profiles?.id ? 'Owner' : member.role}
                                         </span>
                                     </TableCell>
@@ -452,7 +451,7 @@ export default function OrganizationSettings() {
                                     </p>
                                     <div className="space-y-2">
                                         {invites.map((invite) => {
-                                            const link = `${window.location.origin}/signup?invite=${invite.token}`;
+                                            const link = `${window.location.origin}/register?invite=${invite.token}`;
                                             return (
                                                 <div
                                                     key={invite.id}

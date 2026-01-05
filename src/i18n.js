@@ -158,7 +158,7 @@ const resources = {
                 },
                 "hero": {
                     "badge": "Live System Status",
-                    "title": "Know your WhatsApp systems are working—before your clients notice.",
+                    "title": "Managing dozens of numbers blindly isn't business. It's a gamble.",
                     "subtitle": "A central command center for agencies and businesses managing multiple WhatsApp API connections. Zero blind spots. Total control.",
                     "cta_primary": "Connect your first number",
                     "cta_secondary": "View system demo",
@@ -247,7 +247,7 @@ const resources = {
                     },
                     "pro": {
                         "title": "Growth",
-                        "price": "$49",
+                        "price": "$9.99",
                         "period": "/mo",
                         "feat1": "Up to 5 Numbers",
                         "feat2": "Real-time Alerts",
@@ -257,18 +257,67 @@ const resources = {
                     },
                     "scale": {
                         "title": "Scale",
-                        "price": "$199",
+                        "price": "$39",
                         "period": "/mo",
                         "feat1": "Unlimited Numbers",
                         "feat2": "API Access",
                         "feat3": "Custom Retention",
-                        "feat4": "Dedicated Success Manager"
+                        "feat4": "Dedicated Success Manager",
+                        "badge": "Custom"
+                    },
+                    "plans": {
+                        "select": "Plan",
+                        "month": "month",
+                        "yearly": "yearly",
+                        "billed_yearly": "billed yearly",
+                        "numbers": "numbers",
+                        "instances": "instances",
+                        "team_members": "team members",
+                        "scheduled_messages": "scheduled messages",
+                        "customer_support": "customer support",
+                        "priority_support": "priority support",
+                        "unlimited": "Unlimited",
+                        "numbers_instances": "Numbers & instances",
+                        "save_25": "SAVE 25%",
+                        "status": "Status"
                     }
                 },
                 "footer": {
                     "rights": "All rights reserved.",
                     "privacy": "Privacy Policy",
                     "terms": "Terms of Use"
+                },
+                "chaos": {
+                    "heading": "The daily chaos holding your business back",
+                    "item1": "Missed leads due to overload or lack of response",
+                    "item2": "WhatsApp mess – messages disappearing among dozens of chats",
+                    "item3": "Clumsy switching between spreadsheets, calendars, and CRM systems",
+                    "item4": "Lack of real-time control over what's happening in the business",
+                    "item5": "Complete dependence on your personal phone to manage the business"
+                },
+                "solutions": {
+                    "heading": "Smart solutions for real pains",
+                    "subheading": "Don't let technology hold you back - let it work for you",
+                    "tag": {
+                        "title": "Smart Tagging & Order",
+                        "pain": "Chat mess - everything looks the same, can't find anything",
+                        "solution": "Colorful tags that organize everything - Lead, Client, Urgent"
+                    },
+                    "scheduled": {
+                        "title": "Scheduled Messages",
+                        "pain": "Forgetting to get back to a client, missing birthdays or important dates",
+                        "solution": "Schedule messages in advance for the perfect time - set and forget"
+                    },
+                    "automation": {
+                        "title": "Automation & Broadcasts",
+                        "pain": "Sending messages manually one by one to 100 clients - an ongoing nightmare",
+                        "solution": "Centralized sending to everyone with one simple, fast click"
+                    },
+                    "api": {
+                        "title": "System Integration (API)",
+                        "pain": "Manually copying data from the website or CRM to WhatsApp",
+                        "solution": "Everything syncs automatically to your systems in real-time"
+                    }
                 }
             },
             "organization_settings": "Organization Settings",
@@ -422,6 +471,10 @@ const resources = {
                 "add_recipient": "Add Recipient",
                 "add_recipient": "Add Recipient",
                 "no_recipients": "No recipients",
+                "delay_seconds": "Delay between messages (seconds)",
+                "delay_desc": "Adding a delay helps prevent number blocking by spreading out the sending time.",
+                "spam_warning_title": "Avoid Number Blocking",
+                "spam_warning_desc": "Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.",
                 "upgrade_title": "Upgrade to Schedule Messages",
                 "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!"
             },
@@ -603,7 +656,7 @@ const resources = {
                 },
                 "hero": {
                     "badge": "סטטוס מערכת חי",
-                    "title": "דע שמערכות הוואטסאפ שלך עובדות – לפני שהלקוחות שלך ישימו לב.",
+                    "title": "לנהל עשרות מספרים 'על עיוור' זה לא עסק. זה הימור.",
                     "subtitle": "מרכז שליטה ובקרה עבור סוכנויות ועסקים המנהלים מספר חיבורי WhatsApp API. אפס נקודות עיוורות. שליטה מלאה.",
                     "cta_primary": "חבר את המספר הראשון שלך",
                     "cta_secondary": "צפה בהדגמה",
@@ -692,7 +745,7 @@ const resources = {
                     },
                     "pro": {
                         "title": "Growth",
-                        "price": "$49",
+                        "price": "$9.99",
                         "period": "/חודש",
                         "feat1": "עד 5 מספרים",
                         "feat2": "התראות זמן אמת",
@@ -702,18 +755,67 @@ const resources = {
                     },
                     "scale": {
                         "title": "Scale",
-                        "price": "$199",
+                        "price": "$39",
                         "period": "/חודש",
                         "feat1": "מספרים ללא הגבלה",
                         "feat2": "גישת API",
                         "feat3": "שמירת נתונים מותאמת",
-                        "feat4": "מנהל הצלחה אישי"
+                        "feat4": "מנהל הצלחה אישי",
+                        "badge": "מותאם אישית"
+                    },
+                    "plans": {
+                        "select": "תוכנית",
+                        "month": "חודש",
+                        "yearly": "שנתי",
+                        "billed_yearly": "חיוב שנתי",
+                        "numbers": "מספרים",
+                        "instances": "מופעים",
+                        "team_members": "חברי צוות",
+                        "scheduled_messages": "הודעות מתוזמנות",
+                        "customer_support": "תמיכת לקוחות",
+                        "priority_support": "תמיכה בעדיפות",
+                        "unlimited": "ללא הגבלה",
+                        "numbers_instances": "מספרים ומופעים",
+                        "save_25": "חסוך 25%",
+                        "status": "סטטוס"
                     }
                 },
                 "footer": {
                     "rights": "כל הזכויות שמורות.",
                     "privacy": "מדיניות פרטיות",
                     "terms": "תנאי שימוש"
+                },
+                "chaos": {
+                    "heading": "הכאוס היומיומי שמעכב את העסק שלך",
+                    "item1": "פספוס לידים בגלל עומס או חוסר מענה",
+                    "item2": "בלגן בוואטסאפ – הודעות נעלמות בין עשרות צ'אטים",
+                    "item3": "מעבר מסורבל בין אקסלים, יומנים ומערכות CRM",
+                    "item4": "חוסר שליטה על מה שקורה בעסק בזמן אמת",
+                    "item5": "תלות מוחלטת בטלפון האישי שלך לניהול העסק"
+                },
+                "solutions": {
+                    "heading": "פתרונות חכמים לכאבים אמיתיים",
+                    "subheading": "אל תתן לטכנולוגיה לעכב אותך - תן לה לעבוד בשבילך",
+                    "tag": {
+                        "title": "תיוג חכם וסדר",
+                        "pain": "בלאגן בצ׳אטים - הכל נראה אותו דבר, אי אפשר למצוא כלום",
+                        "solution": "תגים צבעוניים שעושים סדר בעיניים - ליד, לקוח, דחוף"
+                    },
+                    "scheduled": {
+                        "title": "הודעות מתוזמנות",
+                        "pain": "לשכוח לחזור ללקוח, לפספס ימי הולדת או מועדים חשובים",
+                        "solution": "תזמון הודעות מראש לזמן המושלם - שגר ושכח"
+                    },
+                    "automation": {
+                        "title": "אוטומציות ודיוור",
+                        "pain": "לשלוח הודעה אחת אחת ידנית ל-100 לקוחות - סיוט מתמשך",
+                        "solution": "שליחה מרוכזת לכולם בקליק אחד פשוט ומהיר"
+                    },
+                    "api": {
+                        "title": "חיבור למערכות (API)",
+                        "pain": "להעתיק ידנית נתונים מהאתר או מה-CRM לוואטסאפ",
+                        "solution": "הכל מסתנכרן אוטומטית למערכות שלך בזמן אמת"
+                    }
                 }
             },
             "organization_settings": "הגדרות ארגון",
@@ -917,6 +1019,10 @@ const resources = {
                 "add_recipient": "הוסף נמען",
                 "add_recipient": "הוסף נמען",
                 "no_recipients": "אין נמענים",
+                "delay_seconds": "השהיה בין הודעות (שניות)",
+                "delay_desc": "הוספת השהיה עוזרת למנוע חסימת המספר על ידי פיזור זמן השליחה.",
+                "spam_warning_title": "מנע חסימת מספר",
+                "spam_warning_desc": "שליחת הודעות רבות בבת אחת עלולה לגרום לחסימת המספר שלך על ידי וואטסאפ. אנו ממליצים להוסיף השהיה בין הודעות או לפצל רשימות גדולות.",
                 "upgrade_title": "שדרג כדי לתזמן הודעות",
                 "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!"
             },

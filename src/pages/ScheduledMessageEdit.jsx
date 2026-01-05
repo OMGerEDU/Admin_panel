@@ -22,55 +22,49 @@ import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // Helper function to convert Israel/Jerusalem time to UTC
+// Helper function to convert Israel/Jerusalem time to UTC
 function convertIsraelTimeToUTC(year, month, day, hour, minute) {
-    // We need to find a UTC date that, when displayed in Israel timezone, equals our target
-    // Strategy: try UTC dates and check what they become in Israel timezone
+    // Create a date object with the input values and assume it matches Israel time
+    // We want to find the UTC timestamp that corresponds to this time in Jerusalem
 
-    // Start with UTC+2 offset (winter time in Israel)
-    let testUTC = new Date(Date.UTC(year, month - 1, day, hour - 2, minute, 0));
+    // 1. Create a UTC date with the target components (as if it was UTC)
+    // We use integer values directly
+    const dateComponents = new Date(Date.UTC(year, month - 1, day, hour, minute));
 
-    // Check what this UTC time is in Israel
+    // 2. Format this UTC date to parts in Jerusalem/Israel timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: 'Asia/Jerusalem',
         year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
         hour12: false,
     });
 
-    const parts = formatter.formatToParts(testUTC);
+    const parts = formatter.formatToParts(dateComponents);
+
+    // 3. Extract the components as they appear in Jerusalem time
     const israelYear = parseInt(parts.find(p => p.type === 'year').value);
     const israelMonth = parseInt(parts.find(p => p.type === 'month').value);
     const israelDay = parseInt(parts.find(p => p.type === 'day').value);
     const israelHour = parseInt(parts.find(p => p.type === 'hour').value);
     const israelMinute = parseInt(parts.find(p => p.type === 'minute').value);
 
-    // If it matches, return it
-    if (israelYear === year && israelMonth === month && israelDay === day && israelHour === hour && israelMinute === minute) {
-        return testUTC;
-    }
+    // 4. Calculate the difference (offset) in milliseconds between the UTC representation and how it "looks" in Israel
+    // Create a date from the "Israel parts" treating them as UTC to compare apples to apples
+    const israelAsUtc = new Date(Date.UTC(israelYear, israelMonth - 1, israelDay, israelHour, israelMinute));
 
-    // Try UTC+3 (summer/DST)
-    testUTC = new Date(Date.UTC(year, month - 1, day, hour - 3, minute, 0));
-    const parts3 = formatter.formatToParts(testUTC);
-    const israelYear3 = parseInt(parts3.find(p => p.type === 'year').value);
-    const israelMonth3 = parseInt(parts3.find(p => p.type === 'month').value);
-    const israelDay3 = parseInt(parts3.find(p => p.type === 'day').value);
-    const israelHour3 = parseInt(parts3.find(p => p.type === 'hour').value);
-    const israelMinute3 = parseInt(parts3.find(p => p.type === 'minute').value);
+    // The difference is essentially the offset (IsraelTime - OriginalUTC)
+    const diff = israelAsUtc.getTime() - dateComponents.getTime();
 
-    if (israelYear3 === year && israelMonth3 === month && israelDay3 === day && israelHour3 === hour && israelMinute3 === minute) {
-        return testUTC;
-    }
+    // 5. To convert target Israel Time to true UTC, we subtract this offset
+    // Target UTC = Target Israel Time (treated as UTC) - Offset
+    const targetIsraelAsUtc = new Date(Date.UTC(year, month - 1, day, hour, minute));
+    const trueUtcTimestamp = targetIsraelAsUtc.getTime() - diff;
 
-    // If still no match, fine-tune by adjusting
-    const diffHours = hour - israelHour3;
-    const diffMinutes = minute - israelMinute3;
-    testUTC = new Date(testUTC.getTime() + diffHours * 3600000 + diffMinutes * 60000);
-
-    return testUTC;
+    return new Date(trueUtcTimestamp);
 }
 
 export default function ScheduledMessageEdit() {

@@ -25,7 +25,7 @@ export default function Settings() {
 
     const fetchProfile = async () => {
         if (!user) return;
-        
+
         try {
             setLoading(true);
             const { data, error } = await supabase
@@ -117,6 +117,8 @@ export default function Settings() {
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 placeholder={t('settings_page.email')}
+                                disabled
+                                className="bg-muted"
                             />
                         </div>
                         <div className="space-y-2">

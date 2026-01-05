@@ -193,43 +193,43 @@ export default function Plans() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Current plan</p>
+            <p className="text-sm font-medium text-muted-foreground">{t('settings_page.current_plan')}</p>
             <p className="text-lg font-semibold">
               {currentSubscription?.plans?.name || 'Free'}
             </p>
             {currentSubscription && (
               <p className="text-xs text-muted-foreground mt-1">
-                Status: {currentSubscription.status}
+                {t('landing.pricing.plans.status')}: {currentSubscription.status}
               </p>
             )}
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Numbers & instances</p>
+            <p className="text-sm font-medium text-muted-foreground">{t('landing.pricing.plans.numbers_instances')}</p>
             <p className="text-xs text-muted-foreground mt-1">
               {usage.numbersLimit === -1
-                ? `${usage.numbersUsed} numbers (unlimited)`
-                : `${usage.numbersUsed} / ${usage.numbersLimit} numbers`}
+                ? `${usage.numbersUsed} ${t('landing.pricing.plans.numbers')} (${t('landing.pricing.plans.unlimited')})`
+                : `${usage.numbersUsed} / ${usage.numbersLimit} ${t('landing.pricing.plans.numbers')}`}
             </p>
             <p className="text-xs text-muted-foreground">
               {usage.instancesLimit === -1
-                ? `${usage.instancesUsed} instances (unlimited)`
-                : `${usage.instancesUsed} / ${usage.instancesLimit} instances`}
+                ? `${usage.instancesUsed} ${t('landing.pricing.plans.instances')} (${t('landing.pricing.plans.unlimited')})`
+                : `${usage.instancesUsed} / ${usage.instancesLimit} ${t('landing.pricing.plans.instances')}`}
             </p>
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Team members</p>
+            <p className="text-sm font-medium text-muted-foreground">{t('landing.pricing.plans.team_members')}</p>
             {usage.membersUsed == null ? (
               <p className="text-xs text-muted-foreground mt-1">
-                No organization owned yet.
+                {t('settings_page.no_org_owned')}
               </p>
             ) : usage.membersLimit === -1 ? (
               <p className="text-xs text-muted-foreground mt-1">
-                {usage.membersUsed} members (unlimited){' '}
+                {usage.membersUsed} {t('landing.pricing.plans.team_members')} ({t('landing.pricing.plans.unlimited')}){' '}
                 {usage.orgName ? `· ${usage.orgName}` : ''}
               </p>
             ) : (
               <p className="text-xs text-muted-foreground mt-1">
-                {usage.membersUsed} / {usage.membersLimit} members{' '}
+                {usage.membersUsed} / {usage.membersLimit} {t('landing.pricing.plans.team_members')}{' '}
                 {usage.orgName ? `· ${usage.orgName}` : ''}
               </p>
             )}
@@ -240,15 +240,15 @@ export default function Plans() {
       {/* Past transactions */}
       <Card>
         <CardHeader>
-          <CardTitle>Billing history</CardTitle>
+          <CardTitle>{t('settings_page.billing_history')}</CardTitle>
           <CardDescription>
-            Recent plan changes and payments.
+            {t('settings_page.recent_plan_changes')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {billingEvents.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No billing events found yet.
+              {t('settings_page.no_billing_events')}
             </p>
           ) : (
             <div className="space-y-2 text-sm">
@@ -316,7 +316,7 @@ export default function Plans() {
 
           {/* Discount Badge */}
           <span className="absolute -top-3 -right-6 rtl:right-auto rtl:-left-6 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800 animate-pulse">
-            SAVE 25%
+            {t('landing.pricing.plans.save_25')}
           </span>
         </div>
       </div>

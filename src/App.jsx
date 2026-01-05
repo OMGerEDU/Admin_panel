@@ -41,9 +41,13 @@ function App() {
                 {/* Auth */}
                 <Route element={<AuthLayout />}>
                   <Route path="/login" element={<Login />} />
+<<<<<<< HEAD
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
+=======
+                  <Route path="/register" element={<Signup />} />
+>>>>>>> 810d9771abd5c514272115439fedab11ace8bdfe
                 </Route>
 
                 {/* Dashboard */}

@@ -20,10 +20,25 @@ import {
     Smartphone,
     CheckCircle2,
     XCircle,
-    Star
+
+    Star,
+    Tag,
+    Clock,
+    Megaphone,
+    Webhook
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
+
+// Import Client Images
+import omriImg from '../assets/clients/omri.jpg';
+import bsrImg from '../assets/clients/bsr.jpg';
+import danielImg from '../assets/clients/daniel.jpg';
+import ilanImg from '../assets/clients/ilan.jpg';
+import guyImg from '../assets/clients/guy.jpg';
+import biMenivImg from '../assets/clients/bi_meniv.jpg';
+import matanImg from '../assets/clients/matan.jpg';
+import talImg from '../assets/clients/tal.jpg';
 
 // --- Animations ---
 const fadeInUp = {
@@ -66,7 +81,7 @@ const Navbar = () => {
             <div className="container mx-auto px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <img
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69419a22f9aa11079dc26e01/59c0c29b5_icon32.png"
+                        src="/fernslogo.png"
                         alt="Ferns Logo"
                         className="w-8 h-8"
                     />
@@ -80,12 +95,12 @@ const Navbar = () => {
                     <button onClick={toggleTheme} className="text-slate-600 dark:text-gray-300 hover:text-[#10B981] dark:hover:text-white transition-colors">
                         {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
-                    <Link to="/app/login">
+                    <Link to="/login">
                         <Button variant="ghost" className="text-slate-600 dark:text-white hover:text-[#10B981] hover:bg-slate-100 dark:hover:bg-white/5">
                             {t('landing.nav.login')}
                         </Button>
                     </Link>
-                    <Link to="/app/register">
+                    <Link to="/register">
                         <Button className="bg-[#10B981] hover:bg-[#059669] text-white border-none shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all hover:-translate-y-0.5">
                             {t('landing.nav.cta')}
                         </Button>
@@ -107,10 +122,10 @@ const Navbar = () => {
                         className="md:hidden bg-white dark:bg-[#0F172A] border-t border-slate-200 dark:border-white/10 overflow-hidden shadow-lg"
                     >
                         <div className="p-4 flex flex-col gap-4">
-                            <Link to="/app/login" className="text-slate-900 dark:text-white py-2 block" onClick={() => setMobileMenuOpen(false)}>
+                            <Link to="/login" className="text-slate-900 dark:text-white py-2 block" onClick={() => setMobileMenuOpen(false)}>
                                 {t('landing.nav.login')}
                             </Link>
-                            <Link to="/app/register" onClick={() => setMobileMenuOpen(false)}>
+                            <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                                 <Button className="w-full bg-[#10B981] hover:bg-[#059669] text-white">
                                     {t('landing.nav.cta')}
                                 </Button>
@@ -167,7 +182,7 @@ const HeroSection = () => {
                         </motion.p>
 
                         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                            <Link to="/app/register">
+                            <Link to="/register">
                                 <Button size="lg" className="w-full sm:w-auto bg-[#10B981] hover:bg-[#059669] text-white text-lg px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1">
                                     {t('landing.hero.cta_primary')}
                                 </Button>
@@ -297,17 +312,19 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
     </motion.div>
 );
 
-const PainSection = () => {
+const DailyChaosSection = () => {
     const { t } = useTranslation();
 
-    const pains = [
-        { icon: Layers, title: t('landing.pain.item1.title'), desc: t('landing.pain.item1.desc') },
-        { icon: Activity, title: t('landing.pain.item2.title'), desc: t('landing.pain.item2.desc') },
-        { icon: AlertTriangle, title: t('landing.pain.item3.title'), desc: t('landing.pain.item3.desc') }
+    const chaosItems = [
+        { icon: XCircle, text: t('landing.chaos.item1') },
+        { icon: AlertTriangle, text: t('landing.chaos.item2') },
+        { icon: Layers, text: t('landing.chaos.item3') },
+        { icon: Activity, text: t('landing.chaos.item4') },
+        { icon: Smartphone, text: t('landing.chaos.item5') },
     ];
 
     return (
-        <section className="py-20 relative">
+        <section className="py-20 relative bg-red-50/50 dark:bg-red-900/10">
             <div className="container mx-auto px-4 text-center">
                 <motion.div
                     initial="hidden"
@@ -317,26 +334,27 @@ const PainSection = () => {
                 >
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-12">
                         <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
-                            {t('landing.pain.heading')}
+                            {t('landing.chaos.heading')}
                         </span>
                     </h2>
                 </motion.div>
 
-                <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    {pains.map((pain, idx) => (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    {chaosItems.map((item, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1 }}
-                            className="bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/10 p-6 rounded-2xl hover:bg-red-100 dark:hover:bg-red-500/10 transition-colors"
+                            className="bg-white dark:bg-red-950/30 border border-red-100 dark:border-red-500/20 p-6 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm hover:shadow-md"
                         >
-                            <div className="mx-auto w-12 h-12 bg-red-500/10 dark:bg-red-500/20 rounded-full flex items-center justify-center text-red-500 dark:text-red-400 mb-4">
-                                <pain.icon size={24} />
+                            <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center text-red-500 dark:text-red-400 mb-4">
+                                <item.icon size={24} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{pain.title}</h3>
-                            <p className="text-slate-600 dark:text-gray-400 text-sm">{pain.desc}</p>
+                            <p className="text-lg font-medium text-slate-800 dark:text-gray-200">
+                                {item.text}
+                            </p>
                         </motion.div>
                     ))}
                 </div>
@@ -383,6 +401,108 @@ const FeaturesSection = () => {
     );
 };
 
+const FeatureSolutionsSection = () => {
+    const { t } = useTranslation();
+
+    const solutions = [
+        {
+            icon: Tag,
+            title: t('landing.solutions.tag.title'),
+            pain: t('landing.solutions.tag.pain'),
+            solution: t('landing.solutions.tag.solution'),
+            color: "text-blue-500",
+            bg: "bg-blue-500/10",
+            border: "border-blue-200 dark:border-blue-500/20"
+        },
+        {
+            icon: Clock,
+            title: t('landing.solutions.scheduled.title'),
+            pain: t('landing.solutions.scheduled.pain'),
+            solution: t('landing.solutions.scheduled.solution'),
+            color: "text-purple-500",
+            bg: "bg-purple-500/10", // Using explicit color classes for safety
+            border: "border-purple-200 dark:border-purple-500/20"
+        },
+        {
+            icon: Megaphone,
+            title: t('landing.solutions.automation.title'),
+            pain: t('landing.solutions.automation.pain'),
+            solution: t('landing.solutions.automation.solution'),
+            color: "text-orange-500",
+            bg: "bg-orange-500/10",
+            border: "border-orange-200 dark:border-orange-500/20"
+        },
+        {
+            icon: Webhook,
+            title: t('landing.solutions.api.title'),
+            pain: t('landing.solutions.api.pain'),
+            solution: t('landing.solutions.api.solution'),
+            color: "text-green-500",
+            bg: "bg-green-500/10",
+            border: "border-green-200 dark:border-green-500/20"
+        }
+    ];
+
+    return (
+        <section className="py-20 relative bg-white dark:bg-[#0F172A]">
+            <div className="container mx-auto px-4">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                        {t('landing.solutions.heading')}
+                    </h2>
+                    <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
+                        {t('landing.solutions.subheading')}
+                    </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    {solutions.map((item, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1 }}
+                            className={`p-8 rounded-2xl border ${item.border} bg-white dark:bg-white/5 hover:shadow-xl transition-all duration-300 group`}
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className={`p-3 rounded-xl ${item.bg} ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                                    <item.icon size={28} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                                        {item.title}
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        <div className="flex gap-3">
+                                            <div className="mt-1 min-w-[20px]">
+                                                <XCircle className="w-5 h-5 text-red-500" />
+                                            </div>
+                                            <p className="text-slate-500 dark:text-gray-400 text-sm leading-relaxed">
+                                                {item.pain}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <div className="mt-1 min-w-[20px]">
+                                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                            </div>
+                                            <p className="text-slate-800 dark:text-gray-200 font-medium text-sm leading-relaxed">
+                                                {item.solution}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const ClientAvatar = ({ name, url, delay }) => (
     <motion.div
         initial={{ opacity: 0, scale: 0 }}
@@ -391,14 +511,14 @@ const ClientAvatar = ({ name, url, delay }) => (
         transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
         className="group relative"
     >
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#10B981]/50 p-1 bg-[#10B981]/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300 flex items-center justify-center overflow-hidden">
+        <div className="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-[#10B981]/50 p-1 bg-[#10B981]/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300 flex items-center justify-center overflow-hidden">
             {url ? (
-                <img src={url} alt={name} className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" />
+                <img src={url} alt={name} className="w-full h-full rounded-full object-cover transition-all duration-300" />
             ) : (
                 <span className="text-xl font-bold text-[#10B981]">{name.charAt(0)}</span>
             )}
         </div>
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm py-1 px-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm text-white bg-[#0F172A]/90 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
             {name}
         </div>
     </motion.div>
@@ -408,18 +528,18 @@ const SocialProofSection = () => {
     const { t } = useTranslation();
 
     const clients = [
-        { name: t('landing.social.clients.omri'), imageUrl: 'https://e-club.biz/wp-content/uploads/2025/03/WhatsApp-Image-2025-03-27-at-15.48.25.jpeg' },
-        { name: t('landing.social.clients.bsr'), imageUrl: 'https://pic1.calcalist.co.il/picserver3/crop_images/2025/03/03/rJMSUlQsyg/rJMSUlQsyg_9_0_262_147_0_xx-large.jpg' },
-        { name: t('landing.social.clients.daniel'), imageUrl: 'https://yt3.googleusercontent.com/Ti137VSspBSwMddYf-Pcpr_LM1bALCF3R4oQJWCh-QSqHFXMDq8fAEwoEmx4zaRZjf9R4mLOLQ=s900-c-k-c0x00ffffff-no-rj' },
-        { name: t('landing.social.clients.ilan'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDS5dvIWsTVh2IbLc-dRf0LSQdA1e6JFwJoQ&s' },
-        { name: t('landing.social.clients.guy'), imageUrl: 'https://cdn.funder.co.il/fimgni/i/a/Guy-Nathan.jpg' },
-        { name: t('landing.social.clients.bi_meniv'), imageUrl: 'https://bmeniv.co.il/wp-content/uploads/2025/02/WhatsApp-Image-2025-02-24-at-16.44.26.jpeg' },
-        { name: t('landing.social.clients.matan'), imageUrl: 'https://i.scdn.co/image/ab67656300005f1fa64ab8cbdeaace2b6759d1ad' },
-        { name: t('landing.social.clients.tal'), imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZQzCBys6dauWt-mw63jFZHArRt7S5BThz5A&s' }
+        { name: 'עומרי כהן', url: omriImg },
+        { name: 'קבוצת ב.ס.ר', url: bsrImg },
+        { name: 'דניאל מולדבסקי', url: danielImg },
+        { name: 'עו״ד אילן', url: ilanImg },
+        { name: 'גיא נתן', url: guyImg },
+        { name: 'בי מניב', url: biMenivImg },
+        { name: 'מתן ניסטור', url: matanImg },
+        { name: 'טל מועלם', url: talImg }
     ];
 
     const scrollToPricing = () => {
-        const pricingSection = document.getElementById('pricing');
+        const pricingSection = document.getElementById('offer');
         if (pricingSection) {
             pricingSection.scrollIntoView({ behavior: 'smooth' });
         }
@@ -453,7 +573,7 @@ const SocialProofSection = () => {
                     onClick={scrollToPricing}
                     className="bg-[#10B981] hover:bg-[#059669] text-white px-8 py-6 text-lg rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1"
                 >
-                    רוצה לראות איך זה יכול לעבוד אצלך?
+                    {t('landing.social.cta_see_how')}
                 </Button>
             </div>
         </section>
@@ -487,7 +607,7 @@ const PricingCard = ({ tier, price, period, features, recommended, ctaKey }) => 
             ))}
         </ul>
 
-        <Link to="/app/register">
+        <Link to="/register">
             <Button className={`w-full ${recommended
                 ? 'bg-[#10B981] hover:bg-[#059669] text-white shadow-lg'
                 : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white'}`}>
@@ -568,7 +688,7 @@ const Footer = () => {
             <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="flex items-center gap-2">
                     <img
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69419a22f9aa11079dc26e01/59c0c29b5_icon32.png"
+                        src="/fernslogo.png"
                         alt="Ferns Logo"
                         className="w-6 h-6 grayscale opacity-70"
                     />
@@ -576,7 +696,7 @@ const Footer = () => {
                 </div>
 
                 <div className="flex gap-6 text-sm text-slate-500 dark:text-gray-500">
-                    <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.privacy')}</a>
+                    <Link to="/privacy-policy" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.privacy')}</Link>
                     <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.terms')}</a>
                 </div>
             </div>
@@ -594,7 +714,8 @@ export default function LandingPage() {
             <Navbar />
             <HeroSection />
             <SocialProofSection />
-            <PainSection />
+            <DailyChaosSection />
+            <FeatureSolutionsSection />
             <FeaturesSection />
             <PricingSection />
             <Footer />
