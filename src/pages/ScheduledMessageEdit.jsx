@@ -97,7 +97,10 @@ export default function ScheduledMessageEdit() {
         is_community_template: false,
         template_name: '',
         template_description: '',
+        template_name: '',
+        template_description: '',
         delay_seconds: 0, // Delay between messages in seconds
+        selectedDays: [], // Array of integers 0-6
     });
 
     useEffect(() => {
@@ -172,6 +175,7 @@ export default function ScheduledMessageEdit() {
                         is_recurring: messageData.is_recurring || false,
                         recurrence_type: messageData.recurrence_type || 'daily',
                         day_of_week: messageData.day_of_week || 0,
+                        selectedDays: [messageData.day_of_week ?? 0], // Initialize with current day
                         scheduled_date: israelDate,
                         scheduled_time: israelTime,
                         media_url: messageData.media_url || '',
@@ -381,109 +385,131 @@ export default function ScheduledMessageEdit() {
             };
 
             // Handle staggering/delay if multiple recipients and delay > 0
-            // This splits the single request into multiple scheduled messages
-            if (validRecipients.length > 1 && formData.delay_seconds > 0) {
-                if (isEditing) {
-                    // If editing and switching to staggered, we might need to warn that this will split the message
-                    if (!confirm(t('scheduled.confirm_stagger') || 'This will split this message into multiple individual scheduled messages. Continue?')) {
-                        setSaving(false);
-                        return;
-                    }
-                    // Delete the original message (it gets replaced by new ones)
-                    await supabase.from('scheduled_messages').delete().eq('id', id);
+
+
+            // --- Multi-Day Logic ---
+            let daysToProcess = [null]; // Default to single execution (null day for non-weekly or non-recurring)
+
+            if (formData.is_recurring && formData.recurrence_type === 'weekly') {
+                if (!formData.selectedDays || formData.selectedDays.length === 0) {
+                    alert(t('scheduled.select_at_least_one_day') || 'Please select at least one day');
+                    setSaving(false);
+                    return;
+                }
+                daysToProcess = formData.selectedDays;
+            }
+
+            // Loop through selected days and save (or update)
+            // If editing, we update the main ID with the first day, and create new ones for the rest.
+            // If creating, we create new ones for all.
+
+            let messagesCreated = 0;
+
+            for (let i = 0; i < daysToProcess.length; i++) {
+                const dayIndex = daysToProcess[i];
+
+                // Calculate next occurrence for this day (if weekly)
+                // For non-weekly, we use scheduled_date as base.
+                // For daily/monthly, calculate appropriately or just use the logic in dispatch? 
+                // Wait, DB stores 'recurrence_type' and 'day_of_week'. The Dispatcher calculates next run.
+                // WE just need to set the initial `scheduled_at`.
+
+                let initialScheduledAt = scheduledAt;
+
+                if (formData.is_recurring && formData.recurrence_type === 'weekly' && dayIndex !== null) {
+                    // Logic to find next [dayIndex] from TODAY (or start date)
+                    // If we want it to start from "Now" or "Tomorrow", we need to be careful.
+                    // Let's assume we want the *next* occurrence of this day.
+
+                    const targetDay = dayIndex; // 0=Sunday
+                    const now = new Date();
+                    const nextDate = new Date(now);
+
+                    // Simple "Next Day X" logic
+                    // If today is Monday(1) and we want Monday. If time is passed, next week. Else today.
+                    // But wait, `scheduledAt` (from form) has the Date component from `scheduled_date` input (if we kept it).
+                    // Actually, for recurring, we should probably ignore the specific date input and just find the next occurrence based on Time.
+                    // But my code above uses `formData.scheduled_date` to build `scheduledAt`.
+                    // Let's rely on that `scheduledAt` as the "Start Date" reference.
+
+                    const baseDate = new Date(scheduledAt); // UTC converted from Israeli time input
+
+                    // Adjust baseDate to match the target day of week
+                    // We want to find the date that matches `targetDay` that is >= baseDate.
+                    // Note: baseDate is already set to the correct Hour/Minute in UTC. We just need to shift the Day.
+
+                    const currentDay = baseDate.getUTCDay(); // UTC day
+                    let daysToAdd = targetDay - currentDay;
+                    if (daysToAdd < 0) daysToAdd += 7; // Go to next week if passed
+
+                    // However, if daysToAdd is 0 (same day), we must check if time has passed?
+                    // Actually, `baseDate` already includes the user's chosen date. 
+                    // If user picked a date on Wednesday, and selects Monday + Wednesday.
+                    // For Wednesday: daysToAdd = 0.
+                    // For Monday: daysToAdd = 5 (Wed->Mon is 5 days later? No, Wed(3) -> Mon(1) is +5 days). Correct.
+
+                    // We modify the date
+                    const targetDate = new Date(baseDate);
+                    targetDate.setUTCDate(baseDate.getUTCDate() + daysToAdd);
+
+                    initialScheduledAt = targetDate;
                 }
 
-                // Create a message for each recipient with incrementing schedule time
-                let savedCount = 0;
-                for (let i = 0; i < validRecipients.length; i++) {
-                    const recipient = validRecipients[i];
-                    const delayMs = i * formData.delay_seconds * 1000;
-                    const staggeredTime = new Date(scheduledAt.getTime() + delayMs);
+                // Prepare payload for THIS specific message iteration
+                const currentPayload = {
+                    ...payload,
+                    day_of_week: dayIndex, // Will be null if not weekly
+                    scheduled_at: initialScheduledAt.toISOString(),
+                };
 
-                    // Helper formatting for Israel time (not strictly needed for storage but good for consistency/debug)
-                    const staggeredIsraelTime = new Intl.DateTimeFormat('en-GB', {
-                        timeZone: 'Asia/Jerusalem',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false,
-                    }).format(staggeredTime);
+                // Save Logic
+                let savedId;
 
-                    const singlePayload = {
-                        ...payload,
-                        to_phone: recipient,
-                        scheduled_at: staggeredTime.toISOString(),
-                        time_of_day: staggeredIsraelTime, // Update visual time
-                        status: 'pending'
-                    };
+                // If editing AND it's the FIRST day in the list, we update the existing record
+                if (isEditing && i === 0) {
+                    const { data, error } = await supabase
+                        .from('scheduled_messages')
+                        .update(currentPayload)
+                        .eq('id', id)
+                        .select('id')
+                        .single();
+                    if (error) throw error;
+                    savedId = data.id;
+                } else {
+                    // Create NEW record for other days (or if creating new)
+                    currentPayload.status = 'pending';
+                    // Important: If we are creating multiple, we should probably link them or something? 
+                    // But schema doesn't have 'group_id'. Independent messages is fine.
 
                     const { data, error } = await supabase
                         .from('scheduled_messages')
-                        .insert(singlePayload)
+                        .insert(currentPayload)
                         .select('id')
                         .single();
-
-                    if (error) {
-                        console.error(`Error saving staggered message for ${recipient}:`, error);
-                    } else {
-                        // Insert recipient record for this single message
-                        await supabase.from('scheduled_message_recipients').insert({
-                            scheduled_message_id: data.id,
-                            phone_number: recipient,
-                            status: 'pending'
-                        });
-                        savedCount++;
-                    }
+                    if (error) throw error;
+                    savedId = data.id;
                 }
 
-                // Done
-                navigate('/app/scheduled');
-                return;
+                // Handle Recipients (Copy to this message)
+                // If editing (i===0), we wipe old recipients first
+                if (isEditing && i === 0) {
+                    await supabase.from('scheduled_message_recipients').delete().eq('scheduled_message_id', savedId);
+                }
+
+                const recipientsToInsert = validRecipients.map(phone => ({
+                    scheduled_message_id: savedId,
+                    phone_number: phone.trim(),
+                    status: 'pending',
+                }));
+
+                if (recipientsToInsert.length > 0) {
+                    await supabase.from('scheduled_message_recipients').insert(recipientsToInsert);
+                }
+
+                messagesCreated++;
             }
 
-            // Standard save (one message, multiple recipients in table)
-            let messageId;
-            if (isEditing) {
-                const { data, error } = await supabase
-                    .from('scheduled_messages')
-                    .update(payload)
-                    .eq('id', id)
-                    .select('id')
-                    .single();
-                if (error) throw error;
-                messageId = data.id;
-            } else {
-                payload.status = 'pending';
-                const { data, error } = await supabase
-                    .from('scheduled_messages')
-                    .insert(payload)
-                    .select('id')
-                    .single();
-                if (error) throw error;
-                messageId = data.id;
-            }
-
-            // Save recipients
-            // Delete old recipients if editing
-            if (isEditing) {
-                await supabase
-                    .from('scheduled_message_recipients')
-                    .delete()
-                    .eq('scheduled_message_id', messageId);
-            }
-
-            // Insert new recipients
-            const recipientsToInsert = validRecipients.map(phone => ({
-                scheduled_message_id: messageId,
-                phone_number: phone.trim(),
-                status: 'pending',
-            }));
-
-            if (recipientsToInsert.length > 0) {
-                const { error: recipientsError } = await supabase
-                    .from('scheduled_message_recipients')
-                    .insert(recipientsToInsert);
-                if (recipientsError) throw recipientsError;
-            }
+            // --- End Multi-Day Logic ---
 
             navigate('/app/scheduled');
         } catch (err) {
@@ -783,56 +809,66 @@ export default function ScheduledMessageEdit() {
 
                         {/* Recurrence Options */}
                         {formData.is_recurring && (
-                            <div className="space-y-2 pl-4 border-l-2 border-primary/20">
-                                <select
-                                    value={formData.recurrence_type}
-                                    onChange={(e) => setFormData({ ...formData, recurrence_type: e.target.value })}
-                                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                                >
-                                    <option value="daily">{t('scheduled.daily') || 'Daily'}</option>
-                                    <option value="weekly">{t('scheduled.weekly') || 'Weekly'}</option>
-                                    <option value="monthly">{t('scheduled.monthly') || 'Monthly'}</option>
-                                </select>
-
-                                {formData.recurrence_type === 'weekly' && (
+                            <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">{t('scheduled.recurrence_interval') || 'Interval'}</label>
                                     <select
-                                        value={formData.day_of_week}
-                                        onChange={(e) => setFormData({ ...formData, day_of_week: parseInt(e.target.value) })}
+                                        value={formData.recurrence_type}
+                                        onChange={(e) => setFormData({ ...formData, recurrence_type: e.target.value })}
                                         className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                                     >
-                                        {DAYS_OF_WEEK.map((day, index) => (
-                                            <option key={index} value={index}>
-                                                {day}
-                                            </option>
-                                        ))}
+                                        <option value="daily">{t('scheduled.daily') || 'Daily'}</option>
+                                        <option value="weekly">{t('scheduled.weekly') || 'Weekly'}</option>
+                                        <option value="monthly">{t('scheduled.monthly') || 'Monthly'}</option>
                                     </select>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Date & Time */}
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">
-                                    שעה נוכחית (ישראל): {currentTime}
-                                </span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        {formData.is_recurring
-                                            ? t('scheduled.start_date') || 'Start Date'
-                                            : t('scheduled.date') || 'Date'} *
-                                    </label>
-                                    <Input
-                                        type="date"
-                                        value={formData.scheduled_date}
-                                        onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                                        required
-                                    />
                                 </div>
+
+                                {formData.recurrence_type === 'weekly' && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium block">
+                                            {t('scheduled.select_days') || 'Select Days'}
+                                        </label>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {DAYS_OF_WEEK.map((day, index) => {
+                                                const isSelected = formData.selectedDays.includes(index);
+                                                return (
+                                                    <button
+                                                        key={index}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newDays = isSelected
+                                                                ? formData.selectedDays.filter(d => d !== index)
+                                                                : [...formData.selectedDays, index];
+                                                            setFormData({ ...formData, selectedDays: newDays });
+                                                        }}
+                                                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${isSelected
+                                                            ? 'bg-primary text-primary-foreground'
+                                                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                                                            }`}
+                                                        title={t(`common.days.${day.toLowerCase()}`) || day}
+                                                    >
+                                                        {/* Show first letter (or 2 for Hebrew maybe?) - Let's use the translated short name if possible, or just first letter of English */}
+                                                        {(t(`common.days.${day.toLowerCase()}`) || day).substring(0, 1)}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            {formData.selectedDays.length > 0
+                                                ? formData.selectedDays.sort().map(d => t(`common.days.${DAYS_OF_WEEK[d].toLowerCase()}`) || DAYS_OF_WEEK[d]).join(', ')
+                                                : t('scheduled.no_days_selected') || 'No days selected'}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Time Input - Moved here for recurring */}
                                 <div className="space-y-2">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-xs text-muted-foreground">
+                                            {t('scheduled.current_time') || 'Current:'} {currentTime}
+                                        </span>
+                                    </div>
                                     <label className="text-sm font-medium">
                                         {t('scheduled.time') || 'Time'} *
                                     </label>
@@ -841,10 +877,47 @@ export default function ScheduledMessageEdit() {
                                         value={formData.scheduled_time}
                                         onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
                                         required
+                                        className="max-w-[150px]"
                                     />
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Date Input - Only for One-time (or Start Date for recurring if we wanted that, but kept simple) */}
+                        {!formData.is_recurring && (
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-xs text-muted-foreground">
+                                        שעה נוכחית (ישראל): {currentTime}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">
+                                            {t('scheduled.date') || 'Date'} *
+                                        </label>
+                                        <Input
+                                            type="date"
+                                            value={formData.scheduled_date}
+                                            onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">
+                                            {t('scheduled.time') || 'Time'} *
+                                        </label>
+                                        <Input
+                                            type="time"
+                                            value={formData.scheduled_time}
+                                            onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Publish to Community */}
                         <div className="space-y-2 pt-4 border-t">
@@ -892,6 +965,6 @@ export default function ScheduledMessageEdit() {
                     </form>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     );
 }

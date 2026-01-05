@@ -65,7 +65,16 @@ const resources = {
                 "connect_start_chatting": "Connect & Start Chatting",
                 "connecting": "Connecting...",
                 "where_to_find": "Where to find?",
-                "click_to_zoom": "Click to zoom"
+                "click_to_zoom": "Click to zoom",
+                "days": {
+                    "sunday": "Sunday",
+                    "monday": "Monday",
+                    "tuesday": "Tuesday",
+                    "wednesday": "Wednesday",
+                    "thursday": "Thursday",
+                    "friday": "Friday",
+                    "saturday": "Saturday"
+                }
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -564,7 +573,16 @@ const resources = {
                 "connect_start_chatting": "התחבר והתחל לצ'אט",
                 "connecting": "מתחבר...",
                 "where_to_find": "איפה למצוא?",
-                "click_to_zoom": "לחץ להגדלה"
+                "click_to_zoom": "לחץ להגדלה",
+                "days": {
+                    "sunday": "ראשון",
+                    "monday": "שני",
+                    "tuesday": "שלישי",
+                    "wednesday": "רביעי",
+                    "thursday": "חמישי",
+                    "friday": "שישי",
+                    "saturday": "שבת"
+                }
             },
             "numbers_page": {
                 "title": "מספרים",
