@@ -19,6 +19,22 @@ const resources = {
             "add_number": "Add Number",
             "webhooks": "Webhooks",
             "logs": "Logs",
+            "logs_page": {
+                "subtitle": "View and filter system logs and events",
+                "list_title": "System Logs",
+                "list_desc": "Real-time log of system events, errors, and activities.",
+                "all_logs": "All Logs",
+                "system_logs": "System Logs",
+                "system": "System",
+                "all_levels": "All Levels",
+                "level": "Level",
+                "message": "Message",
+                "metadata": "Metadata",
+                "info": "Info",
+                "warn": "Warning",
+                "error": "Error",
+                "debug": "Debug"
+            },
             "automation": "Automation",
             "extension": "Extension",
             "total_numbers": "Total Numbers",
@@ -854,6 +870,23 @@ const resources = {
                         "price": "199₪",
                         "period": "לחודש",
                         "badge": "המשתלם ביותר"
+                    },
+                    "subheadline": "תמחור פשוט שגדל עם העסק שלך.",
+                    "plans": {
+                        "select": "בחר תוכנית",
+                        "status": "סטטוס",
+                        "numbers_instances": "מספרים ואינסטנסים",
+                        "numbers": "מספרים",
+                        "instances": "אינסטנסים",
+                        "team_members": "חברי צוות",
+                        "unlimited": "ללא הגבלה",
+                        "month": "חודש",
+                        "yearly": "שנתי",
+                        "save_25": "חסוך 25%",
+                        "billed_yearly": "חיוב שנתי",
+                        "scheduled_messages": "הודעות מתוזמנות",
+                        "customer_support": "תמיכת לקוחות",
+                        "priority_support": "תמיכה בעדיפות"
                     }
                 },
                 "plans": {
