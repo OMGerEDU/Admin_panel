@@ -15,6 +15,7 @@ import {
     Building2,
     CalendarClock,
     X,
+    Code,
 } from 'lucide-react';
 
 export function Sidebar({ className, isMobile, onClose }) {
@@ -28,6 +29,7 @@ export function Sidebar({ className, isMobile, onClose }) {
         { href: '/app/numbers', label: t('numbers'), icon: Smartphone },
         { href: '/app/scheduled', label: t('scheduled.title') || 'Scheduled', icon: CalendarClock },
         { href: '/app/extension', label: t('extension'), icon: Chrome },
+        // { href: '/app/api', label: t('sidebar.api') || 'API', icon: Code },
     ];
 
     const settingsChildren = [

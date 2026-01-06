@@ -25,6 +25,7 @@ import ScheduledMessages from './pages/ScheduledMessages'
 import ScheduledMessageEdit from './pages/ScheduledMessageEdit'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Support from './pages/Support'
+import Api from './pages/Api'
 import './index.css'
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
                   <Route path="logs" element={<Logs />} />
                   <Route path="automation" element={<Automation />} />
                   <Route path="plans" element={<Plans />} />
+                  <Route path="api" element={<Api />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="organization" element={<OrganizationOverview />} />
                   <Route path="organization/:orgId" element={<OrganizationSettings />} />

@@ -312,51 +312,43 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
     </motion.div>
 );
 
-const DailyChaosSection = () => {
+const IntegrationsSection = () => {
     const { t } = useTranslation();
 
-    const chaosItems = [
-        { icon: XCircle, text: t('landing.chaos.item1') },
-        { icon: AlertTriangle, text: t('landing.chaos.item2') },
-        { icon: Layers, text: t('landing.chaos.item3') },
-        { icon: Activity, text: t('landing.chaos.item4') },
-        { icon: Smartphone, text: t('landing.chaos.item5') },
-    ];
-
     return (
-        <section className="py-20 relative bg-red-50/50 dark:bg-red-900/10">
-            <div className="container mx-auto px-4 text-center">
-                <motion.div
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    variants={fadeInUp}
-                >
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-12">
-                        <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
-                            {t('landing.chaos.heading')}
-                        </span>
-                    </h2>
-                </motion.div>
+        <section className="py-20 relative bg-[#0F172A] text-white overflow-hidden">
+            {/* Background Gradient */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px]" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px]" />
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                    {chaosItems.map((item, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="bg-white dark:bg-red-950/30 border border-red-100 dark:border-red-500/20 p-6 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm hover:shadow-md"
-                        >
-                            <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center text-red-500 dark:text-red-400 mb-4">
-                                <item.icon size={24} />
-                            </div>
-                            <p className="text-lg font-medium text-slate-800 dark:text-gray-200">
-                                {item.text}
-                            </p>
-                        </motion.div>
-                    ))}
+            <div className="container mx-auto px-4 relative z-10">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+                    {/* Text Content */}
+                    <div className="lg:w-1/2 text-center lg:text-start">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                            {t('landing.integrations.title')}
+                        </h2>
+                        <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+                            {t('landing.integrations.subtitle')}
+                        </p>
+                    </div>
+
+                    {/* Visual/Logos */}
+                    <div className="lg:w-1/2 flex flex-wrap justify-center gap-8 opacity-80">
+                        {/* Placeholders for CRM Logos - replacing with text for now */}
+                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
+                            <span className="font-bold text-2xl">monday.com</span>
+                        </div>
+                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
+                            <span className="font-bold text-2xl">Fireberry</span>
+                        </div>
+                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
+                            <span className="font-bold text-2xl">Origami</span>
+                        </div>
+                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
+                            <span className="font-bold text-2xl">Salesforce</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -580,36 +572,41 @@ const SocialProofSection = () => {
     );
 };
 
-const PricingCard = ({ tier, price, period, features, recommended, ctaKey }) => (
+const PricingCard = ({ tier, price, period, features, recommended, badge, ctaKey }) => (
     <motion.div
         whileHover={{ y: -10 }}
-        className={`relative rounded-2xl p-8 border backdrop-blur-sm transition-all duration-300 ${recommended
+        className={`relative rounded-3xl p-8 border backdrop-blur-sm transition-all duration-300 flex flex-col h-full ${recommended
             ? 'bg-[#10B981]/10 border-[#10B981] shadow-[0_0_30px_rgba(16,185,129,0.15)] z-10 scale-105'
             : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-[#10B981]/30 hover:shadow-xl dark:hover:shadow-none'}`}
     >
-        {recommended && (
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Most Popular
+        {badge && (
+            <div className={`absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg ${recommended ? 'bg-[#10B981] text-white' : 'bg-slate-800 text-white'}`}>
+                {badge}
             </div>
         )}
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{tier}</h3>
-        <div className="flex items-baseline gap-1 mb-6">
-            <span className="text-4xl font-bold text-slate-900 dark:text-white">{price}</span>
-            <span className="text-slate-500 dark:text-gray-400">{period}</span>
+
+        <div className="text-center mb-6">
+            <h3 className="text-lg font-medium text-slate-600 dark:text-gray-300 mb-2">{tier}</h3>
+            <div className="flex items-center justify-center gap-1">
+                <span className="text-5xl font-bold text-slate-900 dark:text-white">{price}</span>
+                <span className="text-slate-500 dark:text-gray-400 self-end mb-2">{period}</span>
+            </div>
         </div>
 
-        <ul className="space-y-4 mb-8">
-            {features.map((feat, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-gray-300">
-                    <Check className="w-5 h-5 text-[#10B981] shrink-0" />
-                    <span>{feat}</span>
-                </li>
-            ))}
-        </ul>
+        <div className="flex-1">
+            <ul className="space-y-4 mb-8">
+                {features.map((feat, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-gray-300">
+                        <CheckCircle2 className="w-5 h-5 text-[#10B981] shrink-0" />
+                        <span className="text-start">{feat}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
 
-        <Link to="/register">
-            <Button className={`w-full ${recommended
-                ? 'bg-[#10B981] hover:bg-[#059669] text-white shadow-lg'
+        <Link to="/register" className="mt-auto">
+            <Button className={`w-full py-6 rounded-xl text-lg ${recommended
+                ? 'bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white shadow-lg shadow-green-500/20'
                 : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white'}`}>
                 {ctaKey}
             </Button>
@@ -620,47 +617,45 @@ const PricingCard = ({ tier, price, period, features, recommended, ctaKey }) => 
 const PricingSection = () => {
     const { t } = useTranslation();
 
+    const commonFeatures = [
+        t('landing.pricing.features.click_to_chat'),
+        t('landing.pricing.features.crm_compat'),
+        t('landing.pricing.features.browser_install'),
+        t('landing.pricing.features.specialized'),
+        t('landing.pricing.features.money_back'),
+        t('landing.pricing.features.trial')
+    ];
+
     const plans = [
         {
             tier: t('landing.pricing.starter.title'),
             price: t('landing.pricing.starter.price'),
             period: t('landing.pricing.starter.period'),
-            features: [
-                t('landing.pricing.starter.feat1'),
-                t('landing.pricing.starter.feat2'),
-                t('landing.pricing.starter.feat3')
-            ],
-            ctaKey: t('landing.pricing.cta_free')
+            badge: t('landing.pricing.starter.badge'),
+            features: commonFeatures,
+            ctaKey: t('landing.pricing.cta_trial')
         },
         {
             tier: t('landing.pricing.pro.title'),
             price: t('landing.pricing.pro.price'),
             period: t('landing.pricing.pro.period'),
+            badge: t('landing.pricing.pro.badge'),
             recommended: true,
-            features: [
-                t('landing.pricing.pro.feat1'),
-                t('landing.pricing.pro.feat2'),
-                t('landing.pricing.pro.feat3'),
-                t('landing.pricing.pro.feat4')
-            ],
-            ctaKey: t('landing.pricing.cta_pro')
+            features: commonFeatures,
+            ctaKey: t('landing.pricing.cta_trial')
         },
         {
-            tier: t('landing.pricing.scale.title'),
-            price: t('landing.pricing.scale.price'),
-            period: t('landing.pricing.scale.period'),
-            features: [
-                t('landing.pricing.scale.feat1'),
-                t('landing.pricing.scale.feat2'),
-                t('landing.pricing.scale.feat3'),
-                t('landing.pricing.scale.feat4')
-            ],
-            ctaKey: t('landing.pricing.cta_scale')
+            tier: t('landing.pricing.business.title'),
+            price: t('landing.pricing.business.price'),
+            period: t('landing.pricing.business.period'),
+            badge: t('landing.pricing.business.badge'),
+            features: commonFeatures,
+            ctaKey: t('landing.pricing.cta_trial')
         }
     ];
 
     return (
-        <section id="offer" className="py-20 relative">
+        <section id="offer" className="py-20 relative bg-slate-50 dark:bg-[#0F172A]">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
@@ -671,9 +666,63 @@ const PricingSection = () => {
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
                     {plans.map((p, i) => (
                         <PricingCard key={i} {...p} />
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const FAQSection = () => {
+    const { t } = useTranslation();
+    const [openIndex, setOpenIndex] = useState(null);
+
+    const faqs = [
+        { q: t('landing.faq.q1'), a: t('landing.faq.a1') },
+        { q: t('landing.faq.q2'), a: t('landing.faq.a2') },
+        { q: t('landing.faq.q3'), a: t('landing.faq.a3') },
+        { q: t('landing.faq.q4'), a: t('landing.faq.a4') },
+    ];
+
+    return (
+        <section className="py-20 bg-white dark:bg-[#0B1120]">
+            <div className="container mx-auto px-4 max-w-3xl">
+                <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-12">
+                    {t('landing.faq.heading')}
+                </h2>
+
+                <div className="space-y-4">
+                    {faqs.map((faq, i) => (
+                        <div key={i} className="border-b border-slate-200 dark:border-white/10">
+                            <button
+                                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                                className="w-full flex items-center justify-between py-6 text-start focus:outline-none"
+                            >
+                                <span className="text-lg font-medium text-slate-900 dark:text-white pr-8">{faq.q}</span>
+                                {openIndex === i ? (
+                                    <X className="w-5 h-5 text-[#10B981]" />
+                                ) : (
+                                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                                )}
+                            </button>
+                            <AnimatePresence>
+                                {openIndex === i && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <p className="pb-6 text-slate-600 dark:text-gray-400 leading-relaxed">
+                                            {faq.a}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -714,10 +763,11 @@ export default function LandingPage() {
             <Navbar />
             <HeroSection />
             <SocialProofSection />
-            <DailyChaosSection />
             <FeatureSolutionsSection />
+            <IntegrationsSection />
             <FeaturesSection />
             <PricingSection />
+            <FAQSection />
             <Footer />
         </div>
     );
