@@ -1129,7 +1129,6 @@ const resources = {
             "tag_id": "#{{id}}"
         }
     }
-}
 };
 
 i18n
