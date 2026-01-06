@@ -34,6 +34,13 @@ import {
 
 // Status badge component
 function StatusBadge({ status, t }) {
+    const statusKeys = {
+        pending: 'scheduled.status_pending',
+        processing: 'scheduled.status_processing',
+        sent: 'scheduled.status_sent',
+        failed: 'scheduled.status_failed',
+        cancelled: 'scheduled.status_cancelled',
+    };
     const styles = {
         pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
         processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -41,9 +48,10 @@ function StatusBadge({ status, t }) {
         failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
         cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
     };
+    const statusKey = statusKeys[status] || `scheduled.status_${status}`;
     return (
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.pending}`}>
-            {t(`scheduled.status_${status}`) || status}
+            {t(statusKey)}
         </span>
     );
 }
@@ -60,7 +68,7 @@ function MediaIcon({ type }) {
 }
 
 // Days of week for recurring
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
 export default function ScheduledMessages() {
     const { t } = useTranslation();
@@ -458,7 +466,7 @@ export default function ScheduledMessages() {
                 case 'daily':
                     return `${t('scheduled.daily')} ${time}`;
                 case 'weekly':
-                    return `${DAYS_OF_WEEK[msg.day_of_week]} ${time}`;
+                    return `${t(`common.days.${DAY_KEYS[msg.day_of_week]}`)} ${time}`;
                 case 'monthly':
                     return `${t('scheduled.monthly')} ${time}`;
                 default:
@@ -474,10 +482,10 @@ export default function ScheduledMessages() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">
-                        {t('scheduled.title') || 'Scheduled Messages'}
+                        {t('scheduled.title')}
                     </h2>
                     <p className="text-muted-foreground">
-                        {t('scheduled.subtitle') || 'Schedule WhatsApp messages to be sent automatically'}
+                        {t('scheduled.subtitle')}
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -517,7 +525,7 @@ export default function ScheduledMessages() {
                     </Button>
                     <Button onClick={handleCreate}>
                         <Plus className="mr-2 h-4 w-4" />
-                        {t('scheduled.create') || 'Create New'}
+                        {t('scheduled.create')}
                     </Button>
                 </div>
             </div>
@@ -532,7 +540,7 @@ export default function ScheduledMessages() {
                         }`}
                 >
                     <Play className="inline-block mr-1 h-4 w-4" />
-                    {t('scheduled.tab_active') || 'Active'}
+                    {t('scheduled.tab_active')}
                     <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
                         {messages.filter((m) => m.is_active).length}
                     </span>
@@ -545,7 +553,7 @@ export default function ScheduledMessages() {
                         }`}
                 >
                     <Pause className="inline-block mr-1 h-4 w-4" />
-                    {t('scheduled.tab_inactive') || 'Inactive'}
+                    {t('scheduled.tab_inactive')}
                     <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
                         {messages.filter((m) => !m.is_active).length}
                     </span>
@@ -558,7 +566,7 @@ export default function ScheduledMessages() {
                         }`}
                 >
                     <Users className="inline-block mr-1 h-4 w-4" />
-                    {t('scheduled.tab_community') || 'Community Templates'}
+                    {t('scheduled.tab_community')}
                     <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
                         {communityTemplates.length}
                     </span>
@@ -573,9 +581,9 @@ export default function ScheduledMessages() {
                             <Clock className="h-6 w-6 text-primary" />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-xl font-bold">{t('scheduled.upgrade_title') || 'Scheduled Messages is a Pro Feature'}</h3>
+                            <h3 className="text-xl font-bold">{t('scheduled.upgrade_title')}</h3>
                             <p className="text-muted-foreground max-w-md mx-auto">
-                                {t('scheduled.upgrade_desc') || 'Upgrade to Pro or Organization plan to schedule unlimited messages, recurring campaigns, and more.'}
+                                {t('scheduled.upgrade_desc')}
                             </p>
                         </div>
                         <Button onClick={() => navigate('/app/plans')} className="mt-4">
@@ -592,7 +600,7 @@ export default function ScheduledMessages() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {communityTemplates.length === 0 ? (
                         <div className="col-span-full text-center py-12 text-muted-foreground">
-                            {t('scheduled.no_community_templates') || 'No community templates yet'}
+                            {t('scheduled.no_community_templates')}
                         </div>
                     ) : (
                         communityTemplates.map((template) => (
@@ -642,8 +650,8 @@ export default function ScheduledMessages() {
                     {filteredMessages.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
                             {activeTab === 'active'
-                                ? t('scheduled.no_active') || 'No active scheduled messages'
-                                : t('scheduled.no_inactive') || 'No inactive scheduled messages'}
+                                ? t('scheduled.no_active')
+                                : t('scheduled.no_inactive')}
                         </div>
                     ) : (
                         filteredMessages.map((msg) => (

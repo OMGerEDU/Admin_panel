@@ -75,11 +75,11 @@ export default function Extension() {
                         <div className="flex items-start gap-2">
                             <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
                             <div>
-                                <p className="font-medium text-sm">Extension Features</p>
+                                <p className="font-medium text-sm">{t('extension_page.features_title')}</p>
                                 <ul className="text-sm text-muted-foreground mt-1 space-y-1">
-                                    <li>• Quick send messages from any webpage</li>
-                                    <li>• View chat history</li>
-                                    <li>• Manage numbers on the go</li>
+                                    <li>• {t('extension_page.features_list.quick_send')}</li>
+                                    <li>• {t('extension_page.features_list.view_history')}</li>
+                                    <li>• {t('extension_page.features_list.manage_numbers')}</li>
                                 </ul>
                             </div>
                         </div>

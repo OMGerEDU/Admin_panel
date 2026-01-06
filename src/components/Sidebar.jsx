@@ -24,20 +24,20 @@ export function Sidebar({ className, isMobile, onClose }) {
     const navigate = useNavigate();
 
     const primaryLinks = [
-        { href: '/app/dashboard', label: t('dashboard'), icon: LayoutDashboard },
-        { href: '/app/chats', label: t('chats'), icon: MessageSquare },
-        { href: '/app/numbers', label: t('numbers'), icon: Smartphone },
-        { href: '/app/scheduled', label: t('scheduled.title') || 'Scheduled', icon: CalendarClock },
-        { href: '/app/extension', label: t('extension'), icon: Chrome },
+        { href: '/app/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
+        { href: '/app/chats', label: t('sidebar.chats'), icon: MessageSquare },
+        { href: '/app/numbers', label: t('sidebar.numbers'), icon: Smartphone },
+        { href: '/app/scheduled', label: t('sidebar.scheduled'), icon: CalendarClock },
+        { href: '/app/extension', label: t('sidebar.extension'), icon: Chrome },
         // { href: '/app/api', label: t('sidebar.api') || 'API', icon: Code },
     ];
 
     const settingsChildren = [
-        { href: '/app/settings', label: t('settings'), icon: Settings },
-        { href: '/app/organization', label: t('organization_settings') || 'Organization', icon: Building2 },
+        { href: '/app/settings', label: t('sidebar.settings'), icon: Settings },
+        { href: '/app/organization', label: t('sidebar.organization'), icon: Building2 },
         { href: '/app/plans', label: t('landing.pricing.plans.select'), icon: LayoutDashboard },
 
-        { href: '/app/logs', label: t('logs'), icon: FileText },
+        { href: '/app/logs', label: t('sidebar.logs'), icon: FileText },
 
     ];
 
@@ -100,7 +100,7 @@ export function Sidebar({ className, isMobile, onClose }) {
                         >
                             <span className="flex items-center">
                                 <Settings className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
-                                {t('settings')}
+                                {t('sidebar.settings')}
                             </span>
                             <ChevronDown
                                 className={cn(

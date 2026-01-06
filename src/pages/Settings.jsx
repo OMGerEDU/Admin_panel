@@ -164,7 +164,7 @@ export default function Settings() {
                             <div>
                                 <p className="font-medium">{t('settings_page.email_notifications')}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    Receive email notifications for important events
+                                    {t('settings_page.email_notifications_desc')}
                                 </p>
                             </div>
                             <input type="checkbox" defaultChecked className="rounded" />
@@ -186,9 +186,7 @@ export default function Settings() {
                         <p className="text-sm text-muted-foreground">
                             {t('settings_page.change_password_info')}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                            To change your password, please use the password reset feature from the login page.
-                        </p>
+
                     </div>
                 </CardContent>
             </Card>
