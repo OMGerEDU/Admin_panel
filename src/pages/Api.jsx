@@ -24,8 +24,116 @@ import {
     DialogTrigger,
 } from '../components/ui/dialog'
 import { ScrollArea } from '../components/ui/scroll-area'
-import { Copy, Trash, Plus, Key, Check, AlertTriangle, Eye, EyeOff } from 'lucide-react'
+import { Copy, Trash, Plus, Key, Check, AlertTriangle, Menu, ChevronRight } from 'lucide-react'
 import { getApiKeys, createApiKey, deleteApiKey } from '../services/apiKeys'
+
+// --- Helper Components ---
+
+const CodeBlock = ({ tabs }) => {
+    const [activeTab, setActiveTab] = useState(Object.keys(tabs)[0]);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(tabs[activeTab]);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="rounded-md border bg-slate-950 text-slate-50 dark:bg-slate-900 dark:border-slate-800 overflow-hidden my-4">
+            <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-2">
+                <div className="flex gap-4">
+                    {Object.keys(tabs).map(lang => (
+                        <button
+                            key={lang}
+                            onClick={() => setActiveTab(lang)}
+                            className={`text-xs font-medium transition-colors hover:text-white ${activeTab === lang ? 'text-white' : 'text-slate-400'}`}
+                        >
+                            {lang}
+                        </button>
+                    ))}
+                </div>
+                <button
+                    onClick={handleCopy}
+                    className="text-slate-400 hover:text-white transition-colors"
+                    title="Copy to clipboard"
+                >
+                    {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+            </div>
+            <div className="p-4 overflow-x-auto">
+                <pre className="font-mono text-sm leading-relaxed">
+                    {tabs[activeTab]}
+                </pre>
+            </div>
+        </div>
+    );
+};
+
+const MethodBadge = ({ method }) => {
+    const colors = {
+        GET: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+        POST: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+        DELETE: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+        PUT: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded text-xs font-bold ${colors[method] || "bg-gray-100 text-gray-700"}`}>
+            {method}
+        </span>
+    );
+};
+
+const EndpointDoc = ({ id, method, path, title, description, params, examples }) => {
+    return (
+        <div id={id} className="scroll-mt-24 space-y-4 border-b pb-12 last:border-0 last:pb-0">
+            <div>
+                <div className="flex items-center gap-3 mb-2">
+                    <MethodBadge method={method} />
+                    <code className="text-lg font-mono font-semibold">{path}</code>
+                </div>
+                <h3 className="text-xl font-bold">{title}</h3>
+                <p className="text-muted-foreground mt-2">{description}</p>
+            </div>
+
+            {params && params.length > 0 && (
+                <div className="mt-4">
+                    <h4 className="text-sm font-semibold mb-2">Parameters</h4>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[150px]">Name</TableHead>
+                                <TableHead className="w-[100px]">Type</TableHead>
+                                <TableHead className="w-[100px]">In</TableHead>
+                                <TableHead>Description</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {params.map((p, i) => (
+                                <TableRow key={i}>
+                                    <TableCell className="font-mono text-xs font-semibold">{p.name}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{p.type}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{p.in}</TableCell>
+                                    <TableCell className="text-sm">
+                                        {p.required && <span className="text-red-500 font-bold text-xs mr-1">*</span>}
+                                        {p.description}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
+
+            <div className="mt-6">
+                <h4 className="text-sm font-semibold mb-2">Example Request</h4>
+                <CodeBlock tabs={examples} />
+            </div>
+        </div>
+    );
+};
+
+// --- Main Page ---
 
 export default function Api() {
     const { session } = useAuth()
@@ -37,6 +145,7 @@ export default function Api() {
     const [newKeyName, setNewKeyName] = useState('')
     const [generatedKey, setGeneratedKey] = useState(null)
     const [copySuccess, setCopySuccess] = useState(false)
+    const [activeSection, setActiveSection] = useState('overview');
 
     useEffect(() => {
         if (session?.user?.id) {
@@ -44,11 +153,18 @@ export default function Api() {
         }
     }, [session?.user?.id])
 
+    // Scroll spy or simple click handler
+    const scrollToSection = (id) => {
+        setActiveSection(id);
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     const checkPlanAndFetchKeys = async () => {
         setLoading(true)
         try {
-            // 1. Check Plan
-            // We use the same logic as Plans.jsx roughly, or a simpler query
             const { data: subscription } = await supabase
                 .from('subscriptions')
                 .select('*, plans(*)')
@@ -57,15 +173,11 @@ export default function Api() {
 
             const planName = subscription?.plans?.name || 'Free'
             const status = subscription?.status || 'inactive'
-
-            // Allow if plan is not Free and status is active (or trialing etc)
-            // Adjust logic based on strict requirements ("above free plan")
             const isEligible = planName !== 'Free' && status === 'active';
 
             setPlan({ name: planName, isEligible })
 
             if (isEligible) {
-                // 2. Fetch Keys
                 const { data, error } = await getApiKeys()
                 if (error) console.error(error)
                 else setKeys(data || [])
@@ -85,14 +197,13 @@ export default function Api() {
             alert('Failed to create key')
         } else {
             setGeneratedKey(plainKey)
-            // Refresh list
             const { data: newData } = await getApiKeys()
             setKeys(newData || [])
         }
     }
 
     const handleDeleteKey = async (id) => {
-        if (!confirm('Are you sure you want to delete this API key? Any applications using it will stop working.')) return
+        if (!confirm('Are you sure you want to delete this API key?')) return
         await deleteApiKey(id)
         const { data } = await getApiKeys()
         setKeys(data || [])
@@ -126,307 +237,299 @@ export default function Api() {
         )
     }
 
+    const menuItems = [
+        { id: 'overview', label: 'Overview' },
+        { id: 'authentication', label: 'Authentication' },
+        { id: 'management', label: 'API Keys' },
+        { id: 'numbers-list', label: 'List Numbers' },
+        { id: 'chats-list', label: 'List Chats' },
+        { id: 'chat-history', label: 'Chat History' },
+        { id: 'send-message', label: 'Send Message' },
+        { id: 'delete-message', label: 'Delete Message' },
+        { id: 'scheduled', label: 'Scheduled Messages' },
+    ];
+
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-10">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">API Management</h2>
-                <p className="text-muted-foreground">
-                    Manage your API keys and view documentation to integrate with your custom applications.
-                </p>
-            </div>
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
 
-            {/* Keys Management */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>My API Keys</CardTitle>
-                        <CardDescription>
-                            These keys allow full access to your account via the API. Keep them secure.
-                        </CardDescription>
+                {/* Sidebar Navigation */}
+                <div className="md:col-span-3 lg:col-span-2 hidden md:block">
+                    <div className="sticky top-24 space-y-1">
+                        <h4 className="font-bold mb-4 px-2">API Reference</h4>
+                        {menuItems.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => scrollToSection(item.id)}
+                                className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${activeSection === item.id
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
                     </div>
-                    <Dialog open={isCreateOpen} onOpenChange={(open) => {
-                        setIsCreateOpen(open)
-                        if (!open) {
-                            setGeneratedKey(null)
-                            setNewKeyName('')
-                        }
-                    }}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" />
-                                Create New Key
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            {!generatedKey ? (
-                                <>
-                                    <DialogHeader>
-                                        <DialogTitle>Create New API Key</DialogTitle>
-                                        <DialogDescription>
-                                            Give your key a name to identify it later.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4">
-                                        <Input
-                                            placeholder="e.g. Website Integration"
-                                            value={newKeyName}
-                                            onChange={e => setNewKeyName(e.target.value)}
-                                        />
-                                    </div>
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleCreateKey} disabled={!newKeyName.trim()}>Generate Key</Button>
-                                    </DialogFooter>
-                                </>
-                            ) : (
-                                <>
-                                    <DialogHeader>
-                                        <DialogTitle className="text-green-600 flex items-center gap-2">
-                                            <Check className="h-5 w-5" /> Key Created Successfully
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            Copy this key now. You won't be able to see it again!
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4 space-y-2">
-                                        <div className="relative">
-                                            <Input readOnly value={generatedKey} className="pr-12 font-mono" />
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="absolute right-1 top-1 h-8 w-8"
-                                                onClick={() => copyToClipboard(generatedKey)}
-                                            >
-                                                {copySuccess ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                                            </Button>
-                                        </div>
-                                        <p className="text-xs text-red-500 flex items-center gap-1">
-                                            <AlertTriangle className="h-3 w-3" />
-                                            Store this key securely. It cannot be recovered.
-                                        </p>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button onClick={() => setIsCreateOpen(false)}>Done</Button>
-                                    </DialogFooter>
-                                </>
-                            )}
-                        </DialogContent>
-                    </Dialog>
-                </CardHeader>
-                <CardContent>
-                    {keys.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-                            No API keys generated yet.
-                        </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Token</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead>Last Used</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {keys.map(key => (
-                                    <TableRow key={key.id}>
-                                        <TableCell className="font-medium">{key.name}</TableCell>
-                                        <TableCell className="font-mono text-xs">{key.prefix}</TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
-                                            {new Date(key.created_at).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
-                                            {key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : 'Never'}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteKey(key.id)}>
-                                                <Trash className="h-4 w-4 text-red-500" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Documentation */}
-            <div className="space-y-6">
-                <div>
-                    <h3 className="text-2xl font-bold tracking-tight">Documentation</h3>
-                    <p className="text-muted-foreground">
-                        Reference for the REST API endpoints. All requests must include your API Key in the headers.
-                    </p>
                 </div>
 
-                <Card className="bg-muted/50">
-                    <CardHeader>
-                        <CardTitle className="text-base">Authentication</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground mb-2">
-                            Include the <code>x-api-key</code> header in all your requests. Base URL: <code>/api</code> (same origin) or <code>https://your-domain.com/api</code>
+                {/* Main Content */}
+                <div className="md:col-span-9 lg:col-span-10 space-y-16">
+
+                    {/* Header */}
+                    <div id="overview">
+                        <h1 className="text-4xl font-bold tracking-tight mb-4">API Documentation</h1>
+                        <p className="text-lg text-muted-foreground">
+                            Welcome to the Ferns API. You can use our API to access WhatsApp endpoints, which allows you to send and receive messages, manage automated workflows, and integrate with your CRM.
                         </p>
-                        <pre className="bg-black/90 text-white p-4 rounded-md overflow-x-auto text-sm font-mono">
-                            {`curl -X GET https://your-domain.com/api/v1/numbers \\
-  -H "Content-Type: application/json" \\
-  -H "x-api-key: sk_live_..."`}
-                        </pre>
-                    </CardContent>
-                </Card>
+                    </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">GET</span>
-                                /v1/numbers
-                            </CardTitle>
-                            <CardDescription>List all connected WhatsApp numbers</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="text-sm">
-                                <p className="font-semibold mb-1">Response</p>
-                                <ScrollArea className="h-32 rounded border bg-muted p-2">
-                                    <pre className="text-xs font-mono">
-                                        {`{
-  "data": [
-    {
-      "id": "uuid...",
-      "phone_number": "1234567890",
-      "status": "connected",
-      "instance_id": "..."
-    }
-  ]
-}`}
-                                    </pre>
-                                </ScrollArea>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {/* Authentication */}
+                    <div id="authentication" className="scroll-mt-24 space-y-4">
+                        <h2 className="text-2xl font-bold">Authentication</h2>
+                        <p className="text-muted-foreground">
+                            The API uses API keys to authenticate requests. You can view and manage your API keys below.
+                            All API requests must be made over HTTPS. Calls made over plain HTTP will fail.
+                            API keys must be included as a header in all requests:
+                        </p>
+                        <CodeBlock tabs={{
+                            Header: `x-api-key: YOUR_API_KEY`
+                        }} />
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">POST</span>
-                                /v1/messages/send
-                            </CardTitle>
-                            <CardDescription>Send a text or media message</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="text-sm">
-                                <p className="font-semibold mb-1">Body</p>
-                                <pre className="bg-muted p-2 rounded text-xs font-mono">
-                                    {`{
-  "number_id": "uuid...",
-  "to": "1234567890",
-  "message": "Hello world!"
-}`}
-                                </pre>
-                            </div>
-                            <div className="text-sm">
-                                <p className="font-semibold mb-1">Response</p>
-                                <pre className="bg-muted p-2 rounded text-xs font-mono">
-                                    {`{
-  "success": true,
-  "message_id": "..."
-}`}
-                                </pre>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">GET</span>
-                                /v1/chats
-                            </CardTitle>
-                            <CardDescription>List active chats</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="text-sm">
-                                <p className="font-semibold mb-1">Response</p>
-                                <ScrollArea className="h-32 rounded border bg-muted p-2">
-                                    <pre className="text-xs font-mono">
-                                        {`{
-  "data": [
-    {
-      "id": "uuid...",
-      "name": "John Doe",
-      "last_message": "Hello"
-    }
-  ]
-}`}
-                                    </pre>
-                                </ScrollArea>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">DELETE</span>
-                                /v1/messages/:id
-                            </CardTitle>
-                            <CardDescription>Delete a message</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="text-sm">
-                                <p className="font-semibold mb-1">Response</p>
-                                <pre className="bg-muted p-2 rounded text-xs font-mono">
-                                    {`{
-  "success": true
-}`}
-                                </pre>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="md:col-span-2 border-primary/20 bg-primary/5">
-                        <CardHeader>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">POST</span>
-                                /v1/scheduled
-                            </CardTitle>
-                            <CardDescription>Schedule a message for later</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="text-sm">
-                                    <p className="font-semibold mb-1">Body</p>
-                                    <pre className="bg-muted p-2 rounded text-xs font-mono h-full">
-                                        {`{
-  "number_id": "uuid...",
-  "to": "1234567890",
-  "message": "Happy Birthday!",
-  "scheduled_at": "2024-12-25T09:00:00Z",
-  "is_recurring": false
-}`}
-                                    </pre>
+                    {/* Key Management */}
+                    <div id="management" className="scroll-mt-24">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle>Your API Keys</CardTitle>
+                                    <CardDescription>
+                                        Manage access keys for your applications.
+                                    </CardDescription>
                                 </div>
-                                <div className="text-sm">
-                                    <p className="font-semibold mb-1">Response</p>
-                                    <pre className="bg-muted p-2 rounded text-xs font-mono h-full">
-                                        {`{
-  "success": true,
-  "data": {
-    "id": "uuid...",
-    "status": "pending",
-    "scheduled_at": "..."
+                                <Dialog open={isCreateOpen} onOpenChange={(open) => {
+                                    setIsCreateOpen(open)
+                                    if (!open) {
+                                        setGeneratedKey(null)
+                                        setNewKeyName('')
+                                    }
+                                }}>
+                                    <DialogTrigger asChild>
+                                        <Button>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Generate Key
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        {!generatedKey ? (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle>Create New API Key</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="py-4">
+                                                    <Input
+                                                        placeholder="Key Name (e.g. Production)"
+                                                        value={newKeyName}
+                                                        onChange={e => setNewKeyName(e.target.value)}
+                                                    />
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button onClick={handleCreateKey} disabled={!newKeyName.trim()}>Create</Button>
+                                                </DialogFooter>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-green-600">Key Created!</DialogTitle>
+                                                    <DialogDescription>Copy this key now. It won't be shown again.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4 relative">
+                                                    <Input readOnly value={generatedKey} className="pr-12 font-mono" />
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="absolute right-1 top-1 h-8 w-8"
+                                                        onClick={() => copyToClipboard(generatedKey)}
+                                                    >
+                                                        {copySuccess ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                                    </Button>
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button onClick={() => setIsCreateOpen(false)}>Done</Button>
+                                                </DialogFooter>
+                                            </>
+                                        )}
+                                    </DialogContent>
+                                </Dialog>
+                            </CardHeader>
+                            <CardContent>
+                                {keys.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No active keys.</p>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Prefix</TableHead>
+                                                <TableHead>Created</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {keys.map(key => (
+                                                <TableRow key={key.id}>
+                                                    <TableCell className="font-medium">{key.name}</TableCell>
+                                                    <TableCell className="font-mono text-xs text-muted-foreground">{key.prefix}</TableCell>
+                                                    <TableCell className="text-xs text-muted-foreground">{new Date(key.created_at).toLocaleDateString()}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => handleDeleteKey(key.id)}>
+                                                            <Trash className="h-4 w-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="border-t my-8" />
+
+                    {/* ENDPOINTS LIST */}
+
+                    <EndpointDoc
+                        id="numbers-list"
+                        method="GET"
+                        path="/v1/numbers"
+                        title="List Numbers"
+                        description="Retrieve a list of all WhatsApp numbers connected to your account."
+                        examples={{
+                            cURL: `curl -X GET https://api.ferns.com/api/v1/numbers \\
+  -H "x-api-key: YOUR_API_KEY"`,
+                            Node: `const response = await fetch('https://api.ferns.com/api/v1/numbers', {
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
   }
-}`}
-                                    </pre>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div >
-            </div >
-        </div >
+});
+const data = await response.json();`,
+                            Python: `import requests
+
+url = "https://api.ferns.com/api/v1/numbers"
+headers = {"x-api-key": "YOUR_API_KEY"}
+
+response = requests.get(url, headers=headers)
+print(response.json())`
+                        }}
+                    />
+
+                    <EndpointDoc
+                        id="chats-list"
+                        method="GET"
+                        path="/v1/chats"
+                        title="List Chats"
+                        description="Retrieve a list of active chats for your account. You can filter by number_id."
+                        params={[
+                            { name: "number_id", type: "string", in: "query", description: "Optional. Filter chats by specific number ID." },
+                            { name: "limit", type: "integer", in: "query", description: "Optional. Limit number of results (default 20, max 100)." }
+                        ]}
+                        examples={{
+                            cURL: `curl -X GET "https://api.ferns.com/api/v1/chats?limit=10" \\
+  -H "x-api-key: YOUR_API_KEY"`,
+                            Node: `const response = await fetch('https://api.ferns.com/api/v1/chats?limit=10', {
+  headers: { 'x-api-key': 'YOUR_API_KEY' }
+});`,
+                        }}
+                    />
+
+                    <EndpointDoc
+                        id="chat-history"
+                        method="GET"
+                        path="/v1/chats/:id/messages"
+                        title="Get Chat History"
+                        description="Retrieve the message history for a specific chat."
+                        params={[
+                            { name: "id", type: "string", in: "path", required: true, description: "The UUID of the chat." },
+                            { name: "limit", type: "integer", in: "query", description: "Number of messages to return (default 50)." },
+                            { name: "before", type: "string", in: "query", description: "Timestamp to fetch messages before (for pagination)." }
+                        ]}
+                        examples={{
+                            cURL: `curl -X GET "https://api.ferns.com/api/v1/chats/CHAT_UUID/messages" \\
+  -H "x-api-key: YOUR_API_KEY"`,
+                            Node: `const chatId = 'CHAT_UUID';
+const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/messages\`, {
+  headers: { 'x-api-key': 'YOUR_API_KEY' }
+});`
+                        }}
+                    />
+
+                    <EndpointDoc
+                        id="send-message"
+                        method="POST"
+                        path="/v1/messages/send"
+                        title="Send Message"
+                        description="Send a text or media message to a phone number."
+                        params={[
+                            { name: "number_id", type: "string", in: "body", required: true, description: "The ID of the source number." },
+                            { name: "to", type: "string", in: "body", required: true, description: "Destination phone number (international format)." },
+                            { name: "message", type: "string", in: "body", description: "Text content of the message." },
+                            { name: "media_url", type: "string", in: "body", description: "Optional URL for media attachment." },
+                            { name: "media_type", type: "string", in: "body", description: "image, video, audio, or document." }
+                        ]}
+                        examples={{
+                            cURL: `curl -X POST https://api.ferns.com/api/v1/messages/send \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: YOUR_API_KEY" \\
+  -d '{
+    "number_id": "NUMBER_UUID",
+    "to": "1234567890",
+    "message": "Hello from API!"
+  }'`
+                        }}
+                    />
+
+                    <EndpointDoc
+                        id="delete-message"
+                        method="DELETE"
+                        path="/v1/messages/:id"
+                        title="Delete Message"
+                        description="Delete a specific message from a chat."
+                        params={[
+                            { name: "id", type: "string", in: "path", required: true, description: "UUID of the message to delete." }
+                        ]}
+                        examples={{
+                            cURL: `curl -X DELETE https://api.ferns.com/api/v1/messages/MESSAGE_UUID \\
+  -H "x-api-key: YOUR_API_KEY"`
+                        }}
+                    />
+
+                    <EndpointDoc
+                        id="scheduled"
+                        method="POST"
+                        path="/v1/scheduled"
+                        title="Schedule Message"
+                        description="Create a scheduled message to be sent at a future time."
+                        params={[
+                            { name: "number_id", type: "string", in: "body", required: true, description: "Source Number ID." },
+                            { name: "to", type: "string", in: "body", required: true, description: "Recipient Phone Number." },
+                            { name: "message", type: "string", in: "body", required: true, description: "Message content." },
+                            { name: "scheduled_at", type: "string", in: "body", required: true, description: "ISO 8601 Date String (e.g. 2024-12-25T10:00:00Z)." }
+                        ]}
+                        examples={{
+                            cURL: `curl -X POST https://api.ferns.com/api/v1/scheduled \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: YOUR_API_KEY" \\
+  -d '{
+    "number_id": "NUMBER_UUID",
+    "to": "15551234567",
+    "message": "Merry Christmas!",
+    "scheduled_at": "2025-12-25T08:00:00Z"
+  }'`
+                        }}
+                    />
+
+                </div>
+            </div>
+        </div>
     )
 }

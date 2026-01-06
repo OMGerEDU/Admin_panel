@@ -319,20 +319,20 @@ const resources = {
                         "trial": "30 days free trial, no credit card required"
                     },
                     "starter": {
-                        "title": "Single User",
-                        "price": "39₪",
-                        "period": "/mo",
+                        "title": "Starter",
+                        "price": "Free",
+                        "period": "",
                         "badge": "Perfect for starting"
                     },
                     "pro": {
-                        "title": "3 Users Package",
-                        "price": "99₪",
+                        "title": "Pro",
+                        "price": "$9.99",
                         "period": "/mo",
                         "badge": "Most Popular"
                     },
                     "business": {
-                        "title": "Unlimited Users",
-                        "price": "199₪",
+                        "title": "Agency",
+                        "price": "$39",
                         "period": "/mo",
                         "badge": "Best Value"
                     }
