@@ -97,8 +97,6 @@ export default function ScheduledMessageEdit() {
         is_community_template: false,
         template_name: '',
         template_description: '',
-        template_name: '',
-        template_description: '',
         delay_seconds: 0, // Delay between messages in seconds
         selectedDays: [], // Array of integers 0-6
         selectedMonthDays: [], // Array of integers 1-30
@@ -374,7 +372,6 @@ export default function ScheduledMessageEdit() {
                 message: formData.message,
                 scheduled_at: scheduledAt.toISOString(),
                 is_recurring: formData.is_recurring,
-                recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
                 recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
                 day_of_week: formData.is_recurring && formData.recurrence_type === 'weekly' ? formData.day_of_week : null,
                 day_of_month: formData.is_recurring && formData.recurrence_type === 'monthly' ? formData.day_of_month : null,

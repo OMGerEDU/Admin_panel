@@ -12,6 +12,32 @@ const Dialog = ({ children, open, onOpenChange }) => {
     )
 }
 
+const DialogTrigger = React.forwardRef(({ className, children, asChild, ...props }, ref) => {
+    const { onOpenChange } = React.useContext(DialogContext)
+    const Comp = asChild ? React.Slot : "button"
+    return (
+        <React.Fragment>
+            {asChild ? (
+                React.cloneElement(children, {
+                    onClick: () => onOpenChange(true),
+                    ...props,
+                    ref
+                })
+            ) : (
+                <button
+                    ref={ref}
+                    className={className}
+                    onClick={() => onOpenChange(true)}
+                    {...props}
+                >
+                    {children}
+                </button>
+            )}
+        </React.Fragment>
+    )
+})
+DialogTrigger.displayName = "DialogTrigger"
+
 const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => {
     const { open, onOpenChange } = React.useContext(DialogContext)
 
@@ -87,6 +113,7 @@ DialogDescription.displayName = "DialogDescription"
 
 export {
     Dialog,
+    DialogTrigger,
     DialogContent,
     DialogHeader,
     DialogFooter,
