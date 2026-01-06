@@ -286,6 +286,10 @@ const resources = {
                     "login": "Log in",
                     "cta": "Connect Number"
                 },
+                "platform_preview": {
+                    "title": "Platform Preview",
+                    "subtitle": "Get a closer look at the powerful features that give you total control."
+                },
                 "hero": {
                     "badge": "Live System Status",
                     "title": "Managing dozens of numbers blindly isn't business. It's a gamble.",
@@ -988,6 +992,10 @@ const resources = {
                 "nav": {
                     "login": "התחברות",
                     "cta": "חבר מספר"
+                },
+                "platform_preview": {
+                    "title": "הצצה לפלטפורמה",
+                    "subtitle": "מבט מקרוב על הפיצ׳רים החזקים שנותנים לך שליטה מלאה."
                 },
                 "hero": {
                     "badge": "סטטוס מערכת חי",

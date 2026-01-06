@@ -25,7 +25,10 @@ import {
     Tag,
     Clock,
     Megaphone,
-    Webhook
+    Webhook,
+    ZoomIn,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
@@ -295,6 +298,153 @@ const HeroSection = () => {
     );
 };
 
+const PlatformPreviewSection = () => {
+    const { t, i18n } = useTranslation();
+    const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+
+    const imagesEn = [
+        '/platformPics/english_chats.png',
+        '/platformPics/english_numbers.png',
+        '/platformPics/english_organization.png',
+        '/platformPics/english_schedlued.png',
+        '/platformPics/english_scheduled2.png'
+    ];
+
+    const imagesHe = [
+        '/platformPics/hebrew_chats.png',
+        '/platformPics/hebrew_numbers.png',
+        '/platformPics/hebrew_scheduled.png',
+        '/platformPics/hebrew_scheduled2.png'
+    ];
+
+    const images = i18n.language === 'he' ? imagesHe : imagesEn;
+
+    const openLightbox = (index) => setSelectedImageIndex(index);
+    const closeLightbox = () => setSelectedImageIndex(null);
+
+    const nextImage = (e) => {
+        e.stopPropagation();
+        setSelectedImageIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = (e) => {
+        e.stopPropagation();
+        setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    return (
+        <section className="py-20 bg-slate-50 dark:bg-[#0F172A] overflow-hidden">
+            <div className="container mx-auto px-4">
+                <div className="text-center mb-12">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                            {t('landing.platform_preview.title')}
+                        </h2>
+                        <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
+                            {t('landing.platform_preview.subtitle')}
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Carousel / Scroll View */}
+                <div className="relative group">
+                    <div className="flex gap-6 overflow-x-auto pb-8 pt-4 px-4 snap-x snap-mandatory scrollbar-hide -mx-4 md:mx-0">
+                        {images.map((img, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="snap-center shrink-0 w-[85vw] md:w-[600px] lg:w-[800px] relative cursor-pointer"
+                                onClick={() => openLightbox(idx)}
+                                whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+                            >
+                                <div className="rounded-xl overflow-hidden shadow-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E293B]">
+                                    <div className="aspect-[16/10] bg-slate-100 dark:bg-black/20 relative group-hover:after:absolute group-hover:after:inset-0 group-hover:after:bg-black/10 group-hover:after:transition-colors">
+                                        <img
+                                            src={img}
+                                            alt={`Platform Preview ${idx + 1}`}
+                                            className="w-full h-full object-cover object-top"
+                                            onError={(e) => e.target.style.display = 'none'}
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="bg-black/50 text-white p-3 rounded-full backdrop-blur-sm">
+                                                <ZoomIn size={24} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Lightbox */}
+            <AnimatePresence>
+                {selectedImageIndex !== null && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+                        onClick={closeLightbox}
+                    >
+                        <button
+                            onClick={closeLightbox}
+                            className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-20"
+                        >
+                            <X size={24} />
+                        </button>
+
+                        <button
+                            onClick={prevImage}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors z-20 hidden md:block"
+                        >
+                            <ChevronLeft size={32} />
+                        </button>
+
+                        <button
+                            onClick={nextImage}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors z-20 hidden md:block"
+                        >
+                            <ChevronRight size={32} />
+                        </button>
+
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative max-w-[90vw] max-h-[90vh] w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img
+                                src={images[selectedImageIndex]}
+                                alt="Full Preview"
+                                className="w-full h-full object-contain max-h-[90vh] rounded-lg shadow-2xl"
+                            />
+                        </motion.div>
+
+                        {/* Mobile Navigation Hints */}
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 md:hidden pointer-events-none">
+                            {images.map((_, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`w-2 h-2 rounded-full ${idx === selectedImageIndex ? 'bg-white' : 'bg-white/30'}`}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </section>
+    );
+};
 const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
     <motion.div
         variants={{
@@ -762,6 +912,7 @@ export default function LandingPage() {
         <div className={`min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-white selection:bg-[#10B981] selection:text-white font-rubik ${i18n.language === 'he' ? 'rtl' : 'ltr'}`} dir={i18n.language === 'he' ? 'rtl' : 'ltr'}>
             <Navbar />
             <HeroSection />
+            <PlatformPreviewSection />
             <SocialProofSection />
             <FeatureSolutionsSection />
             <IntegrationsSection />
