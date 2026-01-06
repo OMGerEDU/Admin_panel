@@ -335,6 +335,23 @@ const resources = {
                         "price": "$39",
                         "period": "/mo",
                         "badge": "Best Value"
+                    },
+                    "subheadline": "Simple pricing that scales with your business.",
+                    "plans": {
+                        "select": "Choose Plan",
+                        "status": "Status",
+                        "numbers_instances": "Numbers & Instances",
+                        "numbers": "Numbers",
+                        "instances": "Instances",
+                        "team_members": "Team Members",
+                        "unlimited": "Unlimited",
+                        "month": "Month",
+                        "yearly": "Yearly",
+                        "save_25": "Save 25%",
+                        "billed_yearly": "billed yearly",
+                        "scheduled_messages": "Scheduled Messages",
+                        "customer_support": "Customer Support",
+                        "priority_support": "Priority Support"
                     }
                 },
                 "chaos": {
