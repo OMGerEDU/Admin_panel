@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
@@ -86,7 +85,7 @@ const MethodBadge = ({ method }) => {
 
 const EndpointDoc = ({ id, method, path, title, description, params, examples }) => {
     return (
-        <div id={id} className="scroll-mt-24 space-y-4 border-b pb-12 last:border-0 last:pb-0">
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <div>
                 <div className="flex items-center gap-3 mb-2">
                     <MethodBadge method={method} />
@@ -152,15 +151,6 @@ export default function Api() {
             checkPlanAndFetchKeys()
         }
     }, [session?.user?.id])
-
-    // Scroll spy or simple click handler
-    const scrollToSection = (id) => {
-        setActiveSection(id);
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
 
     const checkPlanAndFetchKeys = async () => {
         setLoading(true)
@@ -249,42 +239,30 @@ export default function Api() {
         { id: 'scheduled', label: 'Scheduled Messages' },
     ];
 
-    return (
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-
-                {/* Sidebar Navigation */}
-                <div className="md:col-span-3 lg:col-span-2 hidden md:block">
-                    <div className="sticky top-24 space-y-1">
-                        <h4 className="font-bold mb-4 px-2">API Reference</h4>
-                        {menuItems.map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => scrollToSection(item.id)}
-                                className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${activeSection === item.id
-                                        ? 'bg-primary/10 text-primary font-medium'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                            >
-                                {item.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="md:col-span-9 lg:col-span-10 space-y-16">
-
-                    {/* Header */}
-                    <div id="overview">
+    const renderContent = () => {
+        switch (activeSection) {
+            case 'overview':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                         <h1 className="text-4xl font-bold tracking-tight mb-4">API Documentation</h1>
                         <p className="text-lg text-muted-foreground">
                             Welcome to the Ferns API. You can use our API to access WhatsApp endpoints, which allows you to send and receive messages, manage automated workflows, and integrate with your CRM.
                         </p>
+                        <div className="bg-muted p-6 rounded-lg border flex items-start gap-4">
+                            <AlertTriangle className="h-6 w-6 text-yellow-500 mt-1" />
+                            <div>
+                                <h4 className="font-semibold mb-1">Getting Started</h4>
+                                <p className="text-muted-foreground text-sm">
+                                    Please select a section from the sidebar to view detailed documentation.
+                                    Start by generating an API Key in the "API Keys" section.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-
-                    {/* Authentication */}
-                    <div id="authentication" className="scroll-mt-24 space-y-4">
+                );
+            case 'authentication':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                         <h2 className="text-2xl font-bold">Authentication</h2>
                         <p className="text-muted-foreground">
                             The API uses API keys to authenticate requests. You can view and manage your API keys below.
@@ -295,9 +273,10 @@ export default function Api() {
                             Header: `x-api-key: YOUR_API_KEY`
                         }} />
                     </div>
-
-                    {/* Key Management */}
-                    <div id="management" className="scroll-mt-24">
+                );
+            case 'management':
+                return (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <div>
@@ -393,11 +372,9 @@ export default function Api() {
                             </CardContent>
                         </Card>
                     </div>
-
-                    <div className="border-t my-8" />
-
-                    {/* ENDPOINTS LIST */}
-
+                );
+            case 'numbers-list':
+                return (
                     <EndpointDoc
                         id="numbers-list"
                         method="GET"
@@ -422,7 +399,9 @@ response = requests.get(url, headers=headers)
 print(response.json())`
                         }}
                     />
-
+                );
+            case 'chats-list':
+                return (
                     <EndpointDoc
                         id="chats-list"
                         method="GET"
@@ -441,7 +420,9 @@ print(response.json())`
 });`,
                         }}
                     />
-
+                );
+            case 'chat-history':
+                return (
                     <EndpointDoc
                         id="chat-history"
                         method="GET"
@@ -462,7 +443,9 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
 });`
                         }}
                     />
-
+                );
+            case 'send-message':
+                return (
                     <EndpointDoc
                         id="send-message"
                         method="POST"
@@ -487,7 +470,9 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
   }'`
                         }}
                     />
-
+                );
+            case 'delete-message':
+                return (
                     <EndpointDoc
                         id="delete-message"
                         method="DELETE"
@@ -502,7 +487,9 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
   -H "x-api-key: YOUR_API_KEY"`
                         }}
                     />
-
+                );
+            case 'scheduled':
+                return (
                     <EndpointDoc
                         id="scheduled"
                         method="POST"
@@ -527,7 +514,38 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
   }'`
                         }}
                     />
+                );
+            default:
+                return null;
+        }
+    }
 
+    return (
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+                {/* Sidebar Navigation */}
+                <div className="md:col-span-3 lg:col-span-2 hidden md:block">
+                    <div className="sticky top-24 space-y-1">
+                        <h4 className="font-bold mb-4 px-2">API Reference</h4>
+                        {menuItems.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveSection(item.id)}
+                                className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${activeSection === item.id
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="md:col-span-9 lg:col-span-10 min-h-[500px]">
+                    {renderContent()}
                 </div>
             </div>
         </div>
