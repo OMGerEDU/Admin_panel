@@ -1,5 +1,20 @@
 // Polling script to check API status
-const API_KEY = 'sk_live_f572b55b35af5374f97f2f83e89b2bcca3e789eca9c201629a1fd0cf515d7d77';
+import fs from 'node:fs';
+import path from 'node:path';
+
+let test_key = process.env.test_key;
+
+// Manual .env parsing for local compatibility
+try {
+    const envPath = path.resolve('.env');
+    if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, 'utf8');
+        const match = envContent.match(/^test_key=(.*)$/m);
+        if (match) test_key = match[1].trim();
+    }
+} catch (e) { }
+
+const API_KEY = test_key || process.env.VITE_API_KEY;
 const ENDPOINTS = [
     'https://api.ferns.com/api/v1',
     'https://api.ferns.com/api/v1/numbers',
