@@ -20,7 +20,6 @@ import {
     Smartphone,
     CheckCircle2,
     XCircle,
-
     Star,
     Tag,
     Clock,
@@ -28,7 +27,14 @@ import {
     Webhook,
     ZoomIn,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Users,
+    Briefcase,
+    UserCheck,
+    Building2,
+    Sparkles,
+    ArrowDown,
+    CheckCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
@@ -462,44 +468,110 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
     </motion.div>
 );
 
-const IntegrationsSection = () => {
+// Section 4: איך זה עובד (How It Works)
+const HowItWorksSection = () => {
     const { t } = useTranslation();
 
+    const steps = [
+        {
+            number: '1',
+            title: t('landing.how_it_works.step1_title'),
+            desc: t('landing.how_it_works.step1_desc'),
+            icon: CheckCircle
+        },
+        {
+            number: '2',
+            title: t('landing.how_it_works.step2_title'),
+            desc: t('landing.how_it_works.step2_desc'),
+            icon: Activity
+        },
+        {
+            number: '3',
+            title: t('landing.how_it_works.step3_title'),
+            desc: t('landing.how_it_works.step3_desc'),
+            icon: Zap
+        }
+    ];
+
     return (
-        <section className="py-20 relative bg-[#0F172A] text-white overflow-hidden">
+        <section className="py-20 relative bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white overflow-hidden">
             {/* Background Gradient */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px]" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#10B981]/20 rounded-full blur-[120px]" />
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px]" />
 
             <div className="container mx-auto px-4 relative z-10">
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-                    {/* Text Content */}
-                    <div className="lg:w-1/2 text-center lg:text-start">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                            {t('landing.integrations.title')}
-                        </h2>
-                        <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                            {t('landing.integrations.subtitle')}
-                        </p>
-                    </div>
-
-                    {/* Visual/Logos */}
-                    <div className="lg:w-1/2 flex flex-wrap justify-center gap-8 opacity-80">
-                        {/* Placeholders for CRM Logos - replacing with text for now */}
-                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
-                            <span className="font-bold text-2xl">monday.com</span>
-                        </div>
-                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
-                            <span className="font-bold text-2xl">Fireberry</span>
-                        </div>
-                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
-                            <span className="font-bold text-2xl">Origami</span>
-                        </div>
-                        <div className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default">
-                            <span className="font-bold text-2xl">Salesforce</span>
-                        </div>
-                    </div>
+                <div className="text-center mb-16">
+                    <motion.h2
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-4xl md:text-5xl font-bold mb-6"
+                    >
+                        {t('landing.integrations.title')}
+                    </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
+                    >
+                        {t('landing.integrations.subtitle')}
+                    </motion.p>
                 </div>
+
+                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    {steps.map((step, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.15 }}
+                            className="relative"
+                        >
+                            {/* Connecting Line (except last) */}
+                            {idx < steps.length - 1 && (
+                                <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-[#10B981]/50 to-transparent transform translate-x-4 z-0" />
+                            )}
+
+                            <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/15 hover:border-[#10B981]/50 transition-all duration-300 group h-full">
+                                {/* Step Number */}
+                                <div className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center text-2xl font-bold shadow-lg shadow-[#10B981]/30 group-hover:scale-110 transition-transform duration-300">
+                                    {step.number}
+                                </div>
+
+                                {/* Icon */}
+                                <div className="mb-6">
+                                    <div className="w-14 h-14 bg-[#10B981]/20 rounded-xl flex items-center justify-center text-[#10B981] group-hover:scale-110 transition-transform duration-300">
+                                        <step.icon size={28} />
+                                    </div>
+                                </div>
+
+                                {/* Content */}
+                                <h3 className="text-2xl font-bold mb-4 group-hover:text-[#10B981] transition-colors">
+                                    {step.title}
+                                </h3>
+                                <p className="text-gray-300 leading-relaxed">
+                                    {step.desc}
+                                </p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Bottom Note */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-12 text-center"
+                >
+                    <p className="text-gray-400 italic text-lg max-w-2xl mx-auto bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+                        {t('landing.how_it_works.note')}
+                    </p>
+                </motion.div>
             </div>
         </section>
     );
@@ -666,19 +738,63 @@ const ClientAvatar = ({ name, url, delay }) => (
     </motion.div>
 );
 
-const SocialProofSection = () => {
+// Section 2: למי זה מתאים (Target Audience)
+const TargetAudienceSection = () => {
     const { t } = useTranslation();
 
-    const clients = [
-        { name: 'עומרי כהן', url: omriImg },
-        { name: 'קבוצת ב.ס.ר', url: bsrImg },
-        { name: 'דניאל מולדבסקי', url: danielImg },
-        { name: 'עו״ד אילן', url: ilanImg },
-        { name: 'גיא נתן', url: guyImg },
-        { name: 'בי מניב', url: biMenivImg },
-        { name: 'מתן ניסטור', url: matanImg },
-        { name: 'טל מועלם', url: talImg }
+    const audiences = [
+        { icon: Building2, text: t('landing.target_audience.businesses') },
+        { icon: Briefcase, text: t('landing.target_audience.agencies') },
+        { icon: UserCheck, text: t('landing.target_audience.freelancers') },
+        { icon: Users, text: t('landing.target_audience.teams') },
+        { icon: Sparkles, text: t('landing.target_audience.owners') }
     ];
+
+    return (
+        <section className="py-20 bg-white dark:bg-[#0F172A] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#10B981]/5 rounded-full blur-[120px]" />
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px]" />
+            
+            <div className="container mx-auto px-4 relative z-10">
+                <div className="text-center mb-16">
+                    <motion.h2
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6"
+                    >
+                        {t('landing.target_audience.heading')}
+                    </motion.h2>
+                </div>
+
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    {audiences.map((audience, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="group bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 hover:border-[#10B981]/30 hover:shadow-lg dark:hover:shadow-none transition-all duration-300"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 bg-[#10B981]/10 rounded-xl text-[#10B981] group-hover:scale-110 transition-transform duration-300">
+                                    <audience.icon size={24} />
+                                </div>
+                                <p className="text-slate-700 dark:text-gray-300 font-medium leading-relaxed pt-1">
+                                    {audience.text}
+                                </p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const SocialProofSection = () => {
+    const { t } = useTranslation();
 
     const scrollToPricing = () => {
         const pricingSection = document.getElementById('offer');
@@ -688,18 +804,12 @@ const SocialProofSection = () => {
     };
 
     return (
-        <section className="py-20 relative overflow-hidden">
+        <section className="py-20 relative overflow-hidden bg-gradient-to-b from-slate-50 to-white dark:from-[#0F172A] dark:to-[#0B1120]">
             <div className="absolute inset-0 bg-[#10B981]/5 mask-image-gradient" />
             <div className="container mx-auto px-4 text-center relative z-10">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-12">
                     {t('landing.social.heading')}
                 </h2>
-
-                <div className="grid grid-cols-4 gap-6 md:gap-10 mb-10 max-w-4xl mx-auto justify-items-center">
-                    {clients.map((client, idx) => (
-                        <ClientAvatar key={idx} {...client} delay={idx * 0.1} />
-                    ))}
-                </div>
 
                 <div className="flex justify-center gap-1 mb-6">
                     {[...Array(5)].map((_, i) => (
@@ -707,7 +817,7 @@ const SocialProofSection = () => {
                     ))}
                 </div>
 
-                <p className="text-[#10B981] font-medium text-lg mb-8">
+                <p className="text-[#10B981] font-medium text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
                     {t('landing.social.stats')}
                 </p>
 
@@ -882,6 +992,56 @@ const FAQSection = () => {
     );
 };
 
+// Section 7: Final CTA
+const FinalCTASection = () => {
+    const { t } = useTranslation();
+
+    return (
+        <section className="py-24 relative overflow-hidden bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] text-white">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-full h-full" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }}></div>
+            </div>
+
+            <div className="container mx-auto px-4 relative z-10">
+                <div className="text-center max-w-4xl mx-auto">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                            {t('landing.pricing.heading')}
+                        </h2>
+                        <p className="text-xl md:text-2xl mb-10 text-green-50 leading-relaxed">
+                            {t('landing.pricing.subheading')}
+                        </p>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <Link to="/register">
+                            <Button
+                                size="lg"
+                                className="bg-white text-[#059669] hover:bg-green-50 text-xl px-10 py-7 rounded-full shadow-2xl hover:shadow-green-900/50 transition-all hover:-translate-y-1 font-bold"
+                            >
+                                {t('landing.pricing.cta_trial')}
+                                <ArrowRight className="ml-2 w-5 h-5" />
+                            </Button>
+                        </Link>
+                    </motion.div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const Footer = () => {
     const { t } = useTranslation();
     return (
@@ -914,13 +1074,15 @@ export default function LandingPage() {
         <div className={`min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-white selection:bg-[#10B981] selection:text-white font-rubik ${i18n.language === 'he' ? 'rtl' : 'ltr'}`} dir={i18n.language === 'he' ? 'rtl' : 'ltr'}>
             <Navbar />
             <HeroSection />
+            <TargetAudienceSection />
+            <FeatureSolutionsSection />
             <PlatformPreviewSection />
             <SocialProofSection />
-            <FeatureSolutionsSection />
-            <IntegrationsSection />
+            <HowItWorksSection />
             <FeaturesSection />
             <PricingSection />
             <FAQSection />
+            <FinalCTASection />
             <Footer />
         </div>
     );

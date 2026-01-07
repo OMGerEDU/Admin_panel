@@ -351,24 +351,31 @@ const resources = {
                         "desc": "Detailed error logs to fix problems instantly."
                     }
                 },
+                "target_audience": {
+                    "heading": "Perfect Solution For",
+                    "businesses": "Businesses using more than one WhatsApp number",
+                    "agencies": "Marketing agencies or service providers with multiple clients",
+                    "freelancers": "Freelancers managing multiple identities or projects",
+                    "teams": "Teams that need to work together from multiple accounts",
+                    "owners": "Business owners who want better control over customer communication"
+                },
                 "social": {
-                    "heading": "Trusted by growing agencies who value reliability",
-                    "stats": "Reduced downtime incidents by 30% across 1200+ active accounts.",
-                    "cta_see_how": "See how it works",
-                    "clients": {
-                        "omri": "Omri Cohen",
-                        "bsr": "B.S.R Group",
-                        "daniel": "Daniel Moldavsky",
-                        "ilan": "Adv. Ilan",
-                        "guy": "Guy Nathan",
-                        "bi_meniv": "Be Meniv",
-                        "matan": "Matan Nistor",
-                        "tal": "Tal Mualem"
-                    }
+                    "heading": "Perfect Solution For",
+                    "stats": "Businesses with more than one number, agencies, freelancers and teams – who want better control over customer communication.",
+                    "cta_see_how": "Sign up now and start working"
                 },
                 "integrations": {
-                    "title": "Connect to any CRM",
-                    "subtitle": "Working with monday, fireberry, origami or any other system? Our extension will open the chat with a click on a phone number in any system!"
+                    "title": "How It Works?",
+                    "subtitle": "3 steps and you're in:"
+                },
+                "how_it_works": {
+                    "step1_title": "Sign up with a click",
+                    "step1_desc": "No credit card, no commitment.",
+                    "step2_title": "Enter your Green API credentials",
+                    "step2_desc": "We connect to them for you.",
+                    "step3_title": "Manage all numbers in one place",
+                    "step3_desc": "Ready to work in minutes.",
+                    "note": "No installation needed, no technical knowledge required – just connect and start working."
                 },
                 "faq": {
                     "heading": "Frequently Asked Questions",
@@ -382,9 +389,9 @@ const resources = {
                     "a4": "It depends on your plan. The Starter plan supports 1 user, while the Business plan allows unlimited users."
                 },
                 "pricing": {
-                    "heading": "Choose Your Plan",
-                    "subheading": "Monthly billing. No commitment.",
-                    "cta_trial": "Start 30 Day Free Trial",
+                    "heading": "Want to manage your WhatsApp like a pro?",
+                    "subheading": "Quick registration, immediate start – and you have full control over all your numbers from one place.",
+                    "cta_trial": "Click here to sign up now",
                     "features": {
                         "click_to_chat": "WhatsApp Click-to-Chat from any system",
                         "crm_compat": "Compatible with any CRM",
@@ -898,24 +905,31 @@ const resources = {
                         "desc": "נרשמים, מתחברים ל‑Green API ומתחילים לעבוד."
                     }
                 },
+                "target_audience": {
+                    "heading": "למי זה מתאים",
+                    "businesses": "עסקים המשתמשים ביותר ממספר WhatsApp אחד",
+                    "agencies": "סוכנויות שיווק או נותני שירותים עם לקוחות מרובים",
+                    "freelancers": "פרילנסרים שמנהלים מספר זהויות או פרויקטים",
+                    "teams": "צוותים שצריכים לעבוד יחד ממספר חשבונות",
+                    "owners": "בעלי עסקים שרוצים לשלוט טוב יותר בתקשורת עם לקוחות"
+                },
                 "social": {
                     "heading": "פתרון מושלם עבור",
                     "stats": "עסקים עם יותר ממספר אחד, סוכנויות, פרילנסרים וצוותים – שרוצים שליטה טובה יותר בתקשורת עם לקוחות.",
-                    "cta_see_how": "להרשמה מהירה ולשימוש מיידי",
-                    "clients": {
-                        "omri": "עומרי כהן",
-                        "bsr": "קבוצת ב.ס.ר",
-                        "daniel": "דניאל מולדבסקי",
-                        "ilan": "עו״ד אילן",
-                        "guy": "גיא נתן",
-                        "bi_meniv": "בי מניב",
-                        "matan": "מתן ניסטור",
-                        "tal": "טל מועלם"
-                    }
+                    "cta_see_how": "להרשמה מהירה ולשימוש מיידי"
                 },
                 "integrations": {
                     "title": "איך זה עובד?",
-                    "subtitle": "3 שלבים ואתה בפנים: 1) נרשמים בקליק – בלי כרטיס אשראי ובלי התחייבות. 2) מזינים את פרטי ה‑Green API שלך – אנחנו מתחברים אליהם עבורך. 3) מנהלים את כל המספרים במקום אחד – ומתחילים לעבוד תוך דקות. אין צורך בהתקנה ואין צורך בידע טכני."
+                    "subtitle": "3 שלבים ואתה בפנים:"
+                },
+                "how_it_works": {
+                    "step1_title": "נרשמים בקליק",
+                    "step1_desc": "בלי כרטיס אשראי, בלי התחייבות.",
+                    "step2_title": "מזינים את פרטי ה‑Green API שלך",
+                    "step2_desc": "אנחנו מתחברים אליהם עבורך.",
+                    "step3_title": "מנהל את כל המספרים במקום אחד",
+                    "step3_desc": "מוכן לעבודה תוך דקות.",
+                    "note": "אין צורך בהתקנה, אין צורך בידע טכני – פשוט מתחברים ומתחילים לעבוד."
                 },
                 "faq": {
                     "heading": "שאלות נפוצות (FAQ)",
