@@ -382,9 +382,9 @@ export default function Api() {
                         title="List Numbers"
                         description="Retrieve a list of all WhatsApp numbers connected to your account."
                         examples={{
-                            cURL: `curl -X GET https://api.ferns.com/api/v1/numbers \\
+                            cURL: `curl -X GET https://ferns.builders-tech.com/api/v1/numbers \\
   -H "x-api-key: YOUR_API_KEY"`,
-                            Node: `const response = await fetch('https://api.ferns.com/api/v1/numbers', {
+                            Node: `const response = await fetch('https://ferns.builders-tech.com/api/v1/numbers', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }
@@ -392,7 +392,7 @@ export default function Api() {
 const data = await response.json();`,
                             Python: `import requests
 
-url = "https://api.ferns.com/api/v1/numbers"
+url = "https://ferns.builders-tech.com/api/v1/numbers"
 headers = {"x-api-key": "YOUR_API_KEY"}
 
 response = requests.get(url, headers=headers)
@@ -413,9 +413,9 @@ print(response.json())`
                             { name: "limit", type: "integer", in: "query", description: "Optional. Limit number of results (default 20, max 100)." }
                         ]}
                         examples={{
-                            cURL: `curl -X GET "https://api.ferns.com/api/v1/chats?limit=10" \\
+                            cURL: `curl -X GET "https://ferns.builders-tech.com/api/v1/chats?limit=10" \\
   -H "x-api-key: YOUR_API_KEY"`,
-                            Node: `const response = await fetch('https://api.ferns.com/api/v1/chats?limit=10', {
+                            Node: `const response = await fetch('https://ferns.builders-tech.com/api/v1/chats?limit=10', {
   headers: { 'x-api-key': 'YOUR_API_KEY' }
 });`,
                         }}
@@ -435,10 +435,10 @@ print(response.json())`
                             { name: "before", type: "string", in: "query", description: "Timestamp to fetch messages before (for pagination)." }
                         ]}
                         examples={{
-                            cURL: `curl -X GET "https://api.ferns.com/api/v1/chats/CHAT_UUID/messages" \\
+                            cURL: `curl -X GET "https://ferns.builders-tech.com/api/v1/chats/CHAT_UUID/messages" \\
   -H "x-api-key: YOUR_API_KEY"`,
                             Node: `const chatId = 'CHAT_UUID';
-const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/messages\`, {
+const response = await fetch(\`https://ferns.builders-tech.com/api/v1/chats/\${chatId}/messages\`, {
   headers: { 'x-api-key': 'YOUR_API_KEY' }
 });`
                         }}
@@ -460,7 +460,7 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
                             { name: "media_type", type: "string", in: "body", description: "image, video, audio, or document." }
                         ]}
                         examples={{
-                            cURL: `curl -X POST https://api.ferns.com/api/v1/messages/send \\
+                            cURL: `curl -X POST https://ferns.builders-tech.com/api/v1/messages/send \\
   -H "Content-Type: application/json" \\
   -H "x-api-key: YOUR_API_KEY" \\
   -d '{
@@ -483,7 +483,7 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
                             { name: "id", type: "string", in: "path", required: true, description: "UUID of the message to delete." }
                         ]}
                         examples={{
-                            cURL: `curl -X DELETE https://api.ferns.com/api/v1/messages/MESSAGE_UUID \\
+                            cURL: `curl -X DELETE https://ferns.builders-tech.com/api/v1/messages/MESSAGE_UUID \\
   -H "x-api-key: YOUR_API_KEY"`
                         }}
                     />
@@ -503,7 +503,7 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
                             { name: "scheduled_at", type: "string", in: "body", required: true, description: "ISO 8601 Date String (e.g. 2024-12-25T10:00:00Z)." }
                         ]}
                         examples={{
-                            cURL: `curl -X POST https://api.ferns.com/api/v1/scheduled \\
+                            cURL: `curl -X POST https://ferns.builders-tech.com/api/v1/scheduled \\
   -H "Content-Type: application/json" \\
   -H "x-api-key: YOUR_API_KEY" \\
   -d '{
@@ -533,8 +533,8 @@ const response = await fetch(\`https://api.ferns.com/api/v1/chats/\${chatId}/mes
                                 key={item.id}
                                 onClick={() => setActiveSection(item.id)}
                                 className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${activeSection === item.id
-                                        ? 'bg-primary/10 text-primary font-medium'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    ? 'bg-primary/10 text-primary font-medium'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                             >
                                 {item.label}

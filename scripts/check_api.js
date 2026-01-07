@@ -16,10 +16,9 @@ try {
 
 const API_KEY = test_key || process.env.VITE_API_KEY;
 const ENDPOINTS = [
-    'https://api.ferns.com/api/v1',
-    'https://api.ferns.com/api/v1/numbers',
-    'https://ferns.com/api/v1',
-    'https://api.ferns.com/api/test'
+    'https://ferns.builders-tech.com/api/v1',
+    'https://ferns.builders-tech.com/api/v1/numbers',
+    'https://ferns.builders-tech.com/api/test'
 ];
 
 async function check() {
@@ -46,7 +45,7 @@ async function check() {
         } catch (err) {
             console.log(`[ERR] ${url}: ${err.message}`);
             if (err.message.includes('CERT') || err.message.includes('ssl') || err.message.includes('certificate')) {
-                console.log('   💡 Advice: Your SSL certificate for api.ferns.com is mismatching. Check Vercel Domains.');
+                console.log('   💡 Advice: Check for SSL/TLS mismatch or DNS configuration.');
             }
         }
     }
