@@ -27,10 +27,7 @@ export async function authenticate(req, res) {
     }
 
     // 1. Hash the incoming key to compare with stored hash
-    const msgBuffer = new TextEncoder().encode(apiKey);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const keyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
 
     // 2. Lookup in DB
     const { data, error } = await supabaseAdmin

@@ -1,13 +1,34 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/api/v1",
+      "destination": "/api/v1/index.js"
     },
     {
-      "source": "/((?!api).*)",
+      "source": "/api/v1/numbers",
+      "destination": "/api/v1/numbers.js"
+    },
+    {
+      "source": "/api/v1/chats",
+      "destination": "/api/v1/chats/index.js"
+    },
+    {
+      "source": "/api/test",
+      "destination": "/api/test.js"
+    },
+    {
+      "source": "/api",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
