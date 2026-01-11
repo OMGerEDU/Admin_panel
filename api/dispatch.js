@@ -103,6 +103,48 @@ async function sendViaGreenApi(instanceId, apiToken, toPhone, message, mediaUrl,
     return sendTextMessage(instanceId, apiToken, toPhone, message)
 }
 
+// Get contact name from Green API
+async function getContactName(instanceId, apiToken, chatId) {
+    if (!instanceId || !apiToken || !chatId) {
+        return null
+    }
+
+    try {
+        const url = `${GREEN_API_BASE}/waInstance${instanceId}/getContactInfo/${apiToken}`
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId }),
+        })
+
+        if (!res.ok) {
+            console.log(`[DISPATCH] getContactInfo failed for ${chatId}: ${res.status}`)
+            return null
+        }
+
+        const data = await res.json().catch(() => ({}))
+        // Green API returns: { name, contactName, pushname, etc. }
+        // Try various fields that might contain the name
+        return data.name || data.contactName || data.pushname || data.chatName || null
+    } catch (error) {
+        console.error(`[DISPATCH] Error fetching contact name for ${chatId}:`, error.message)
+        return null
+    }
+}
+
+// Process message template - replace {name} and other placeholders
+function processMessageTemplate(template, recipientPhone, contactName) {
+    if (!template) return template
+
+    // Replace {name} with contact name or fallback to phone
+    let processed = template.replace(/\{name\}/gi, contactName || recipientPhone || '')
+
+    // Replace {phone} with phone number
+    processed = processed.replace(/\{phone\}/gi, recipientPhone || '')
+
+    return processed
+}
+
 export default async function handler(req, res) {
     const startTime = Date.now()
     console.log(`[DISPATCH] ${new Date().toISOString()} - Request received:`, {
@@ -269,14 +311,36 @@ export default async function handler(req, res) {
             let recipientFailCount = 0
             const now = new Date().toISOString()
 
+            // Check if message contains placeholders that need processing
+            const hasNamePlaceholder = text && text.includes('{name}')
+
             // Send to all recipients
             for (const recipient of recipients) {
                 try {
+                    // Process message template if it contains placeholders
+                    let processedMessage = text
+                    if (hasNamePlaceholder) {
+                        // Convert phone to chatId format for API call
+                        const chatId = normalizePhoneToChatId(recipient.phone_number)
+
+                        // Fetch contact name from Green API
+                        const contactName = await getContactName(
+                            numberData.instance_id,
+                            numberData.api_token,
+                            chatId
+                        )
+
+                        console.log(`[DISPATCH] Contact name for ${recipient.phone_number}: ${contactName || '(not found)'}`)
+
+                        // Replace placeholders in message
+                        processedMessage = processMessageTemplate(text, recipient.phone_number, contactName)
+                    }
+
                     const { providerMessageId } = await sendViaGreenApi(
                         numberData.instance_id,
                         numberData.api_token,
                         recipient.phone_number,
-                        text,
+                        processedMessage,
                         mediaUrl,
                         mediaFilename,
                     )

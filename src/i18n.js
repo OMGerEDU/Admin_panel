@@ -433,7 +433,8 @@ const resources = {
                         "billed_yearly": "billed yearly",
                         "scheduled_messages": "Scheduled Messages",
                         "customer_support": "Customer Support",
-                        "priority_support": "Priority Support"
+                        "priority_support": "Priority Support",
+                        "features": "Features"
                     }
                 },
                 "footer": {
@@ -642,7 +643,24 @@ const resources = {
                 "spam_warning_title": "Avoid Number Blocking",
                 "spam_warning_desc": "Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.",
                 "upgrade_title": "Upgrade to Schedule Messages",
-                "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!"
+                "upgrade_desc": "Scheduled messages are available on Pro and Agency plans. Upgrade now to automate your workflow!",
+                "select_days": "Select Days",
+                "no_days_selected": "No days selected",
+                "recipient_mode": "Add recipients by",
+                "by_phone": "Phone Numbers",
+                "by_tags": "Tags",
+                "select_tags": "Select tags",
+                "tagged_contacts": "contacts with selected tags",
+                "no_tags_available": "No tags available. Create tags in the Chats page first.",
+                "system_variables": "System Variables",
+                "insert_name": "Contact Name",
+                "insert_phone": "Phone Number",
+                "variable_tip": "Click to insert at cursor position",
+                "name_placeholder": "{name}",
+                "add_at_least_one_recipient": "Please add at least one recipient phone number",
+                "select_at_least_one_tag": "Please select at least one tag",
+                "no_contacts_with_tags": "No contacts found with the selected tags. Please tag some contacts first.",
+                "fill_required_fields": "Please fill in all required fields"
             },
             "tags": {
                 "assign_tags": "Assign Tags",
@@ -991,7 +1009,8 @@ const resources = {
                         "billed_yearly": "חיוב שנתי",
                         "scheduled_messages": "הודעות מתוזמנות",
                         "customer_support": "תמיכת לקוחות",
-                        "priority_support": "תמיכה בעדיפות"
+                        "priority_support": "תמיכה בעדיפות",
+                        "features": "תכונות"
                     }
                 },
                 "footer": {
@@ -1243,7 +1262,24 @@ const resources = {
                 "spam_warning_title": "מנע חסימת מספר",
                 "spam_warning_desc": "שליחת הודעות רבות בבת אחת עלולה לגרום לחסימת המספר שלך על ידי וואטסאפ. אנו ממליצים להוסיף השהיה בין הודעות או לפצל רשימות גדולות.",
                 "upgrade_title": "שדרג כדי לתזמן הודעות",
-                "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!"
+                "upgrade_desc": "הודעות מתוזמנות זמינות בתוכניות Pro ו-Agency. שדרג כעת כדי ליצור אוטומציה לתהליכי העבודה שלך!",
+                "select_days": "בחר ימים",
+                "no_days_selected": "לא נבחרו ימים",
+                "recipient_mode": "הוסף נמענים לפי",
+                "by_phone": "מספרי טלפון",
+                "by_tags": "תגיות",
+                "select_tags": "בחר תגיות",
+                "tagged_contacts": "אנשי קשר עם התגיות שנבחרו",
+                "no_tags_available": "אין תגיות זמינות. צור תגיות בדף הצ'אטים קודם.",
+                "system_variables": "משתני מערכת",
+                "insert_name": "שם איש קשר",
+                "insert_phone": "מספר טלפון",
+                "variable_tip": "לחץ כדי להוסיף במיקום הסמן",
+                "name_placeholder": "{name}",
+                "add_at_least_one_recipient": "נא להוסיף לפחות נמען אחד",
+                "select_at_least_one_tag": "נא לבחור לפחות תגית אחת",
+                "no_contacts_with_tags": "לא נמצאו אנשי קשר עם התגיות שנבחרו. יש לתייג אנשי קשר קודם.",
+                "fill_required_fields": "נא למלא את כל השדות הנדרשים"
             },
             "tags": {
                 "assign_tags": "שייך תגיות",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -15,8 +15,12 @@ import {
     Image as ImageIcon,
     Clock,
     AlertCircle,
+    Tag,
+    Phone,
+    Users,
 } from 'lucide-react';
 import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
+import { useTags } from '../hooks/useTags';
 
 // Days of week for recurring
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -80,6 +84,18 @@ export default function ScheduledMessageEdit() {
     const [uploading, setUploading] = useState(false);
     const [uploadedFile, setUploadedFile] = useState(null);
     const [currentTime, setCurrentTime] = useState('');
+    const [selectedNumber, setSelectedNumber] = useState(null);
+
+    // Recipient mode: 'phones' or 'tags'
+    const [recipientMode, setRecipientMode] = useState('phones');
+    const [selectedTagIds, setSelectedTagIds] = useState([]);
+    const [resolvedTagRecipients, setResolvedTagRecipients] = useState([]);
+
+    // Message textarea ref for inserting variables at cursor
+    const messageTextareaRef = useRef(null);
+
+    // Tags hook - use organization_id from selected number
+    const { tags, chatTags } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id, user?.id);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -226,6 +242,35 @@ export default function ScheduledMessageEdit() {
         loadData();
     }, [user, id, isEditing, navigate]);
 
+    // Update selectedNumber when formData.number_id changes
+    useEffect(() => {
+        if (formData.number_id && numbers.length > 0) {
+            const num = numbers.find(n => n.id === formData.number_id);
+            setSelectedNumber(num || null);
+        }
+    }, [formData.number_id, numbers]);
+
+    // Resolve tagged recipients when selectedTagIds or chatTags change
+    useEffect(() => {
+        if (recipientMode === 'tags' && selectedTagIds.length > 0 && chatTags) {
+            // chatTags is { [chatJid]: [tagId, ...] }
+            // Find all chatJids that have any of the selected tags
+            const matchingChatJids = [];
+            Object.entries(chatTags).forEach(([chatJid, tagIds]) => {
+                if (tagIds.some(tagId => selectedTagIds.includes(tagId))) {
+                    // Extract phone number from chatJid (remove @c.us, @g.us, etc.)
+                    const phone = chatJid.replace(/@.*$/, '');
+                    if (phone && !matchingChatJids.find(r => r.phone === phone)) {
+                        matchingChatJids.push({ chatJid, phone });
+                    }
+                }
+            });
+            setResolvedTagRecipients(matchingChatJids);
+        } else {
+            setResolvedTagRecipients([]);
+        }
+    }, [recipientMode, selectedTagIds, chatTags]);
+
     // Update current time display every second
     useEffect(() => {
         const updateCurrentTime = () => {
@@ -329,12 +374,55 @@ export default function ScheduledMessageEdit() {
         setUploadedFile(null);
     };
 
+    // Insert variable at cursor position in message textarea
+    const insertVariable = (variable) => {
+        const textarea = messageTextareaRef.current;
+        if (!textarea) {
+            // Fallback: append to end
+            setFormData({ ...formData, message: formData.message + variable });
+            return;
+        }
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = formData.message;
+        const newText = text.substring(0, start) + variable + text.substring(end);
+
+        setFormData({ ...formData, message: newText });
+
+        // Restore cursor position after the inserted variable
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + variable.length, start + variable.length);
+        }, 0);
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
-        // Filter out empty recipients
-        const validRecipients = formData.recipients.filter(r => r.trim() !== '');
-        if (!user || !formData.number_id || validRecipients.length === 0 || !formData.message) {
-            alert('Please fill in all required fields including at least one recipient');
+
+        // Determine valid recipients based on mode
+        let validRecipients = [];
+        if (recipientMode === 'phones') {
+            validRecipients = formData.recipients.filter(r => r.trim() !== '');
+            if (validRecipients.length === 0) {
+                alert(t('scheduled.add_at_least_one_recipient') || 'Please add at least one recipient phone number');
+                return;
+            }
+        } else if (recipientMode === 'tags') {
+            if (selectedTagIds.length === 0) {
+                alert(t('scheduled.select_at_least_one_tag') || 'Please select at least one tag');
+                return;
+            }
+            // Use resolved tag recipients (phone numbers extracted from chatJids)
+            validRecipients = resolvedTagRecipients.map(r => r.phone);
+            if (validRecipients.length === 0) {
+                alert(t('scheduled.no_contacts_with_tags') || 'No contacts found with the selected tags. Please tag some contacts first.');
+                return;
+            }
+        }
+
+        if (!user || !formData.number_id || !formData.message) {
+            alert(t('scheduled.fill_required_fields') || 'Please fill in all required fields');
             return;
         }
 
@@ -383,6 +471,7 @@ export default function ScheduledMessageEdit() {
                 is_community_template: formData.is_community_template,
                 template_name: formData.is_community_template ? formData.template_name : null,
                 template_description: formData.is_community_template ? formData.template_description : null,
+                recipient_mode: recipientMode, // 'phones' or 'tags'
             };
 
             // Handle staggering/delay if multiple recipients and delay > 0
@@ -620,102 +709,246 @@ export default function ScheduledMessageEdit() {
                         </div>
 
                         {/* Recipients */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                                {t('scheduled.recipients') || 'Recipients'} *
-                                <span className="text-xs text-muted-foreground ml-2">
-                                    ({formData.recipients.filter(r => r.trim() !== '').length} {t('scheduled.recipients_count') || 'recipients'})
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">
+                                    {t('scheduled.recipients') || 'Recipients'} *
+                                    <span className="text-xs text-muted-foreground ml-2">
+                                        ({recipientMode === 'phones'
+                                            ? formData.recipients.filter(r => r.trim() !== '').length
+                                            : resolvedTagRecipients.length} {t('scheduled.recipients_count') || 'recipients'})
+                                    </span>
+                                </label>
+                            </div>
+
+                            {/* Recipient Mode Toggle */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                    {t('scheduled.recipient_mode') || 'Add recipients by'}:
                                 </span>
-                            </label>
-                            <div className="space-y-2">
-                                {formData.recipients.map((recipient, index) => (
-                                    <div key={index} className="flex gap-2">
-                                        <Input
-                                            value={recipient}
-                                            onChange={(e) => {
-                                                const newRecipients = [...formData.recipients];
-                                                newRecipients[index] = e.target.value;
-                                                setFormData({ ...formData, recipients: newRecipients });
-                                            }}
-                                            placeholder="+972501234567"
-                                            className="flex-1"
-                                        />
-                                        {formData.recipients.length > 1 && (
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    const newRecipients = formData.recipients.filter((_, i) => i !== index);
+                                <div className="flex rounded-md border overflow-hidden">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRecipientMode('phones')}
+                                        className={`px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors ${recipientMode === 'phones'
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'bg-background hover:bg-accent'
+                                            }`}
+                                    >
+                                        <Phone className="h-3.5 w-3.5" />
+                                        {t('scheduled.by_phone') || 'Phone Numbers'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRecipientMode('tags')}
+                                        className={`px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors ${recipientMode === 'tags'
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'bg-background hover:bg-accent'
+                                            }`}
+                                    >
+                                        <Tag className="h-3.5 w-3.5" />
+                                        {t('scheduled.by_tags') || 'Tags'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Phone Numbers Mode */}
+                            {recipientMode === 'phones' && (
+                                <div className="space-y-2">
+                                    {formData.recipients.map((recipient, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <Input
+                                                value={recipient}
+                                                onChange={(e) => {
+                                                    const newRecipients = [...formData.recipients];
+                                                    newRecipients[index] = e.target.value;
                                                     setFormData({ ...formData, recipients: newRecipients });
                                                 }}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                ))}
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        setFormData({ ...formData, recipients: [...formData.recipients, ''] });
-                                    }}
-                                >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {t('scheduled.add_recipient') || 'Add Recipient'}
-                                </Button>
-                            </div>
+                                                placeholder="+972501234567"
+                                                className="flex-1"
+                                            />
+                                            {formData.recipients.length > 1 && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        const newRecipients = formData.recipients.filter((_, i) => i !== index);
+                                                        setFormData({ ...formData, recipients: newRecipients });
+                                                    }}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setFormData({ ...formData, recipients: [...formData.recipients, ''] });
+                                        }}
+                                    >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {t('scheduled.add_recipient') || 'Add Recipient'}
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Tags Mode */}
+                            {recipientMode === 'tags' && (
+                                <div className="space-y-3">
+                                    {tags.length === 0 ? (
+                                        <div className="bg-muted/50 rounded-md p-4 text-center">
+                                            <Tag className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                            <p className="text-sm text-muted-foreground">
+                                                {t('scheduled.no_tags_available') || 'No tags available. Create tags in the Chats page first.'}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex flex-wrap gap-2">
+                                                {tags.map((tag) => (
+                                                    <button
+                                                        key={tag.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (selectedTagIds.includes(tag.id)) {
+                                                                setSelectedTagIds(selectedTagIds.filter(id => id !== tag.id));
+                                                            } else {
+                                                                setSelectedTagIds([...selectedTagIds, tag.id]);
+                                                            }
+                                                        }}
+                                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${selectedTagIds.includes(tag.id)
+                                                            ? 'ring-2 ring-primary ring-offset-2'
+                                                            : 'hover:opacity-80'
+                                                            }`}
+                                                        style={{
+                                                            backgroundColor: tag.color || '#6b7280',
+                                                            color: 'white',
+                                                        }}
+                                                    >
+                                                        <Tag className="h-3 w-3" />
+                                                        {tag.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Resolved Recipients Preview */}
+                                            {resolvedTagRecipients.length > 0 && (
+                                                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-3">
+                                                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+                                                        <Users className="h-4 w-4" />
+                                                        <span className="font-medium">
+                                                            {resolvedTagRecipients.length} {t('scheduled.tagged_contacts') || 'contacts with selected tags'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="mt-2 flex flex-wrap gap-1">
+                                                        {resolvedTagRecipients.slice(0, 10).map((recipient, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                className="text-xs bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded"
+                                                            >
+                                                                {recipient.phone}
+                                                            </span>
+                                                        ))}
+                                                        {resolvedTagRecipients.length > 10 && (
+                                                            <span className="text-xs text-green-600 dark:text-green-400">
+                                                                +{resolvedTagRecipients.length - 10} more
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Staggering / Delay & Spam Warning */}
-                        {formData.recipients.filter(r => r.trim()).length > 1 && (
-                            <div className="space-y-4 pt-4 border-t">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium flex items-center gap-2">
-                                        {t('scheduled.delay_seconds') || 'Delay between messages (seconds)'}
-                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        value={formData.delay_seconds}
-                                        onChange={(e) => setFormData({ ...formData, delay_seconds: parseInt(e.target.value) || 0 })}
-                                        placeholder="0"
-                                        className="max-w-[150px]"
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('scheduled.delay_desc') || 'Adding a delay helps prevent number blocking by spreading out the sending time.'}
-                                    </p>
-                                </div>
-
-                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded-md p-4 flex items-start gap-3">
-                                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
-                                    <div className="text-sm">
-                                        <p className="font-medium text-yellow-800 dark:text-yellow-400">
-                                            {t('scheduled.spam_warning_title') || 'Avoid Number Blocking'}
-                                        </p>
-                                        <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-                                            {t('scheduled.spam_warning_desc') || 'Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.'}
+                        {((recipientMode === 'phones' && formData.recipients.filter(r => r.trim()).length > 1) ||
+                            (recipientMode === 'tags' && resolvedTagRecipients.length > 1)) && (
+                                <div className="space-y-4 pt-4 border-t">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium flex items-center gap-2">
+                                            {t('scheduled.delay_seconds') || 'Delay between messages (seconds)'}
+                                            <Clock className="h-4 w-4 text-muted-foreground" />
+                                        </label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            value={formData.delay_seconds}
+                                            onChange={(e) => setFormData({ ...formData, delay_seconds: parseInt(e.target.value) || 0 })}
+                                            placeholder="0"
+                                            className="max-w-[150px]"
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            {t('scheduled.delay_desc') || 'Adding a delay helps prevent number blocking by spreading out the sending time.'}
                                         </p>
                                     </div>
+
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded-md p-4 flex items-start gap-3">
+                                        <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+                                        <div className="text-sm">
+                                            <p className="font-medium text-yellow-800 dark:text-yellow-400">
+                                                {t('scheduled.spam_warning_title') || 'Avoid Number Blocking'}
+                                            </p>
+                                            <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                                                {t('scheduled.spam_warning_desc') || 'Sending too many messages at once can get your number blocked by WhatsApp. We recommend adding a delay between messages or splitting large lists.'}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
                         {/* Message */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
                                 {t('scheduled.message') || 'Message'} *
                             </label>
-                            <textarea
-                                value={formData.message}
-                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[150px] resize-y"
-                                placeholder={t('scheduled.message_placeholder') || 'Enter your message...'}
-                                required
-                            />
+
+                            <div className="flex gap-4">
+                                {/* Textarea */}
+                                <div className="flex-1">
+                                    <textarea
+                                        ref={messageTextareaRef}
+                                        value={formData.message}
+                                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[150px] resize-y"
+                                        placeholder={t('scheduled.message_placeholder') || 'Enter your message...'}
+                                        required
+                                    />
+                                </div>
+
+                                {/* System Variables Panel */}
+                                <div className="w-48 shrink-0">
+                                    <div className="border rounded-md p-3 space-y-3 bg-muted/30">
+                                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                            {t('scheduled.system_variables') || 'System Variables'}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t('scheduled.variable_tip') || 'Click to insert at cursor position'}
+                                        </p>
+                                        <div className="space-y-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => insertVariable('{name}')}
+                                                className="w-full flex items-center gap-2 px-3 py-2 rounded-md border bg-background hover:bg-accent text-sm transition-colors"
+                                            >
+                                                <Users className="h-4 w-4 text-primary" />
+                                                <span className="flex-1 text-left">
+                                                    {t('scheduled.insert_name') || 'Contact Name'}
+                                                </span>
+                                                <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                                                    {'{name}'}
+                                                </code>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Media Upload */}
