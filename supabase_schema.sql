@@ -815,6 +815,7 @@ create table if not exists public.scheduled_messages (
   is_recurring boolean not null default false,
   recurrence_type text check (recurrence_type in ('daily', 'weekly', 'monthly')),
   day_of_week int check (day_of_week >= 0 and day_of_week <= 6), -- 0=Sunday, 6=Saturday
+  day_of_month int check (day_of_month >= 1 and day_of_month <= 31),
   time_of_day time,
   is_active boolean not null default true,
   -- Media support
@@ -844,6 +845,7 @@ alter table public.scheduled_messages
   add column if not exists is_recurring boolean not null default false,
   add column if not exists recurrence_type text,
   add column if not exists day_of_week int,
+  add column if not exists day_of_month int,
   add column if not exists time_of_day time,
   add column if not exists is_active boolean not null default true,
   add column if not exists media_url text,

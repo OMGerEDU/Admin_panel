@@ -1175,7 +1175,7 @@ const resources = {
             "scheduled": {
                 "title": "הודעות מתוזמנות",
                 "subtitle": "תזמן הודעות WhatsApp לשליחה אוטומטית",
-                "create": "צור חדש",
+                "create": "תזמן הודעה חדשה ",
                 "edit": "ערוך הודעה מתוזמנת",
                 "tab_active": "פעילות",
                 "tab_inactive": "לא פעילות",
