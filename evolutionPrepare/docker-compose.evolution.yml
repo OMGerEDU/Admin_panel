@@ -1,0 +1,64 @@
+version: '3.3'
+
+services:
+  evolution_api:
+    image: atendai/evolution-api:v2.1.1 # Pin version for stability
+    container_name: evolution_api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY}
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+      
+      # Database - Persistence (Critical)
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://evolution:evolution_password@postgres:5432/evolution?schema=public
+      
+      # Redis - Caching & Session (Critical for Scale)
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379/0
+      - CACHE_REDIS_PREFIX=evolution:
+      
+      # Webhook Signing (Security)
+      # Note: Evolution v2 might use a different Env for global webhook signing secret if available, 
+      # or relies on the API KEY. Check specific version docs. 
+      # For now, we rely on the Global Key validation or instance-specific configuration.
+      
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - evolution_net
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: evolution_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=evolution
+      - POSTGRES_PASSWORD=evolution_password
+      - POSTGRES_DB=evolution
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - evolution_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: evolution_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - evolution_net
+
+networks:
+  evolution_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
