@@ -204,6 +204,14 @@ export async function getStatusInstance(instanceId, token) {
   return greenApiCall(instanceId, token, 'getStatusInstance');
 }
 
+// 12. Download media file - get downloadUrl for media messages
+export async function downloadFile(instanceId, token, chatId, idMessage) {
+  return greenApiCall(instanceId, token, 'downloadFile', {
+    method: 'POST',
+    body: { chatId, idMessage },
+  });
+}
+
 // Phone normalization helper (Israeli-focused, similar to extension behavior)
 export function normalizePhoneNumber(phone) {
   let cleaned = phone.replace(/\D/g, '');

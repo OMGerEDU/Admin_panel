@@ -19,6 +19,7 @@ import {
     getChatHistory,
     normalizePhoneForAPI,
     getAvatar,
+    downloadFile,
 } from '../services/greenApi';
 import { pollNewMessages } from '../services/messageSync';
 import { logger } from '../lib/logger';
@@ -59,6 +60,10 @@ export default function Chats() {
 
     // Image Lightbox state
     const [lightboxImage, setLightboxImage] = useState(null);
+
+    // Media URLs cache - stores fetched downloadUrls by message ID
+    const [mediaUrls, setMediaUrls] = useState({});
+    const [loadingMedia, setLoadingMedia] = useState({});
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -715,6 +720,41 @@ export default function Chats() {
         }
     };
 
+    // Helper function to load media URL from Green API
+    const loadMediaUrl = async (messageId, chatId) => {
+        if (!selectedNumber?.instance_id || !selectedNumber?.api_token || !messageId) {
+            return null;
+        }
+
+        // Check if already loading or loaded
+        if (loadingMedia[messageId] || mediaUrls[messageId]) {
+            return mediaUrls[messageId] || null;
+        }
+
+        setLoadingMedia(prev => ({ ...prev, [messageId]: true }));
+
+        try {
+            const result = await downloadFile(
+                selectedNumber.instance_id,
+                selectedNumber.api_token,
+                chatId,
+                messageId
+            );
+
+            if (result.success && result.data?.downloadUrl) {
+                const url = result.data.downloadUrl;
+                setMediaUrls(prev => ({ ...prev, [messageId]: url }));
+                return url;
+            }
+        } catch (error) {
+            console.error('[MEDIA] Error loading media URL:', error);
+        } finally {
+            setLoadingMedia(prev => ({ ...prev, [messageId]: false }));
+        }
+
+        return null;
+    };
+
     // SMART Polling: Slower interval + only refresh if we got a notification
     useEffect(() => {
         if (!selectedNumber?.instance_id || !selectedNumber?.api_token) {
@@ -1046,26 +1086,72 @@ export default function Chats() {
                                                         {typeMessage === 'imageMessage' && (
                                                             <div className="space-y-2">
                                                                 {(() => {
-                                                                    // Get the full image URL for lightbox
-                                                                    const fullImageUrl = item.urlFile || item.downloadUrl || item.mediaUrl ||
+                                                                    const messageId = item.idMessage || item.id;
+                                                                    const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
+                                                                    // Check for cached URL first, then inline URLs
+                                                                    const cachedUrl = mediaUrls[messageId];
+                                                                    const inlineUrl = item.urlFile || item.downloadUrl || item.mediaUrl ||
                                                                         (item.imageMessage && (item.imageMessage.urlFile || item.imageMessage.downloadUrl || item.imageMessage.url));
+                                                                    const fullImageUrl = cachedUrl || inlineUrl;
+
                                                                     // Get thumbnail or fallback to full image
                                                                     const thumbnailSrc = item.jpegThumbnail
                                                                         ? `data:image/jpeg;base64,${item.jpegThumbnail}`
                                                                         : fullImageUrl;
 
-                                                                    return thumbnailSrc ? (
-                                                                        <img
-                                                                            src={thumbnailSrc}
-                                                                            alt="image"
-                                                                            className="max-w-[220px] max-h-[220px] rounded-lg block mb-1 cursor-pointer hover:opacity-90 transition-opacity"
-                                                                            onClick={() => setLightboxImage({
-                                                                                src: fullImageUrl || thumbnailSrc,
-                                                                                caption: item.caption || text
-                                                                            })}
-                                                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                                                        />
-                                                                    ) : null;
+                                                                    const isLoading = loadingMedia[messageId];
+
+                                                                    return (
+                                                                        <div className="relative">
+                                                                            {thumbnailSrc ? (
+                                                                                <img
+                                                                                    src={thumbnailSrc}
+                                                                                    alt="image"
+                                                                                    className="max-w-[280px] max-h-[280px] rounded-lg block mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                                                                                    onClick={async () => {
+                                                                                        // If we have full URL, open lightbox. Otherwise, try to load it first.
+                                                                                        let imageUrl = fullImageUrl;
+                                                                                        if (!imageUrl && messageId && chatId) {
+                                                                                            imageUrl = await loadMediaUrl(messageId, chatId);
+                                                                                        }
+                                                                                        if (imageUrl) {
+                                                                                            setLightboxImage({
+                                                                                                src: imageUrl,
+                                                                                                caption: item.caption || text
+                                                                                            });
+                                                                                        }
+                                                                                    }}
+                                                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                                                />
+                                                                            ) : (
+                                                                                <div className="w-[200px] h-[150px] bg-muted dark:bg-[#182229] rounded-lg flex items-center justify-center">
+                                                                                    <span className="text-4xl">📷</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {/* Show loading overlay or load button */}
+                                                                            {!fullImageUrl && thumbnailSrc && (
+                                                                                <div
+                                                                                    className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg cursor-pointer"
+                                                                                    onClick={async () => {
+                                                                                        if (messageId && chatId) {
+                                                                                            const url = await loadMediaUrl(messageId, chatId);
+                                                                                            if (url) {
+                                                                                                setLightboxImage({ src: url, caption: item.caption || text });
+                                                                                            }
+                                                                                        }
+                                                                                    }}
+                                                                                >
+                                                                                    {isLoading ? (
+                                                                                        <div className="text-white text-sm">טוען...</div>
+                                                                                    ) : (
+                                                                                        <div className="text-white text-sm bg-primary/80 dark:bg-[#00a884]/80 px-3 py-1 rounded-full">
+                                                                                            לחץ להגדלה
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    );
                                                                 })()}
                                                                 {(item.caption || text) && (
                                                                     <div className="text-sm">{item.caption || text}</div>
@@ -1104,12 +1190,17 @@ export default function Chats() {
                                                         {(typeMessage === 'audioMessage' || typeMessage === 'ptt') && (
                                                             <div className="space-y-2">
                                                                 {(() => {
-                                                                    // Extract audio URL from multiple possible sources (Green API compatibility)
-                                                                    const audioUrl = item.downloadUrl || item.url || item.urlFile || item.mediaUrl ||
-                                                                        (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url || item.audioMessage.urlFile)) || null;
+                                                                    const messageId = item.idMessage || item.id;
+                                                                    const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
+                                                                    // Check for cached URL first, then inline URLs
+                                                                    const cachedUrl = mediaUrls[messageId];
+                                                                    const inlineUrl = item.downloadUrl || item.url || item.urlFile || item.mediaUrl ||
+                                                                        (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url || item.audioMessage.urlFile));
+                                                                    const audioUrl = cachedUrl || inlineUrl || null;
                                                                     const mimeType = item.mimeType || item.audioMessage?.mimeType || 'audio/ogg; codecs=opus';
                                                                     const duration = item.seconds || item.duration || item.length ||
                                                                         (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration)) || 0;
+                                                                    const isLoading = loadingMedia[messageId];
 
                                                                     return (
                                                                         <div className="flex items-center gap-3 min-w-[200px]">
@@ -1137,9 +1228,17 @@ export default function Chats() {
                                                                                     )}
                                                                                 </div>
                                                                             ) : (
-                                                                                <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
-                                                                                    {t('chats_page.audio_not_available') || 'Audio not available'}
-                                                                                </div>
+                                                                                <button
+                                                                                    onClick={async () => {
+                                                                                        if (messageId && chatId) {
+                                                                                            await loadMediaUrl(messageId, chatId);
+                                                                                        }
+                                                                                    }}
+                                                                                    disabled={isLoading}
+                                                                                    className="px-3 py-2 text-xs bg-primary/80 dark:bg-[#00a884]/80 text-white rounded-full hover:bg-primary dark:hover:bg-[#00a884] transition-colors disabled:opacity-50"
+                                                                                >
+                                                                                    {isLoading ? 'טוען...' : 'לחץ להשמעה'}
+                                                                                </button>
                                                                             )}
                                                                         </div>
                                                                     );
