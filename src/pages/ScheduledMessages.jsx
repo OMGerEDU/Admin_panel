@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Popover, PopoverTrigger, PopoverContent } from '../components/ui/popover';
 import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
 import {
     Plus,
@@ -30,6 +31,7 @@ import {
     Pause,
     Play,
     Zap,
+    MoreVertical,
 } from 'lucide-react';
 
 // Status badge component
@@ -48,9 +50,9 @@ function StatusBadge({ status, t }) {
         failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
         cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
     };
-    const statusKey = statusKeys[status] || `scheduled.status_${status}`;
+    const statusKey = statusKeys[status] || `scheduled.status_${status} `;
     return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.pending}`}>
+        <span className={`inline - flex items - center rounded - full px - 2.5 py - 0.5 text - xs font - medium ${styles[status] || styles.pending} `}>
             {t(statusKey)}
         </span>
     );
@@ -177,7 +179,7 @@ export default function ScheduledMessages() {
         if (e) {
             e.stopPropagation();
         }
-        navigate(`/app/scheduled/${msg.id}`);
+        navigate(`/ app / scheduled / ${msg.id} `);
     };
 
     const handleDelete = async (id, e) => {
@@ -279,6 +281,74 @@ export default function ScheduledMessages() {
         }
     };
 
+    // Duplicate a scheduled message
+    const handleDuplicate = async (msg, e) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        try {
+            const scheduledAt = new Date();
+            scheduledAt.setHours(9, 0, 0, 0);
+            if (scheduledAt < new Date()) {
+                scheduledAt.setDate(scheduledAt.getDate() + 1);
+            }
+
+            // Fetch message recipients
+            const { data: messageRecipients } = await supabase
+                .from('scheduled_message_recipients')
+                .select('phone_number')
+                .eq('scheduled_message_id', msg.id);
+
+            const { data, error } = await supabase
+                .from('scheduled_messages')
+                .insert({
+                    user_id: user.id,
+                    number_id: msg.number_id,
+                    to_phone: messageRecipients?.[0]?.phone_number || msg.to_phone || '',
+                    message: msg.message,
+                    scheduled_at: scheduledAt.toISOString(),
+                    is_recurring: msg.is_recurring,
+                    recurrence_type: msg.recurrence_type,
+                    day_of_week: msg.day_of_week,
+                    day_of_month: msg.day_of_month,
+                    time_of_day: msg.time_of_day,
+                    is_active: false,
+                    media_url: msg.media_url,
+                    media_type: msg.media_type,
+                    media_filename: msg.media_filename,
+                    is_community_template: false,
+                    status: 'pending',
+                    delay_seconds: msg.delay_seconds,
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Copy recipients if they exist
+            if (messageRecipients && messageRecipients.length > 0) {
+                const recipientsToInsert = messageRecipients.map(r => ({
+                    scheduled_message_id: data.id,
+                    phone_number: r.phone_number,
+                    status: 'pending',
+                }));
+
+                await supabase
+                    .from('scheduled_message_recipients')
+                    .insert(recipientsToInsert);
+            }
+
+            // Show toast
+            setCopiedToast(data.id);
+            setTimeout(() => setCopiedToast(null), 5000);
+
+            fetchMessages();
+        } catch (err) {
+            console.error('Error duplicating message:', err);
+            alert(err.message || t('scheduled.duplicate_error') || 'Failed to duplicate message');
+        }
+    };
+
     // Normalize phone number to chatId format (like dispatch.ts)
     const normalizePhoneToChatId = (phone) => {
         let cleaned = phone.replace(/\D/g, '');
@@ -288,7 +358,7 @@ export default function ScheduledMessages() {
         if (!cleaned.startsWith('972')) {
             cleaned = '972' + cleaned;
         }
-        return `${cleaned}@c.us`;
+        return `${cleaned} @c.us`;
     };
 
     // Send message immediately via Green API
@@ -732,32 +802,59 @@ export default function ScheduledMessages() {
                                                     <Zap className="h-4 w-4" />
                                                 </Button>
                                             )}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={(e) => handleToggleActive(msg, e)}
-                                                title={msg.is_active ? 'Deactivate' : 'Activate'}
-                                            >
-                                                {msg.is_active ? (
-                                                    <Pause className="h-4 w-4" />
-                                                ) : (
-                                                    <Play className="h-4 w-4" />
-                                                )}
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={(e) => handleEdit(msg, e)}
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={(e) => handleDelete(msg.id, e)}
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        title={t('common.actions') || 'Actions'}
+                                                    >
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-48 p-1" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex flex-col">
+                                                        <button
+                                                            onClick={(e) => handleEdit(msg, e)}
+                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                            {t('common.edit') || 'Edit'}
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => handleDuplicate(msg, e)}
+                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start"
+                                                        >
+                                                            <Copy className="h-4 w-4" />
+                                                            {t('scheduled.duplicate') || 'Duplicate'}
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => handleToggleActive(msg, e)}
+                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start"
+                                                        >
+                                                            {msg.is_active ? (
+                                                                <>
+                                                                    <Pause className="h-4 w-4" />
+                                                                    {t('scheduled.stop') || 'Stop'}
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Play className="h-4 w-4" />
+                                                                    {t('scheduled.activate') || 'Activate'}
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => handleDelete(msg.id, e)}
+                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start text-red-500 hover:text-red-600"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            {t('common.delete') || 'Delete'}
+                                                        </button>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
                                     </div>
                                 </CardContent>
