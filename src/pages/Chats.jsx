@@ -17,6 +17,7 @@ import {
     getLastIncomingMessages,
     getLastOutgoingMessages,
     getChatHistory,
+    getChats,
     normalizePhoneForAPI,
     getAvatar,
     downloadFile,
@@ -52,6 +53,8 @@ export default function Chats() {
     const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
     const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
     const [chatAvatars, setChatAvatars] = useState(new Map()); // Map<chatId, avatarUrl>
+    const [chatFilter, setChatFilter] = useState('all'); // 'all' | 'unread' | 'groups'
+
 
     // Tags Integration
     const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id, user?.id);
@@ -328,10 +331,35 @@ export default function Chats() {
             }
 
             // Convert map to array and sort by timestamp (newest first)
-            const chats = Array.from(chatsMap.values());
+            let chats = Array.from(chatsMap.values());
             chats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
             console.log('[CHATS] Grouped into', chats.length, 'chats');
+
+            // Fetch unread counts from getChats API
+            try {
+                const chatsResult = await getChats(acc.instance_id, acc.api_token);
+                if (chatsResult.success && Array.isArray(chatsResult.data)) {
+                    // Create a map of chatId -> unreadCount
+                    const unreadMap = new Map();
+                    chatsResult.data.forEach(chat => {
+                        const id = chat.id || chat.chatId || chat.chatIdString;
+                        if (id && chat.unreadCount !== undefined) {
+                            unreadMap.set(id, chat.unreadCount);
+                        }
+                    });
+
+                    // Merge unreadCount into our chats
+                    chats = chats.map(chat => ({
+                        ...chat,
+                        unreadCount: unreadMap.get(chat.chatId) || 0
+                    }));
+
+                    console.log('[CHATS] Merged unread counts from getChats API');
+                }
+            } catch (err) {
+                console.warn('[CHATS] Failed to fetch unread counts:', err.message);
+            }
 
             // Save contact names to database for use by scheduled message dispatcher
             // Only save chats that have a real name (not just phone number)
@@ -803,11 +831,32 @@ export default function Chats() {
         return letters.toUpperCase() || 'WA';
     };
 
-    const filteredChats = chats.filter((chat) =>
-        (chat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (chat.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (chat.chatId || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Helper to check if chat is a group
+    const isGroupChat = (chat) => {
+        const chatId = chat.chatId || chat.remote_jid || '';
+        return chatId.endsWith('@g.us');
+    };
+
+    // Apply both search and filter
+    const filteredChats = chats.filter((chat) => {
+        // First apply text search
+        const matchesSearch =
+            (chat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (chat.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (chat.chatId || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (!matchesSearch) return false;
+
+        // Then apply category filter
+        switch (chatFilter) {
+            case 'unread':
+                return (chat.unreadCount || 0) > 0;
+            case 'groups':
+                return isGroupChat(chat);
+            default:
+                return true;
+        }
+    });
 
     return (
         <div className="flex h-[calc(100vh-8rem)] bg-background dark:bg-[#0a1014] text-sm">
@@ -875,6 +924,42 @@ export default function Chats() {
                             className="pl-9 border-0 bg-secondary dark:bg-[#202c33] text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-[#8696a0] focus-visible:ring-2 focus-visible:ring-primary"
                         />
                     </div>
+                    {/* Filter Tabs */}
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                        <button
+                            onClick={() => setChatFilter('all')}
+                            className={cn(
+                                "px-3 py-1 text-xs rounded-full transition-colors",
+                                chatFilter === 'all'
+                                    ? "bg-primary dark:bg-[#00a884] text-white"
+                                    : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
+                            )}
+                        >
+                            {t('chats_page.filter_all') || 'הכל'}
+                        </button>
+                        <button
+                            onClick={() => setChatFilter('unread')}
+                            className={cn(
+                                "px-3 py-1 text-xs rounded-full transition-colors",
+                                chatFilter === 'unread'
+                                    ? "bg-primary dark:bg-[#00a884] text-white"
+                                    : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
+                            )}
+                        >
+                            {t('chats_page.filter_unread') || 'לא נקראו'}
+                        </button>
+                        <button
+                            onClick={() => setChatFilter('groups')}
+                            className={cn(
+                                "px-3 py-1 text-xs rounded-full transition-colors",
+                                chatFilter === 'groups'
+                                    ? "bg-primary dark:bg-[#00a884] text-white"
+                                    : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
+                            )}
+                        >
+                            {t('chats_page.filter_groups') || 'קבוצות'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Chats List */}
@@ -932,14 +1017,27 @@ export default function Chats() {
                                                 {chat.lastMessage || t('chats_page.no_chats')}
                                             </p>
                                         </div>
-                                        {chat.lastMessageTime && (
-                                            <span className="text-xs text-muted-foreground dark:text-[#8696a0] whitespace-nowrap">
-                                                {new Date(chat.lastMessageTime * 1000).toLocaleTimeString([], {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </span>
-                                        )}
+                                        <div className="flex flex-col items-end gap-1">
+                                            {chat.lastMessageTime && (
+                                                <span className={cn(
+                                                    "text-xs whitespace-nowrap",
+                                                    (chat.unreadCount || 0) > 0
+                                                        ? "text-primary dark:text-[#00a884]"
+                                                        : "text-muted-foreground dark:text-[#8696a0]"
+                                                )}>
+                                                    {new Date(chat.lastMessageTime * 1000).toLocaleTimeString([], {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </span>
+                                            )}
+                                            {/* Unread badge */}
+                                            {(chat.unreadCount || 0) > 0 && (
+                                                <span className="min-w-[20px] h-5 flex items-center justify-center bg-primary dark:bg-[#00a884] text-white text-xs font-medium rounded-full px-1.5">
+                                                    {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex flex-wrap gap-1 mt-1 pl-[3.75rem]">
                                         {chatTags[chatId]?.map(tagId => {
