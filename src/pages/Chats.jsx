@@ -6,11 +6,12 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Send, Phone, Tag, Settings } from 'lucide-react';
+import { Plus, Search, Send, Phone, Tag, Settings, Filter, Calendar, X } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
 import { ImageLightbox } from '../components/ImageLightbox';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { cn, removeJidSuffix } from '../lib/utils';
 import {
     sendMessage as sendGreenMessage,
@@ -55,6 +56,12 @@ export default function Chats() {
     const [chatAvatars, setChatAvatars] = useState(new Map()); // Map<chatId, avatarUrl>
     const [chatFilter, setChatFilter] = useState('all'); // 'all' | 'unread' | 'groups'
 
+    // Advanced Filters
+    const [showFilters, setShowFilters] = useState(false);
+    const [filterDateFrom, setFilterDateFrom] = useState('');
+    const [filterDateTo, setFilterDateTo] = useState('');
+    const [filterTags, setFilterTags] = useState([]); // array of tag IDs
+
 
     // Tags Integration
     const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id, user?.id);
@@ -71,6 +78,19 @@ export default function Chats() {
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
     const historyCacheRef = useRef(new Map()); // Map<chatId, { messages, timestamp }>
+
+    // Merge chatTags into chats for TagsManager/TagsViewModal
+    const chatsWithTags = React.useMemo(() => {
+        return chats.map(chat => {
+            const chatId = chat.chatId || chat.remote_jid || '';
+            return {
+                ...chat,
+                id: chatId,
+                remote_jid: chatId,
+                tags: chatTags[chatId] || []
+            };
+        });
+    }, [chats, chatTags]);
 
     useEffect(() => {
         fetchNumbers();
@@ -857,6 +877,9 @@ export default function Chats() {
         console.log('[CHATS FILTER] Total:', chats.length, 'Groups:', groupCount, 'Unread:', unreadCount, 'Filter:', chatFilter);
     }
 
+    // Check if any advanced filters are active
+    const hasActiveFilters = filterDateFrom || filterDateTo || filterTags.length > 0;
+
     const filteredChats = chats.filter((chat) => {
         // First apply text search
         const matchesSearch =
@@ -866,15 +889,47 @@ export default function Chats() {
 
         if (!matchesSearch) return false;
 
-        // Then apply category filter
+        // Apply category filter
         switch (chatFilter) {
             case 'unread':
-                return (chat.unreadCount || 0) > 0;
+                if ((chat.unreadCount || 0) <= 0) return false;
+                break;
             case 'groups':
-                return isGroupChat(chat);
-            default:
-                return true;
+                if (!isGroupChat(chat)) return false;
+                break;
         }
+
+        // Apply date filters
+        if (filterDateFrom || filterDateTo) {
+            const chatTimestamp = chat.lastMessageTime || chat.timestamp || 0;
+            const chatDate = chatTimestamp ? new Date(chatTimestamp * 1000) : null;
+
+            if (chatDate) {
+                if (filterDateFrom) {
+                    const fromDate = new Date(filterDateFrom);
+                    fromDate.setHours(0, 0, 0, 0);
+                    if (chatDate < fromDate) return false;
+                }
+                if (filterDateTo) {
+                    const toDate = new Date(filterDateTo);
+                    toDate.setHours(23, 59, 59, 999);
+                    if (chatDate > toDate) return false;
+                }
+            } else {
+                // No date available, filter out if date filter is active
+                return false;
+            }
+        }
+
+        // Apply tag filters
+        if (filterTags.length > 0) {
+            const chatId = chat.chatId || chat.remote_jid || '';
+            const chatTagIds = chatTags[chatId] || [];
+            const hasMatchingTag = filterTags.some(tagId => chatTagIds.includes(tagId));
+            if (!hasMatchingTag) return false;
+        }
+
+        return true;
     });
 
     return (
@@ -978,6 +1033,115 @@ export default function Chats() {
                         >
                             {t('chats_page.filter_groups') || 'קבוצות'}
                         </button>
+
+                        {/* Advanced Filters Button */}
+                        <Popover open={showFilters} onOpenChange={setShowFilters}>
+                            <PopoverTrigger asChild>
+                                <button
+                                    className={cn(
+                                        "px-3 py-1 text-xs rounded-full transition-colors flex items-center gap-1",
+                                        hasActiveFilters
+                                            ? "bg-primary dark:bg-[#00a884] text-white"
+                                            : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
+                                    )}
+                                >
+                                    <Filter className="h-3 w-3" />
+                                    {t('chats_page.filters') || 'פילטרים'}
+                                    {hasActiveFilters && (
+                                        <span className="ml-1 bg-white/20 rounded-full px-1.5 text-[10px]">
+                                            {(filterDateFrom ? 1 : 0) + (filterDateTo ? 1 : 0) + filterTags.length}
+                                        </span>
+                                    )}
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-4 bg-card dark:bg-[#202c33] border-border dark:border-[#3b4a54]" align="start">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-medium text-sm">{t('chats_page.advanced_filters') || 'פילטרים מתקדמים'}</h4>
+                                        {hasActiveFilters && (
+                                            <button
+                                                onClick={() => {
+                                                    setFilterDateFrom('');
+                                                    setFilterDateTo('');
+                                                    setFilterTags([]);
+                                                }}
+                                                className="text-xs text-primary dark:text-[#00a884] hover:underline"
+                                            >
+                                                {t('chats_page.clear_filters') || 'נקה הכל'}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Date Filters */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                            <Calendar className="h-3 w-3" />
+                                            {t('chats_page.last_message_date') || 'תאריך הודעה אחרונה'}
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <label className="text-[10px] text-muted-foreground">{t('chats_page.from_date') || 'מתאריך'}</label>
+                                                <Input
+                                                    type="date"
+                                                    value={filterDateFrom}
+                                                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                                                    className="h-8 text-xs bg-background dark:bg-[#111b21] border-border"
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-[10px] text-muted-foreground">{t('chats_page.to_date') || 'עד תאריך'}</label>
+                                                <Input
+                                                    type="date"
+                                                    value={filterDateTo}
+                                                    onChange={(e) => setFilterDateTo(e.target.value)}
+                                                    className="h-8 text-xs bg-background dark:bg-[#111b21] border-border"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Tag Filters */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                            <Tag className="h-3 w-3" />
+                                            {t('chats_page.filter_by_tag') || 'סינון לפי תג'}
+                                        </label>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {tags.length === 0 ? (
+                                                <span className="text-xs text-muted-foreground italic">
+                                                    {t('tags.no_tags_yet') || 'אין תגים עדיין'}
+                                                </span>
+                                            ) : (
+                                                tags.map(tag => (
+                                                    <button
+                                                        key={tag.id}
+                                                        onClick={() => {
+                                                            setFilterTags(prev =>
+                                                                prev.includes(tag.id)
+                                                                    ? prev.filter(id => id !== tag.id)
+                                                                    : [...prev, tag.id]
+                                                            );
+                                                        }}
+                                                        className={cn(
+                                                            "px-2 py-0.5 text-xs rounded-full transition-all",
+                                                            filterTags.includes(tag.id)
+                                                                ? "ring-2 ring-white/50 shadow-md"
+                                                                : "opacity-70 hover:opacity-100"
+                                                        )}
+                                                        style={{
+                                                            backgroundColor: tag.color,
+                                                            color: 'white'
+                                                        }}
+                                                    >
+                                                        {tag.name}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </div>
 
@@ -1528,6 +1692,14 @@ export default function Chats() {
                 userId={user?.id}
                 open={showTagsManager}
                 onOpenChange={setShowTagsManager}
+                chats={chatsWithTags}
+                onNavigateChat={(chatId) => {
+                    // Find the chat and select it
+                    const chat = chats.find(c => (c.chatId || c.remote_jid) === chatId);
+                    if (chat) {
+                        setSelectedChat(chat);
+                    }
+                }}
             />
 
             <ChatTagsSelector

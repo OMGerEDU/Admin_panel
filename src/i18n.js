@@ -236,7 +236,14 @@ const resources = {
                 "no_more_messages": "🎉 You're all caught up – no more messages in this chat",
                 "filter_all": "All",
                 "filter_unread": "Unread",
-                "filter_groups": "Groups"
+                "filter_groups": "Groups",
+                "filters": "Filters",
+                "advanced_filters": "Advanced Filters",
+                "clear_filters": "Clear All",
+                "last_message_date": "Last Message Date",
+                "from_date": "From",
+                "to_date": "To",
+                "filter_by_tag": "Filter by Tag"
             },
             "login": {
                 "title": "Welcome Back",
@@ -821,7 +828,14 @@ const resources = {
                 "no_more_messages": "🎉 הגעת לסוף השיחה – אין עוד הודעות כאן",
                 "filter_all": "הכל",
                 "filter_unread": "לא נקראו",
-                "filter_groups": "קבוצות"
+                "filter_groups": "קבוצות",
+                "filters": "פילטרים",
+                "advanced_filters": "פילטרים מתקדמים",
+                "clear_filters": "נקה הכל",
+                "last_message_date": "תאריך הודעה אחרונה",
+                "from_date": "מתאריך",
+                "to_date": "עד תאריך",
+                "filter_by_tag": "סינון לפי תג"
             },
             "login": {
                 "title": "ברוכים הבאים",
