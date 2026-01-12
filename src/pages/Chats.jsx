@@ -10,6 +10,7 @@ import { Plus, Search, Send, Phone, Tag, Settings } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
+import { ImageLightbox } from '../components/ImageLightbox';
 import { cn, removeJidSuffix } from '../lib/utils';
 import {
     sendMessage as sendGreenMessage,
@@ -55,6 +56,9 @@ export default function Chats() {
     const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(selectedNumber?.organization_id, selectedNumber?.instance_id, user?.id);
     const [showTagsManager, setShowTagsManager] = useState(false);
     const [currentChatTagsId, setCurrentChatTagsId] = useState(null); // chatId for selector dialog
+
+    // Image Lightbox state
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -1041,33 +1045,30 @@ export default function Chats() {
                                                         {/* Image Message */}
                                                         {typeMessage === 'imageMessage' && (
                                                             <div className="space-y-2">
-                                                                {item.jpegThumbnail ? (
-                                                                    <img
-                                                                        src={`data:image/jpeg;base64,${item.jpegThumbnail}`}
-                                                                        alt="image"
-                                                                        className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
-                                                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                                                    />
-                                                                ) : (item.urlFile || item.downloadUrl || item.mediaUrl) ? (
-                                                                    <img
-                                                                        src={item.urlFile || item.downloadUrl || item.mediaUrl}
-                                                                        alt="image"
-                                                                        className="max-w-[220px] max-h-[220px] rounded-lg block mb-1"
-                                                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                                                    />
-                                                                ) : null}
+                                                                {(() => {
+                                                                    // Get the full image URL for lightbox
+                                                                    const fullImageUrl = item.urlFile || item.downloadUrl || item.mediaUrl ||
+                                                                        (item.imageMessage && (item.imageMessage.urlFile || item.imageMessage.downloadUrl || item.imageMessage.url));
+                                                                    // Get thumbnail or fallback to full image
+                                                                    const thumbnailSrc = item.jpegThumbnail
+                                                                        ? `data:image/jpeg;base64,${item.jpegThumbnail}`
+                                                                        : fullImageUrl;
+
+                                                                    return thumbnailSrc ? (
+                                                                        <img
+                                                                            src={thumbnailSrc}
+                                                                            alt="image"
+                                                                            className="max-w-[220px] max-h-[220px] rounded-lg block mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                                                                            onClick={() => setLightboxImage({
+                                                                                src: fullImageUrl || thumbnailSrc,
+                                                                                caption: item.caption || text
+                                                                            })}
+                                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                                        />
+                                                                    ) : null;
+                                                                })()}
                                                                 {(item.caption || text) && (
                                                                     <div className="text-sm">{item.caption || text}</div>
-                                                                )}
-                                                                {(item.urlFile || item.downloadUrl) && !item.jpegThumbnail && (
-                                                                    <a
-                                                                        href={item.urlFile || item.downloadUrl}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                                    >
-                                                                        📷 {t('chats_page.open_image') || 'Open Image'}
-                                                                    </a>
                                                                 )}
                                                             </div>
                                                         )}
@@ -1102,40 +1103,47 @@ export default function Chats() {
                                                         {/* Audio/Voice Message */}
                                                         {(typeMessage === 'audioMessage' || typeMessage === 'ptt') && (
                                                             <div className="space-y-2">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-lg">🎵</span>
-                                                                    {(item.downloadUrl || item.url || item.mediaUrl ||
-                                                                        (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))) ? (
-                                                                        <audio
-                                                                            controls
-                                                                            preload="metadata"
-                                                                            className="max-w-[250px] h-8 outline-none"
-                                                                            style={{ width: '100%' }}
-                                                                        >
-                                                                            <source
-                                                                                src={item.downloadUrl || item.url || item.mediaUrl ||
-                                                                                    (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url))}
-                                                                                type={item.mimeType || item.audioMessage?.mimeType || 'audio/ogg; codecs=opus'}
-                                                                            />
-                                                                        </audio>
-                                                                    ) : (
-                                                                        <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
-                                                                            {t('chats_page.audio_not_available') || 'Audio message (not available for download)'}
+                                                                {(() => {
+                                                                    // Extract audio URL from multiple possible sources (Green API compatibility)
+                                                                    const audioUrl = item.downloadUrl || item.url || item.urlFile || item.mediaUrl ||
+                                                                        (item.audioMessage && (item.audioMessage.downloadUrl || item.audioMessage.url || item.audioMessage.urlFile)) || null;
+                                                                    const mimeType = item.mimeType || item.audioMessage?.mimeType || 'audio/ogg; codecs=opus';
+                                                                    const duration = item.seconds || item.duration || item.length ||
+                                                                        (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration)) || 0;
+
+                                                                    return (
+                                                                        <div className="flex items-center gap-3 min-w-[200px]">
+                                                                            <span className="text-lg flex-shrink-0">{typeMessage === 'ptt' ? '🎤' : '🎵'}</span>
+                                                                            {audioUrl ? (
+                                                                                <div className="flex-1 flex flex-col gap-1">
+                                                                                    <audio
+                                                                                        controls
+                                                                                        preload="metadata"
+                                                                                        className="w-full h-10 rounded-lg"
+                                                                                        style={{
+                                                                                            minWidth: '180px',
+                                                                                            maxWidth: '280px'
+                                                                                        }}
+                                                                                    >
+                                                                                        <source src={audioUrl} type={mimeType} />
+                                                                                        <source src={audioUrl} type="audio/mpeg" />
+                                                                                        <source src={audioUrl} type="audio/ogg" />
+                                                                                        Your browser does not support audio playback.
+                                                                                    </audio>
+                                                                                    {duration > 0 && (
+                                                                                        <span className="text-xs text-muted-foreground dark:text-[#8696a0]">
+                                                                                            {Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
+                                                                                    {t('chats_page.audio_not_available') || 'Audio not available'}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                                {(item.seconds || item.duration || item.length ||
-                                                                    (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration))) && (
-                                                                        <div className="text-xs text-muted-foreground dark:text-[#8696a0]">
-                                                                            {(() => {
-                                                                                const duration = item.seconds || item.duration || item.length ||
-                                                                                    (item.audioMessage && (item.audioMessage.seconds || item.audioMessage.duration)) || 0;
-                                                                                const minutes = Math.floor(duration / 60);
-                                                                                const secs = Math.floor(duration % 60);
-                                                                                return `${minutes}:${secs.toString().padStart(2, '0')}`;
-                                                                            })()}
-                                                                        </div>
-                                                                    )}
+                                                                    );
+                                                                })()}
                                                                 {text && (
                                                                     <div className="text-sm mt-2">{text}</div>
                                                                 )}
@@ -1317,6 +1325,14 @@ export default function Chats() {
                     setCurrentChatTagsId(null);
                     setShowTagsManager(true);
                 }}
+            />
+
+            {/* Image Lightbox */}
+            <ImageLightbox
+                src={lightboxImage?.src}
+                caption={lightboxImage?.caption}
+                isOpen={!!lightboxImage}
+                onClose={() => setLightboxImage(null)}
             />
         </div>
     );
