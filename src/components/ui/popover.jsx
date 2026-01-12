@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const PopoverContext = React.createContext({});
 
+// Hook to access popover controls (e.g., to close it programmatically)
+export function usePopover() {
+    return React.useContext(PopoverContext);
+}
+
 export function Popover({ children }) {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef(null);
@@ -60,18 +65,48 @@ export function PopoverTrigger({ asChild, children, ...props }) {
     );
 }
 
-export function PopoverContent({ children, className, ...props }) {
+export function PopoverContent({ children, className, align = 'end', ...props }) {
     const { isOpen, contentRef } = React.useContext(PopoverContext);
 
     if (!isOpen) return null;
 
+    // Determine RTL based on document direction
+    const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+
+    // Position based on alignment and RTL
+    const alignmentClass = align === 'start'
+        ? (isRtl ? 'right-0' : 'left-0')
+        : (isRtl ? 'left-0' : 'right-0');
+
     return (
         <div
             ref={contentRef}
-            className={`absolute z-50 mt-2 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none animate-in data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ${className || ''}`}
+            className={`absolute z-50 mt-2 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95 ${alignmentClass} ${className || ''}`}
             {...props}
         >
             {children}
         </div>
+    );
+}
+
+// Dropdown menu item that closes the popover on click
+export function DropdownMenuItem({ children, onClick, className, ...props }) {
+    const { setIsOpen } = React.useContext(PopoverContext);
+
+    const handleClick = (e) => {
+        if (onClick) {
+            onClick(e);
+        }
+        setIsOpen(false);
+    };
+
+    return (
+        <button
+            onClick={handleClick}
+            className={`flex items-center gap-2 w-full px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start rtl:text-right ${className || ''}`}
+            {...props}
+        >
+            {children}
+        </button>
     );
 }

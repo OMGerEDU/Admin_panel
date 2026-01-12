@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Popover, PopoverTrigger, PopoverContent } from '../components/ui/popover';
+import { Popover, PopoverTrigger, PopoverContent, DropdownMenuItem } from '../components/ui/popover';
 import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
 import {
     Plus,
@@ -813,26 +813,17 @@ export default function ScheduledMessages() {
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-48 p-1" onClick={(e) => e.stopPropagation()}>
+                                                <PopoverContent className="w-44 p-1" onClick={(e) => e.stopPropagation()}>
                                                     <div className="flex flex-col">
-                                                        <button
-                                                            onClick={(e) => handleEdit(msg, e)}
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start"
-                                                        >
+                                                        <DropdownMenuItem onClick={(e) => handleEdit(msg, e)}>
                                                             <Edit className="h-4 w-4" />
                                                             {t('common.edit') || 'Edit'}
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => handleDuplicate(msg, e)}
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start"
-                                                        >
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={(e) => handleDuplicate(msg, e)}>
                                                             <Copy className="h-4 w-4" />
                                                             {t('scheduled.duplicate') || 'Duplicate'}
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => handleToggleActive(msg, e)}
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start"
-                                                        >
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={(e) => handleToggleActive(msg, e)}>
                                                             {msg.is_active ? (
                                                                 <>
                                                                     <Pause className="h-4 w-4" />
@@ -844,14 +835,14 @@ export default function ScheduledMessages() {
                                                                     {t('scheduled.activate') || 'Activate'}
                                                                 </>
                                                             )}
-                                                        </button>
-                                                        <button
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
                                                             onClick={(e) => handleDelete(msg.id, e)}
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors text-start text-red-500 hover:text-red-600"
+                                                            className="text-red-500 hover:text-red-600"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                             {t('common.delete') || 'Delete'}
-                                                        </button>
+                                                        </DropdownMenuItem>
                                                     </div>
                                                 </PopoverContent>
                                             </Popover>
