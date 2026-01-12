@@ -233,7 +233,10 @@ const resources = {
                 "location_message": "Location",
                 "view_location": "View Location",
                 "online_status": "Online",
-                "no_more_messages": "🎉 You're all caught up – no more messages in this chat"
+                "no_more_messages": "🎉 You're all caught up – no more messages in this chat",
+                "filter_all": "All",
+                "filter_unread": "Unread",
+                "filter_groups": "Groups"
             },
             "login": {
                 "title": "Welcome Back",
@@ -815,7 +818,10 @@ const resources = {
                 "location_message": "מיקום",
                 "view_location": "צפה במיקום",
                 "online_status": "מחובר עכשיו",
-                "no_more_messages": "🎉 הגעת לסוף השיחה – אין עוד הודעות כאן"
+                "no_more_messages": "🎉 הגעת לסוף השיחה – אין עוד הודעות כאן",
+                "filter_all": "הכל",
+                "filter_unread": "לא נקראו",
+                "filter_groups": "קבוצות"
             },
             "login": {
                 "title": "ברוכים הבאים",

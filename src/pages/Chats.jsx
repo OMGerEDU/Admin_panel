@@ -339,15 +339,27 @@ export default function Chats() {
             // Fetch unread counts from getChats API
             try {
                 const chatsResult = await getChats(acc.instance_id, acc.api_token);
+                console.log('[CHATS] getChats API response:', chatsResult);
+
                 if (chatsResult.success && Array.isArray(chatsResult.data)) {
+                    // Log first chat to see available fields
+                    if (chatsResult.data.length > 0) {
+                        console.log('[CHATS] Sample chat from getChats:', chatsResult.data[0]);
+                    }
+
                     // Create a map of chatId -> unreadCount
                     const unreadMap = new Map();
                     chatsResult.data.forEach(chat => {
                         const id = chat.id || chat.chatId || chat.chatIdString;
-                        if (id && chat.unreadCount !== undefined) {
-                            unreadMap.set(id, chat.unreadCount);
+                        // Try multiple possible field names for unread count
+                        const unread = chat.unreadCount ?? chat.unread ?? chat.unreadMessages ?? 0;
+                        if (id && unread > 0) {
+                            unreadMap.set(id, unread);
+                            console.log('[CHATS] Found unread chat:', id, 'count:', unread);
                         }
                     });
+
+                    console.log('[CHATS] Unread map size:', unreadMap.size);
 
                     // Merge unreadCount into our chats
                     chats = chats.map(chat => ({
@@ -838,6 +850,13 @@ export default function Chats() {
     };
 
     // Apply both search and filter
+    // Debug log to check available data
+    if (chats.length > 0) {
+        const groupCount = chats.filter(c => isGroupChat(c)).length;
+        const unreadCount = chats.filter(c => (c.unreadCount || 0) > 0).length;
+        console.log('[CHATS FILTER] Total:', chats.length, 'Groups:', groupCount, 'Unread:', unreadCount, 'Filter:', chatFilter);
+    }
+
     const filteredChats = chats.filter((chat) => {
         // First apply text search
         const matchesSearch =
