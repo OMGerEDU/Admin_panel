@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Check, Sparkles, Crown, Building2, Loader2, X } from 'lucide-react'
@@ -40,6 +41,7 @@ export default function Plans() {
   const [billingEvents, setBillingEvents] = useState([])
   const [processingPlanId, setProcessingPlanId] = useState(null)
   const [billingInterval, setBillingInterval] = useState('month') // 'month' | 'year'
+  const [termsAccepted, setTermsAccepted] = useState(false) // Terms acceptance for payment compliance
 
   useEffect(() => {
     fetchPlans()
@@ -391,9 +393,34 @@ export default function Plans() {
                   )}
                 </ul>
 
+                {/* Terms Acceptance Checkbox - Required by payment provider */}
+                {!isCurrent && (
+                  <div className="mb-4">
+                    <label className="flex items-start gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {t('plans.accept_terms_prefix') || 'קראתי ומסכים/ה ל'}
+                        <Link
+                          to="/terms"
+                          target="_blank"
+                          className="text-primary underline hover:text-primary/80"
+                        >
+                          {t('plans.terms_link') || 'תנאי השימוש'}
+                        </Link>
+                        {t('plans.accept_terms_suffix') || ' ולתקנון האתר'}
+                      </span>
+                    </label>
+                  </div>
+                )}
+
                 <Button
                   onClick={() => handleSubscribe(plan)}
-                  disabled={isCurrent || processingPlanId === plan.id}
+                  disabled={isCurrent || processingPlanId === plan.id || (!isCurrent && !termsAccepted)}
                   className="w-full"
                   variant={isCurrent ? 'outline' : 'default'}
                 >

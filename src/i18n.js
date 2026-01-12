@@ -572,6 +572,11 @@ const resources = {
                 "complete": "Got it! ✅",
                 "progress": "Progress 📊"
             },
+            "plans": {
+                "accept_terms_prefix": "I have read and agree to the ",
+                "terms_link": "Terms of Service",
+                "accept_terms_suffix": " and website terms"
+            },
             "scheduled": {
                 "title": "Scheduled Messages",
                 "subtitle": "Schedule WhatsApp messages to be sent automatically",
@@ -1194,6 +1199,11 @@ const resources = {
                 "skip": "דלג לעת עתה",
                 "complete": "הבנתי! ✅",
                 "progress": "התקדמות 📊"
+            },
+            "plans": {
+                "accept_terms_prefix": "קראתי ומסכים/ה ל",
+                "terms_link": "תנאי השימוש",
+                "accept_terms_suffix": " ולתקנון האתר"
             },
             "scheduled": {
                 "title": "הודעות מתוזמנות",

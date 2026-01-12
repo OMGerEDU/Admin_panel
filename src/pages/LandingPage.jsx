@@ -754,7 +754,7 @@ const TargetAudienceSection = () => {
         <section className="py-20 bg-white dark:bg-[#0F172A] relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#10B981]/5 rounded-full blur-[120px]" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px]" />
-            
+
             <div className="container mx-auto px-4 relative z-10">
                 <div className="text-center mb-16">
                     <motion.h2
@@ -1043,22 +1043,72 @@ const FinalCTASection = () => {
 };
 
 const Footer = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isHebrew = i18n.language === 'he';
+
     return (
         <footer className="border-t border-slate-200 dark:border-white/10 py-12 bg-slate-100 dark:bg-[#0F172A]">
-            <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div className="flex items-center gap-2">
-                    <img
-                        src="/fernslogo.png"
-                        alt="Ferns Logo"
-                        className="w-6 h-6 grayscale opacity-70"
-                    />
-                    <span className="text-slate-500 dark:text-gray-500 text-sm">© 2025 Ferns. {t('landing.footer.rights')}</span>
+            <div className="container mx-auto px-4">
+                {/* Main Footer Content */}
+                <div className="grid md:grid-cols-3 gap-8 mb-8">
+                    {/* Logo & Tagline */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <img
+                                src="/fernslogo.png"
+                                alt="Ferns Logo"
+                                className="w-8 h-8"
+                            />
+                            <span className="text-xl font-bold text-slate-900 dark:text-white">Ferns</span>
+                        </div>
+                        <p className="text-sm text-slate-500 dark:text-gray-400">
+                            {isHebrew ? 'ניהול תקשורת עסקית בוואטסאפ' : 'Business WhatsApp Communication'}
+                        </p>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div>
+                        <h4 className="font-semibold text-slate-900 dark:text-white mb-3">
+                            {isHebrew ? 'יצירת קשר' : 'Contact'}
+                        </h4>
+                        <div className="space-y-2 text-sm text-slate-500 dark:text-gray-400">
+                            <p className="flex items-center gap-2">
+                                <span>📞</span>
+                                <a href="tel:0545661641" className="hover:text-[#10B981] transition-colors">054-566-1641</a>
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span>📍</span>
+                                <span>{isHebrew ? 'הנשיא 10, אשקלון' : '10 HaNasi St., Ashkelon'}</span>
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span>✉️</span>
+                                <a href="mailto:support@di-biz.com" className="hover:text-[#10B981] transition-colors">support@di-biz.com</a>
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Links */}
+                    <div>
+                        <h4 className="font-semibold text-slate-900 dark:text-white mb-3">
+                            {isHebrew ? 'קישורים' : 'Links'}
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                            <Link to="/privacy-policy" className="block text-slate-500 dark:text-gray-400 hover:text-[#10B981] dark:hover:text-white transition-colors">
+                                {t('landing.footer.privacy')}
+                            </Link>
+                            <Link to="/terms" className="block text-slate-500 dark:text-gray-400 hover:text-[#10B981] dark:hover:text-white transition-colors">
+                                {t('landing.footer.terms')}
+                            </Link>
+                            <Link to="/support" className="block text-slate-500 dark:text-gray-400 hover:text-[#10B981] dark:hover:text-white transition-colors">
+                                {isHebrew ? 'תמיכה' : 'Support'}
+                            </Link>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex gap-6 text-sm text-slate-500 dark:text-gray-500">
-                    <Link to="/privacy-policy" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.privacy')}</Link>
-                    <a href="#" className="hover:text-[#10B981] dark:hover:text-white transition-colors">{t('landing.footer.terms')}</a>
+                {/* Copyright */}
+                <div className="border-t border-slate-200 dark:border-white/10 pt-6 text-center">
+                    <span className="text-slate-500 dark:text-gray-500 text-sm">© 2025 Ferns. {t('landing.footer.rights')}</span>
                 </div>
             </div>
         </footer>
