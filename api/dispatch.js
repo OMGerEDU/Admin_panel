@@ -103,12 +103,16 @@ async function sendViaGreenApi(instanceId, apiToken, toPhone, message, mediaUrl,
     return sendTextMessage(instanceId, apiToken, toPhone, message)
 }
 
-// Get contact name from Green API
+// Get contact name from Green API - tries multiple methods
 async function getContactName(instanceId, apiToken, chatId) {
     if (!instanceId || !apiToken || !chatId) {
+        console.log(`[DISPATCH] getContactName: Missing params - instanceId:${!!instanceId}, apiToken:${!!apiToken}, chatId:${!!chatId}`)
         return null
     }
 
+    console.log(`[DISPATCH] Fetching contact name for chatId: ${chatId}`)
+
+    // Method 1: Try getContactInfo
     try {
         const url = `${GREEN_API_BASE}/waInstance${instanceId}/getContactInfo/${apiToken}`
         const res = await fetch(url, {
@@ -117,19 +121,55 @@ async function getContactName(instanceId, apiToken, chatId) {
             body: JSON.stringify({ chatId }),
         })
 
-        if (!res.ok) {
-            console.log(`[DISPATCH] getContactInfo failed for ${chatId}: ${res.status}`)
-            return null
-        }
+        if (res.ok) {
+            const data = await res.json().catch(() => ({}))
+            console.log(`[DISPATCH] getContactInfo response for ${chatId}:`, JSON.stringify(data))
 
-        const data = await res.json().catch(() => ({}))
-        // Green API returns: { name, contactName, pushname, etc. }
-        // Try various fields that might contain the name
-        return data.name || data.contactName || data.pushname || data.chatName || null
+            // Try various fields that might contain the name
+            const name = data.name || data.contactName || data.pushname || data.chatName
+            if (name && name.trim()) {
+                console.log(`[DISPATCH] Found name via getContactInfo: ${name}`)
+                return name.trim()
+            }
+        } else {
+            console.log(`[DISPATCH] getContactInfo failed for ${chatId}: ${res.status}`)
+        }
     } catch (error) {
-        console.error(`[DISPATCH] Error fetching contact name for ${chatId}:`, error.message)
-        return null
+        console.error(`[DISPATCH] Error in getContactInfo for ${chatId}:`, error.message)
     }
+
+    // Method 2: Try getChatHistory to find sender name from messages
+    try {
+        const url = `${GREEN_API_BASE}/waInstance${instanceId}/getChatHistory/${apiToken}`
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId, count: 10 }),
+        })
+
+        if (res.ok) {
+            const messages = await res.json().catch(() => [])
+            console.log(`[DISPATCH] getChatHistory returned ${Array.isArray(messages) ? messages.length : 0} messages for ${chatId}`)
+
+            // Look for senderName in incoming messages
+            if (Array.isArray(messages)) {
+                for (const msg of messages) {
+                    const senderName = msg.senderName || msg.senderContactName || msg.pushname
+                    if (senderName && senderName.trim() && !msg.fromMe) {
+                        console.log(`[DISPATCH] Found name via getChatHistory: ${senderName}`)
+                        return senderName.trim()
+                    }
+                }
+            }
+        } else {
+            console.log(`[DISPATCH] getChatHistory failed for ${chatId}: ${res.status}`)
+        }
+    } catch (error) {
+        console.error(`[DISPATCH] Error in getChatHistory for ${chatId}:`, error.message)
+    }
+
+    console.log(`[DISPATCH] No name found for ${chatId}, will use phone number as fallback`)
+    return null
 }
 
 // Process message template - replace {name} and other placeholders
