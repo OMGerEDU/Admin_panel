@@ -179,7 +179,7 @@ export default function ScheduledMessages() {
         if (e) {
             e.stopPropagation();
         }
-        navigate(`/ app / scheduled / ${msg.id} `);
+        navigate(`/app/scheduled/${msg.id}`);
     };
 
     const handleDelete = async (id, e) => {

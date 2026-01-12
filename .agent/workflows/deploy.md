@@ -9,9 +9,7 @@ Before pushing to production, ALWAYS verify locally:
 
 // turbo
 1. Run `npm run build` to ensure the production build succeeds
-// turbo
-2. Run `npm run dev` to verify the app runs correctly
-3. Test critical functionality in the browser
+2. Test critical functionality in the browser
 
 ## Deployment Process
 1. Stage changes: `git add .`
