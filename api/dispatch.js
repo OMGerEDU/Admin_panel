@@ -104,13 +104,33 @@ async function sendViaGreenApi(instanceId, apiToken, toPhone, message, mediaUrl,
 }
 
 // Get contact name from Green API - tries multiple methods
-async function getContactName(instanceId, apiToken, chatId) {
+// Now also checks local database for cached names
+async function getContactName(instanceId, apiToken, chatId, numberId = null) {
     if (!instanceId || !apiToken || !chatId) {
         console.log(`[DISPATCH] getContactName: Missing params - instanceId:${!!instanceId}, apiToken:${!!apiToken}, chatId:${!!chatId}`)
         return null
     }
 
     console.log(`[DISPATCH] Fetching contact name for chatId: ${chatId}`)
+
+    // Method 0: Check local database first for cached name
+    if (numberId) {
+        try {
+            const { data: localChat } = await supabase
+                .from('chats')
+                .select('name')
+                .eq('number_id', numberId)
+                .eq('remote_jid', chatId)
+                .single()
+
+            if (localChat?.name && localChat.name.trim()) {
+                console.log(`[DISPATCH] Found name in local DB: ${localChat.name}`)
+                return localChat.name.trim()
+            }
+        } catch (error) {
+            console.log(`[DISPATCH] No local chat found for ${chatId}: ${error.message}`)
+        }
+    }
 
     // Method 1: Try getContactInfo
     try {
@@ -363,11 +383,12 @@ export default async function handler(req, res) {
                         // Convert phone to chatId format for API call
                         const chatId = normalizePhoneToChatId(recipient.phone_number)
 
-                        // Fetch contact name from Green API
+                        // Fetch contact name from Green API or local DB
                         const contactName = await getContactName(
                             numberData.instance_id,
                             numberData.api_token,
-                            chatId
+                            chatId,
+                            numberId // Pass numberId for local DB lookup
                         )
 
                         console.log(`[DISPATCH] Contact name for ${recipient.phone_number}: ${contactName || '(not found)'}`)

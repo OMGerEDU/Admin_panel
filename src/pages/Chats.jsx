@@ -324,6 +324,34 @@ export default function Chats() {
 
             console.log('[CHATS] Grouped into', chats.length, 'chats');
 
+            // Save contact names to database for use by scheduled message dispatcher
+            // Only save chats that have a real name (not just phone number)
+            const chatsWithNames = chats.filter(chat =>
+                chat.name && chat.name !== chat.phone && chat.name !== chat.chatId
+            );
+
+            if (chatsWithNames.length > 0) {
+                const chatsToUpsert = chatsWithNames.map(chat => ({
+                    number_id: selectedNumber.id,
+                    remote_jid: chat.chatId,
+                    name: chat.name,
+                    last_message: chat.lastMessage?.substring(0, 500), // Truncate to 500 chars
+                    last_message_at: chat.timestamp ? new Date(chat.timestamp * 1000).toISOString() : new Date().toISOString(),
+                }));
+
+                try {
+                    await supabase
+                        .from('chats')
+                        .upsert(chatsToUpsert, {
+                            onConflict: 'number_id,remote_jid',
+                            ignoreDuplicates: false
+                        });
+                    console.log(`[CHATS] Saved ${chatsWithNames.length} contact names to database`);
+                } catch (err) {
+                    console.error('[CHATS] Failed to save contact names:', err.message);
+                }
+            }
+
             // Update cache
             chatsCacheRef.current.data = chats;
             chatsCacheRef.current.timestamp = Date.now();
