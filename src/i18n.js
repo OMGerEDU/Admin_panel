@@ -660,7 +660,11 @@ const resources = {
                 "add_at_least_one_recipient": "Please add at least one recipient phone number",
                 "select_at_least_one_tag": "Please select at least one tag",
                 "no_contacts_with_tags": "No contacts found with the selected tags. Please tag some contacts first.",
-                "fill_required_fields": "Please fill in all required fields"
+                "fill_required_fields": "Please fill in all required fields",
+                "duplicate": "Duplicate",
+                "duplicate_error": "Failed to duplicate message",
+                "stop": "Stop",
+                "activate": "Activate"
             },
             "tags": {
                 "assign_tags": "Assign Tags",
@@ -1279,7 +1283,11 @@ const resources = {
                 "add_at_least_one_recipient": "נא להוסיף לפחות נמען אחד",
                 "select_at_least_one_tag": "נא לבחור לפחות תגית אחת",
                 "no_contacts_with_tags": "לא נמצאו אנשי קשר עם התגיות שנבחרו. יש לתייג אנשי קשר קודם.",
-                "fill_required_fields": "נא למלא את כל השדות הנדרשים"
+                "fill_required_fields": "נא למלא את כל השדות הנדרשים",
+                "duplicate": "שכפל",
+                "duplicate_error": "שכפול ההודעה נכשל",
+                "stop": "עצור",
+                "activate": "הפעל"
             },
             "tags": {
                 "assign_tags": "שייך תגיות",
