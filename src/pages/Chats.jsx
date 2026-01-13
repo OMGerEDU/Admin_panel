@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -80,7 +80,7 @@ export default function Chats() {
     const historyCacheRef = useRef(new Map()); // Map<chatId, { messages, timestamp }>
 
     // Merge chatTags into chats for TagsManager/TagsViewModal
-    const chatsWithTags = React.useMemo(() => {
+    const chatsWithTags = useMemo(() => {
         return chats.map(chat => {
             const chatId = chat.chatId || chat.remote_jid || '';
             return {
