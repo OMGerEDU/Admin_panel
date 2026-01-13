@@ -245,7 +245,9 @@ const resources = {
                 "to_date": "To",
                 "filter_by_tag": "Filter by Tag",
                 "syncing_background": "Syncing history in background...",
-                "load_more_messages": "Load older messages"
+                "load_more_messages": "Load older messages",
+                "click_to_load": "Click to load image",
+                "click_to_view_doc": "Click to view document"
             },
             "login": {
                 "title": "Welcome Back",
@@ -848,7 +850,9 @@ const resources = {
                 "to_date": "עד תאריך",
                 "filter_by_tag": "סינון לפי תג",
                 "syncing_background": "מסנכרן היסטוריה ברקע...",
-                "load_more_messages": "טען הודעות ישנות יותר"
+                "load_more_messages": "טען הודעות ישנות יותר",
+                "click_to_load": "לחץ לטעינת תמונה",
+                "click_to_view_doc": "לחץ להצגת מסמך"
             },
             "login": {
                 "title": "ברוכים הבאים",

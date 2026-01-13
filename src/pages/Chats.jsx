@@ -133,13 +133,26 @@ export default function Chats() {
     }, [remoteJid, chats]);
 
     useEffect(() => {
-        if (selectedChat) {
+        if (selectedChat && selectedNumber) {
             // Reset pagination state
             setHasMoreMessages(true);
             setOldestMessageTimestamp(null);
             fetchMessages();
+
+            // Background deep sync for this specific chat
+            // This ensures history is loaded into Supabase even if not currently viewed
+            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+            if (chatId) {
+                // Find the DB chat object to get the correct 'id'
+                const dbChat = chats.find(c => c.chatId === chatId);
+                if (dbChat && dbChat.id) {
+                    syncFullChatHistory(dbChat, selectedNumber.instance_id, selectedNumber.api_token).catch(() => { });
+                } else if (selectedChat.id) {
+                    syncFullChatHistory(selectedChat, selectedNumber.instance_id, selectedNumber.api_token).catch(() => { });
+                }
+            }
         }
-    }, [selectedChat]);
+    }, [selectedChat, selectedNumber?.id]);
 
     // Background Sync Initiation
     useEffect(() => {
@@ -363,6 +376,7 @@ export default function Chats() {
                 }
 
                 return {
+                    id: dbChat.id, // Supabase ID
                     chatId: chatId,
                     phone: phone,
                     name: dbChat.name || liveChat?.name || liveChat?.chatName || phone,
@@ -582,13 +596,18 @@ export default function Chats() {
             const GREEN_API_BASE = 'https://api.green-api.com';
             const apiUrl = `${GREEN_API_BASE}/waInstance${acc.instance_id}/getChatHistory/${acc.api_token}`;
 
+            // Get the ID of the oldest message we have
+            const oldestMsg = messages[0];
+            const idMessage = oldestMsg?.idMessage || oldestMsg?.id;
+
             // Request older messages (before the oldest we have)
             const requestBody = {
                 chatId: chatId,
                 count: 100
             };
+            if (idMessage) requestBody.idMessage = idMessage;
 
-            console.log('[HISTORY] Loading more messages, before timestamp:', oldestMessageTimestamp);
+            console.log('[HISTORY] Loading more messages, before ID:', idMessage);
 
             const res = await fetch(apiUrl, {
                 method: 'POST',
@@ -1338,7 +1357,7 @@ export default function Chats() {
                                                                     // Check for cached URL first, then inline URLs
                                                                     const cachedUrl = mediaUrls[messageId];
                                                                     const inlineUrl = item.urlFile || item.downloadUrl || item.mediaUrl ||
-                                                                        (item.imageMessage && (item.imageMessage.urlFile || item.imageMessage.downloadUrl || item.imageMessage.url));
+                                                                        item.imageMessage?.urlFile || item.imageMessage?.downloadUrl || item.imageMessage?.url;
                                                                     const fullImageUrl = cachedUrl || inlineUrl;
 
                                                                     // Get thumbnail or fallback to full image
@@ -1356,7 +1375,6 @@ export default function Chats() {
                                                                                     alt="image"
                                                                                     className="max-w-[280px] max-h-[280px] rounded-lg block mb-1 cursor-pointer hover:opacity-90 transition-opacity"
                                                                                     onClick={async () => {
-                                                                                        // If we have full URL, open lightbox. Otherwise, try to load it first.
                                                                                         let imageUrl = fullImageUrl;
                                                                                         if (!imageUrl && messageId && chatId) {
                                                                                             imageUrl = await loadMediaUrl(messageId, chatId);
@@ -1371,11 +1389,24 @@ export default function Chats() {
                                                                                     onError={(e) => { e.target.style.display = 'none'; }}
                                                                                 />
                                                                             ) : (
-                                                                                <div className="w-[200px] h-[150px] bg-muted dark:bg-[#182229] rounded-lg flex items-center justify-center">
+                                                                                <div
+                                                                                    className="w-[200px] h-[150px] bg-muted dark:bg-[#182229] rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer border border-dashed border-muted-foreground/30"
+                                                                                    onClick={async () => {
+                                                                                        if (messageId && chatId) {
+                                                                                            const url = await loadMediaUrl(messageId, chatId);
+                                                                                            if (url) {
+                                                                                                setLightboxImage({ src: url, caption: item.caption || text });
+                                                                                            }
+                                                                                        }
+                                                                                    }}
+                                                                                >
                                                                                     <span className="text-4xl">📷</span>
+                                                                                    <span className="text-[10px] bg-primary/20 p-1 rounded">
+                                                                                        {isLoading ? t('common.loading') || 'טוען...' : t('chats_page.click_to_load') || 'לחץ לטעינת תמונה'}
+                                                                                    </span>
                                                                                 </div>
                                                                             )}
-                                                                            {/* Show loading overlay or load button */}
+
                                                                             {!fullImageUrl && thumbnailSrc && (
                                                                                 <div
                                                                                     className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg cursor-pointer"
@@ -1503,16 +1534,41 @@ export default function Chats() {
                                                                 {item.fileName && (
                                                                     <div className="font-semibold text-sm">{item.fileName}</div>
                                                                 )}
-                                                                {(item.downloadUrl || item.url) && (
-                                                                    <a
-                                                                        href={item.downloadUrl || item.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="block mt-1 text-xs text-primary/80 dark:text-[#53bdeb] hover:underline"
-                                                                    >
-                                                                        📄 {t('chats_page.download_document') || 'Download Document'}
-                                                                    </a>
-                                                                )}
+                                                                {(() => {
+                                                                    const messageId = item.idMessage || item.id;
+                                                                    const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
+                                                                    const cachedUrl = mediaUrls[messageId];
+                                                                    const docUrl = cachedUrl || item.downloadUrl || item.url || item.urlFile ||
+                                                                        item.documentMessage?.downloadUrl || item.documentMessage?.url || item.documentMessage?.urlFile;
+                                                                    const isLoading = loadingMedia[messageId];
+
+                                                                    if (docUrl) {
+                                                                        return (
+                                                                            <a
+                                                                                href={docUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded bg-primary/10 dark:bg-[#53bdeb]/10 text-xs font-medium text-primary dark:text-[#53bdeb] hover:bg-primary/20 transition-colors"
+                                                                            >
+                                                                                📄 {t('chats_page.download_document') || 'Download Document'}
+                                                                            </a>
+                                                                        );
+                                                                    }
+
+                                                                    return (
+                                                                        <button
+                                                                            onClick={() => messageId && chatId && loadMediaUrl(messageId, chatId)}
+                                                                            disabled={isLoading}
+                                                                            className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded bg-primary/10 dark:bg-[#00a884]/10 text-xs font-medium text-primary dark:text-[#00a884] hover:bg-primary/20 transition-colors disabled:opacity-50"
+                                                                        >
+                                                                            {isLoading ? (
+                                                                                <>⌛ {t('common.loading') || 'טוען...'}</>
+                                                                            ) : (
+                                                                                <>📄 {t('chats_page.click_to_view_doc') || 'לחץ להצגת מסמך'}</>
+                                                                            )}
+                                                                        </button>
+                                                                    );
+                                                                })()}
                                                                 {text && (
                                                                     <div className="text-sm mt-2">{text}</div>
                                                                 )}
