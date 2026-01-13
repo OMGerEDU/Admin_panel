@@ -6,6 +6,7 @@ import {
   deleteNotification,
   getChatInfo
 } from './greenApi';
+import { supabase } from '../lib/supabaseClient';
 
 // Global state for background sync status
 const activeSyncTasks = new Map(); // numberId -> status object
@@ -521,58 +522,67 @@ export async function startBackgroundSync(numberId, instanceId, token) {
 /**
  * Syncs the entire history of a single chat back to the beginning
  */
-async function syncFullChatHistory(chat, instanceId, token) {
-  let hasMore = true;
-  let retryCount = 0;
+const activeChatSyncs = new Set(); // chatId string
 
-  while (hasMore) {
-    // Get oldest message in DB for this chat to know where to start from
-    const { data: oldest } = await supabase
-      .from('messages')
-      .select('timestamp')
-      .eq('chat_id', chat.id)
-      .order('timestamp', { ascending: true })
-      .limit(1)
-      .maybeSingle();
+export async function syncFullChatHistory(chat, instanceId, token) {
+  const syncKey = `${chat.number_id}:${chat.remote_jid}`;
+  if (activeChatSyncs.has(syncKey)) return;
+  activeChatSyncs.add(syncKey);
 
-    // If we have an oldest message, we ask Green API for messages before that
-    // Note: Green API's getChatHistory with count 100 returns latest 100.
-    // To go deeper, we'd ideally need a 'before' timestamp if supported, 
-    // but the current getChatHistory API implementation just returns latest.
-    // If we already have many messages, we might stop or try to fetch larger count.
+  console.log(`[SYNC] Starting full sync for chat: ${chat.remote_jid}`);
 
-    // For now, we perform a standard sync of 100 messages. 
-    // To truely go back iterations, we need the API's 'backwards' logic.
-    const result = await getChatHistory(instanceId, token, chat.remote_jid, 100);
+  try {
+    let hasMore = true;
+    let retryCount = 0;
+    let lastId = null;
 
-    if (result.success) {
-      const messages = result.data || [];
-      if (messages.length === 0) break;
+    while (hasMore) {
+      // Get oldest message we have in DB to fetch before it
+      const { data: oldest } = await supabase
+        .from('messages')
+        .select('id, timestamp, green_id')
+        .eq('chat_id', chat.id)
+        .order('timestamp', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-      // Filter messages that are already in DB
-      const processed = await processMessageBatch(chat.number_id, [chat], messages);
+      const idMessage = oldest?.green_id || null;
 
-      // If we didn't add any new messages (all were duplicates), we stop
-      if (processed.newCount === 0) {
-        hasMore = false;
+      const result = await getChatHistory(instanceId, token, chat.remote_jid, 100, idMessage);
+
+      if (result.success) {
+        const messages = result.data || [];
+        if (messages.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        // Process batch
+        const processed = await processMessageBatch(chat.number_id, [chat], messages, instanceId, token);
+
+        // If we didn't add anything new, we might have reached the end or a gap
+        if (processed.newCount === 0) {
+          hasMore = false;
+        } else {
+          // If we got a full batch, try to go deeper
+          hasMore = messages.length >= 50;
+        }
       } else {
-        // Continue if we got a full page of new messages
-        hasMore = processed.newCount >= 10;
+        if (result.error?.includes('429')) {
+          console.warn('[SYNC] Rate limit, waiting 30s...');
+          await new Promise(r => setTimeout(r, 30000));
+          retryCount++;
+          if (retryCount > 3) break;
+        } else {
+          break;
+        }
       }
-    } else {
-      // Handle rate limits
-      if (result.error?.includes('429')) {
-        console.warn('[SYNC] Rate limit reached, waiting 60s...');
-        await new Promise(r => setTimeout(r, 60000));
-        retryCount++;
-        if (retryCount > 5) break;
-      } else {
-        break;
-      }
+
+      await new Promise(r => setTimeout(r, 500));
     }
-
-    // Prevent blocking
-    await new Promise(r => setTimeout(r, 200));
+  } finally {
+    activeChatSyncs.delete(syncKey);
+    console.log(`[SYNC] Finished full sync for chat: ${chat.remote_jid}`);
   }
 }
 
@@ -590,12 +600,23 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
     if (!chat) {
       console.log(`[SYNC] Discovered new chat: ${rawChatId}`);
       try {
+        // Attempt to get name/avatar from Green API
+        let displayName = msg.senderName || msg.senderContactName || rawChatId.split('@')[0];
+        try {
+          const info = await getChatInfo(instanceId, token, rawChatId);
+          if (info.success) {
+            displayName = info.data?.name || info.data?.chatName || displayName;
+          }
+        } catch (e) {
+          console.warn(`[SYNC] Failed to fetch info for ${rawChatId}:`, e.message);
+        }
+
         const { data: newChat, error: createError } = await supabase
           .from('chats')
           .upsert({
             number_id: numberId,
             remote_jid: rawChatId,
-            name: msg.senderName || msg.senderContactName || rawChatId.split('@')[0]
+            name: displayName
           }, { onConflict: 'number_id,remote_jid' })
           .select()
           .single();

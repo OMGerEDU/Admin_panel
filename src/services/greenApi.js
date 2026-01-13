@@ -114,13 +114,13 @@ export async function getChats(instanceId, token) {
 }
 
 // 2. Chat history
-export async function getChatHistory(instanceId, token, chatId, count = 100) {
+export async function getChatHistory(instanceId, token, chatId, count = 100, idMessage = null) {
+  const body = { chatId, count };
+  if (idMessage) body.idMessage = idMessage;
+
   return greenApiCall(instanceId, token, 'getChatHistory', {
     method: 'POST',
-    body: {
-      chatId,
-      count,
-    },
+    body,
   });
 }
 

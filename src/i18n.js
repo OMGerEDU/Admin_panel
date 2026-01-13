@@ -244,7 +244,8 @@ const resources = {
                 "from_date": "From",
                 "to_date": "To",
                 "filter_by_tag": "Filter by Tag",
-                "syncing_background": "Syncing history in background..."
+                "syncing_background": "Syncing history in background...",
+                "load_more_messages": "Load older messages"
             },
             "login": {
                 "title": "Welcome Back",
@@ -846,7 +847,8 @@ const resources = {
                 "from_date": "מתאריך",
                 "to_date": "עד תאריך",
                 "filter_by_tag": "סינון לפי תג",
-                "syncing_background": "מסנכרן היסטוריה ברקע..."
+                "syncing_background": "מסנכרן היסטוריה ברקע...",
+                "load_more_messages": "טען הודעות ישנות יותר"
             },
             "login": {
                 "title": "ברוכים הבאים",
