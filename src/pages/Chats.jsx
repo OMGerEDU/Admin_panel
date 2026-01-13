@@ -195,7 +195,15 @@ export default function Chats() {
                     }
                 }
 
-                // 3. Update background sync status
+                // 3. Periodic full list refresh (if no new messages found, still refresh every 60s)
+                const now = Date.now();
+                const lastFullRefresh = chatsCacheRef.current.timestamp || 0;
+                if (now - lastFullRefresh > 60000) {
+                    console.log('[POLLING] Periodic full list refresh');
+                    fetchChats(true);
+                }
+
+                // 4. Update background sync status
                 const status = getSyncStatus(selectedNumber.id);
                 if (status) {
                     setSyncStatus(prev => ({ ...prev, [selectedNumber.id]: status }));
@@ -316,194 +324,79 @@ export default function Chats() {
         }
 
         try {
-            // Fetch last incoming messages (last 24 hours = 1440 minutes)
-            const incomingResult = await getLastIncomingMessages(acc.instance_id, acc.api_token, 1440);
-            if (!incomingResult.success) {
-                console.error('[CHATS] Failed to fetch incoming messages:', incomingResult.error);
-                return [];
+            // 1. Fetch live summary from Green API
+            const chatsResult = await getChats(acc.instance_id, acc.api_token);
+            const liveChatMap = new Map();
+
+            if (chatsResult.success && Array.isArray(chatsResult.data)) {
+                chatsResult.data.forEach(c => {
+                    const id = c.id || c.chatId || c.chatIdString || c.remoteJid;
+                    if (id) liveChatMap.set(id, c);
+                });
             }
 
-            // Fetch last outgoing messages
-            const outgoingResult = await getLastOutgoingMessages(acc.instance_id, acc.api_token);
-            if (!outgoingResult.success) {
-                console.error('[CHATS] Failed to fetch outgoing messages:', outgoingResult.error);
-                return [];
-            }
+            // 2. Fetch all chats from Supabase (Discovery source)
+            const { data: dbChats } = await supabase
+                .from('chats')
+                .select('*')
+                .eq('number_id', acc.id);
 
-            const incomingData = incomingResult.data;
-            const outgoingData = outgoingResult.data;
-
-            // Parse responses - Green API returns { data: [...] } or direct array
-            let incomingMessages = [];
-            let outgoingMessages = [];
-
-            if (Array.isArray(incomingData)) {
-                incomingMessages = incomingData;
-            } else if (incomingData?.data && Array.isArray(incomingData.data)) {
-                incomingMessages = incomingData.data;
-            } else if (incomingData?.messages && Array.isArray(incomingData.messages)) {
-                incomingMessages = incomingData.messages;
-            }
-
-            if (Array.isArray(outgoingData)) {
-                outgoingMessages = outgoingData;
-            } else if (outgoingData?.data && Array.isArray(outgoingData.data)) {
-                outgoingMessages = outgoingData.data;
-            } else if (outgoingData?.messages && Array.isArray(outgoingData.messages)) {
-                outgoingMessages = outgoingData.messages;
-            }
-
-            // Combine both arrays
-            const allMessages = [...incomingMessages, ...outgoingMessages];
-            console.log('[CHATS] Total messages:', allMessages.length);
-
-            if (allMessages.length === 0) {
-                setChats([]);
-                chatsCacheRef.current.data = [];
-                chatsCacheRef.current.timestamp = Date.now();
-                return [];
-            }
-
-            // Group messages by chatId and get last message for each chat
-            const chatsMap = new Map();
-            let messagesWithoutChatId = 0;
-
-            allMessages.forEach((msg, idx) => {
-                const chatId = msg.chatId;
-                if (!chatId) {
-                    messagesWithoutChatId++;
-                    if (idx < 3) console.log('[CHATS] Message without chatId:', { type: msg.type, typeMessage: msg.typeMessage, id: msg.idMessage });
-                    return;
-                }
-
-                // Extract phone number from chatId (remove @c.us, @g.us, etc.)
+            // 3. Merge: Database serves as the list of all "known" chats, 
+            // API provides the "live" status (unread, latest msg)
+            let chats = (dbChats || []).map(dbChat => {
+                const liveChat = liveChatMap.get(dbChat.remote_jid);
+                const chatId = dbChat.remote_jid;
                 const phone = removeJidSuffix(chatId);
 
-                // Get message text
-                let text = '';
-                if (msg.textMessage) {
-                    text = msg.textMessage;
-                } else if (msg.extendedTextMessage?.text) {
-                    text = msg.extendedTextMessage.text;
-                } else if (msg.typeMessage === 'audioMessage') {
-                    text = '🎵 הודעת קול';
-                } else if (msg.typeMessage === 'imageMessage') {
-                    text = '📷 תמונה';
-                } else if (msg.typeMessage === 'videoMessage') {
-                    text = '🎥 וידאו';
-                } else if (msg.typeMessage === 'documentMessage') {
-                    text = '📄 מסמך';
-                } else if (msg.typeMessage === 'quotedMessage') {
-                    text = msg.extendedTextMessage?.text || '💬 הודעה מצוטטת';
-                } else if (msg.typeMessage === 'deletedMessage') {
-                    text = '🗑️ הודעה נמחקה';
-                } else {
-                    text = '📎 הודעה';
+                // Use live data if available, fallback to DB
+                let lastMessageText = dbChat.last_message || '';
+                let timestamp = dbChat.last_message_at ? Math.floor(new Date(dbChat.last_message_at).getTime() / 1000) : 0;
+                let unreadCount = 0;
+
+                if (liveChat) {
+                    unreadCount = liveChat.unreadCount ?? liveChat.unread ?? 0;
+                    if (liveChat.lastMessage) {
+                        const lm = liveChat.lastMessage;
+                        lastMessageText = lm.textMessage || lm.extendedTextMessage?.text || lm.message || '[Media]';
+                        timestamp = liveChat.timestamp || lm.timestamp || timestamp;
+                    }
                 }
 
-                // Get sender name if available (for incoming messages)
-                const senderName = msg.senderName || msg.senderContactName || '';
+                return {
+                    chatId: chatId,
+                    phone: phone,
+                    name: dbChat.name || liveChat?.name || liveChat?.chatName || phone,
+                    avatar: liveChat?.avatar || liveChat?.urlAvatar || '',
+                    lastMessage: lastMessageText,
+                    lastMessageTime: timestamp,
+                    timestamp: timestamp,
+                    unreadCount: unreadCount,
+                };
+            });
 
-                // Get avatar URL if available
-                const avatarUrl = msg.avatar || msg.senderAvatar || msg.avatarUrl || '';
-
-                // Check if this chat already exists or if this message is newer
-                const existingChat = chatsMap.get(chatId);
-                if (!existingChat || (msg.timestamp > (existingChat.timestamp || 0))) {
-                    chatsMap.set(chatId, {
-                        chatId: chatId,
-                        phone: phone,
-                        name: senderName || existingChat?.name || phone,
-                        avatar: avatarUrl || existingChat?.avatar || '',
-                        lastMessage: text,
-                        lastMessageTime: msg.timestamp,
-                        timestamp: msg.timestamp
+            // If some live chats are NOT in DB yet, add them (though background sync should handle this)
+            liveChatMap.forEach((liveChat, chatId) => {
+                if (!chats.some(c => c.chatId === chatId)) {
+                    const phone = removeJidSuffix(chatId);
+                    const lm = liveChat.lastMessage;
+                    chats.push({
+                        chatId,
+                        phone,
+                        name: liveChat.name || liveChat.chatName || phone,
+                        avatar: liveChat.avatar || liveChat.urlAvatar || '',
+                        lastMessage: lm ? (lm.textMessage || lm.extendedTextMessage?.text || '[Media]') : '',
+                        lastMessageTime: liveChat.timestamp || lm?.timestamp || 0,
+                        timestamp: liveChat.timestamp || lm?.timestamp || 0,
+                        unreadCount: liveChat.unreadCount ?? liveChat.unread ?? 0,
                     });
-                } else if (existingChat) {
-                    // Update name/avatar if we got better info
-                    if (senderName && (existingChat.name === existingChat.phone || !existingChat.name)) {
-                        existingChat.name = senderName;
-                    }
-                    if (avatarUrl && !existingChat.avatar) {
-                        existingChat.avatar = avatarUrl;
-                    }
                 }
             });
 
-            if (messagesWithoutChatId > 0) {
-                console.log(`[CHATS] Warning: ${messagesWithoutChatId} messages without chatId`);
-            }
-
-            // Convert map to array and sort by timestamp (newest first)
-            let chats = Array.from(chatsMap.values());
+            // Sort by timestamp (newest first)
             chats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-            console.log('[CHATS] Grouped into', chats.length, 'chats');
-
-            // Fetch unread counts from getChats API
-            try {
-                const chatsResult = await getChats(acc.instance_id, acc.api_token);
-                console.log('[CHATS] getChats API response:', chatsResult);
-
-                if (chatsResult.success && Array.isArray(chatsResult.data)) {
-                    // Log first chat to see available fields
-                    if (chatsResult.data.length > 0) {
-                        console.log('[CHATS] Sample chat from getChats:', chatsResult.data[0]);
-                    }
-
-                    // Create a map of chatId -> unreadCount
-                    const unreadMap = new Map();
-                    chatsResult.data.forEach(chat => {
-                        const id = chat.id || chat.chatId || chat.chatIdString;
-                        // Try multiple possible field names for unread count
-                        const unread = chat.unreadCount ?? chat.unread ?? chat.unreadMessages ?? 0;
-                        if (id && unread > 0) {
-                            unreadMap.set(id, unread);
-                            console.log('[CHATS] Found unread chat:', id, 'count:', unread);
-                        }
-                    });
-
-                    console.log('[CHATS] Unread map size:', unreadMap.size);
-
-                    // Merge unreadCount into our chats
-                    chats = chats.map(chat => ({
-                        ...chat,
-                        unreadCount: unreadMap.get(chat.chatId) || 0
-                    }));
-
-                    console.log('[CHATS] Merged unread counts from getChats API');
-                }
-            } catch (err) {
-                console.warn('[CHATS] Failed to fetch unread counts:', err.message);
-            }
-
-            // Save contact names to database for use by scheduled message dispatcher
-            // Only save chats that have a real name (not just phone number)
-            const chatsWithNames = chats.filter(chat =>
-                chat.name && chat.name !== chat.phone && chat.name !== chat.chatId
-            );
-
-            if (chatsWithNames.length > 0) {
-                const chatsToUpsert = chatsWithNames.map(chat => ({
-                    number_id: selectedNumber.id,
-                    remote_jid: chat.chatId,
-                    name: chat.name,
-                    last_message: chat.lastMessage?.substring(0, 500), // Truncate to 500 chars
-                    last_message_at: chat.timestamp ? new Date(chat.timestamp * 1000).toISOString() : new Date().toISOString(),
-                }));
-
-                try {
-                    await supabase
-                        .from('chats')
-                        .upsert(chatsToUpsert, {
-                            onConflict: 'number_id,remote_jid',
-                            ignoreDuplicates: false
-                        });
-                    console.log(`[CHATS] Saved ${chatsWithNames.length} contact names to database`);
-                } catch (err) {
-                    console.error('[CHATS] Failed to save contact names:', err.message);
-                }
-            }
+            // Background sync (don't wait)
+            syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token).catch(() => { });
 
             // Update cache
             chatsCacheRef.current.data = chats;

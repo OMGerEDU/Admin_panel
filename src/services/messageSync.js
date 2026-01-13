@@ -462,38 +462,45 @@ export async function startBackgroundSync(numberId, instanceId, token) {
       const chats = chatsResult.data || [];
       status.totalChats = chats.length;
 
-      // PHASE 2+: Iterative Sync Blocks (30 days at a time)
+      // PHASE 2+: Discovery Blocks (30 days at a time)
       let daysBack = 0;
       let hasMoreHistory = true;
 
-      while (hasMoreHistory && daysBack < 180) { // Limit to 6 months to avoid infinite loops
+      while (hasMoreHistory && daysBack < 180) { // Limit to 6 months
         daysBack += 30;
-        status.phase = `history_${daysBack}_days`;
-        console.log(`[SYNC] Fetching block: ${daysBack - 30} to ${daysBack} days ago`);
+        status.phase = `discovery_${daysBack}_days`;
+        console.log(`[SYNC] Scanning: ${daysBack - 30} to ${daysBack} days ago`);
 
         const minutes = daysBack * 24 * 60;
         const result = await getLastIncomingMessages(instanceId, token, minutes);
 
         if (result.success && result.data && result.data.length > 0) {
-          await processMessageBatch(numberId, chats, result.data);
+          // Discover new chats and process their messages
+          await processMessageBatch(numberId, chats, result.data, instanceId, token);
+
+          // Refresh internal chat list to include discovered ones
+          const refreshResult = await syncChatsToSupabase(numberId, instanceId, token);
+          if (refreshResult.success) {
+            chats.splice(0, chats.length, ...refreshResult.data);
+            status.totalChats = chats.length;
+          }
         }
 
-        // Deep dive into each chat after the global block scan
-        status.phase = `deep_dive_${daysBack}`;
+        // Deep dive into each chat's own history
+        status.phase = `deep_sync_${daysBack}`;
         for (let i = 0; i < chats.length; i++) {
           const chat = chats[i];
           status.completedChats = i;
           status.currentChat = chat.name || chat.remote_jid;
           await syncFullChatHistory(chat, instanceId, token);
-          await new Promise(r => setTimeout(r, 200));
+          if (i % 5 === 0) await new Promise(r => setTimeout(r, 200));
         }
 
-        // If we didn't get any messages at all in the last block, stop
+        // Stop scanning blocks if we got no messages in this block
         if (!result.success || !result.data || result.data.length === 0) {
           hasMoreHistory = false;
         }
 
-        // Small break between 30-day blocks
         await new Promise(r => setTimeout(r, 2000));
       }
 
@@ -569,22 +576,47 @@ async function syncFullChatHistory(chat, instanceId, token) {
   }
 }
 
-async function processMessageBatch(numberId, chats, rawMessages) {
+async function processMessageBatch(numberId, chats, rawMessages, instanceId, token) {
   const chatMap = new Map(chats.map(c => [c.remote_jid, c]));
   let newCount = 0;
 
-  // Process raw messages into Supabase format
-  // This is a simplified version of syncMessagesToSupabase logic
   for (const msg of rawMessages) {
     const rawChatId = msg.chatId || msg.remoteJid;
-    const chat = chatMap.get(rawChatId);
-    if (!chat) continue;
+    if (!rawChatId) continue;
+
+    let chat = chatMap.get(rawChatId);
+
+    // Discovery: If chat is missing, create it
+    if (!chat) {
+      console.log(`[SYNC] Discovered new chat: ${rawChatId}`);
+      try {
+        const { data: newChat, error: createError } = await supabase
+          .from('chats')
+          .upsert({
+            number_id: numberId,
+            remote_jid: rawChatId,
+            name: msg.senderName || msg.senderContactName || rawChatId.split('@')[0]
+          }, { onConflict: 'number_id,remote_jid' })
+          .select()
+          .single();
+
+        if (!createError && newChat) {
+          chat = newChat;
+          chatMap.set(rawChatId, chat);
+          chats.push(chat);
+        } else {
+          continue;
+        }
+      } catch (e) {
+        console.warn(`[SYNC] Failed to create discovered chat: ${rawChatId}`, e);
+        continue;
+      }
+    }
 
     const ts = msg.timestamp != null
       ? new Date(msg.timestamp * 1000).toISOString()
       : new Date().toISOString();
 
-    // Check existence
     const { data: existing } = await supabase
       .from('messages')
       .select('id')
@@ -594,18 +626,12 @@ async function processMessageBatch(numberId, chats, rawMessages) {
 
     if (existing) continue;
 
-    // Parse message parts (reused logic from syncMessagesToSupabase)
-    const type = msg.typeMessage || msg.type || '';
-    let content = msg.textMessage || msg.extendedTextMessage?.text || msg.message || '';
-
-    const isOutgoing = msg.type === 'outgoing' || msg.fromMe === true;
-
     const { error } = await supabase
       .from('messages')
       .insert({
         chat_id: chat.id,
-        content: content || '[Media]',
-        is_from_me: isOutgoing,
+        content: msg.textMessage || msg.extendedTextMessage?.text || msg.message || '[Media]',
+        is_from_me: msg.type === 'outgoing' || msg.fromMe === true,
         timestamp: ts
       });
 
