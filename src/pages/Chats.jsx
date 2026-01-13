@@ -23,7 +23,7 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
-import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase } from '../services/messageSync';
+import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory } from '../services/messageSync';
 import { logger } from '../lib/logger';
 import { playNotificationSound } from '../utils/audio';
 import {
@@ -247,26 +247,38 @@ export default function Chats() {
         }
     };
 
-    // Load avatars for all chats when chats are loaded
+    // Load avatars sequentially with a delay to avoid 429
     useEffect(() => {
         if (chats.length > 0 && selectedNumber?.instance_id && selectedNumber?.api_token) {
-            chats.forEach(chat => {
-                const chatId = chat.chatId || chat.remote_jid;
-                if (chatId && !chatAvatars.has(chatId)) {
-                    // Load avatar asynchronously
-                    getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId)
-                        .then(result => {
-                            if (result.success && result.data?.urlAvatar) {
-                                setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
-                            }
-                        })
-                        .catch(error => {
-                            console.error('[AVATAR] Error loading avatar for', chatId, error);
-                        });
+            let mounted = true;
+
+            const loadAvatarsSequentially = async () => {
+                const chatsToLoad = chats.filter(chat => {
+                    const id = chat.chatId || chat.remote_jid;
+                    return id && !chatAvatars.has(id);
+                });
+
+                for (const chat of chatsToLoad) {
+                    if (!mounted) break;
+                    const chatId = chat.chatId || chat.remote_jid;
+
+                    try {
+                        const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+                        if (result.success && result.data?.urlAvatar) {
+                            setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
+                        }
+                        // Small delay between requests
+                        await new Promise(r => setTimeout(r, 500));
+                    } catch (error) {
+                        console.warn('[AVATAR] Sequential load error:', chatId, error);
+                    }
                 }
-            });
+            };
+
+            loadAvatarsSequentially();
+            return () => { mounted = false; };
         }
-    }, [chats, selectedNumber]);
+    }, [chats, selectedNumber?.id]);
 
     // Load avatar for selected chat after messages are loaded
     useEffect(() => {

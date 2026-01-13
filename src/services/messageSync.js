@@ -98,14 +98,19 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
         }
       }
 
-      rows.push({
-        id: existing?.id, // when present, Supabase will update instead of insert
+      const row = {
         number_id: numberId,
         remote_jid: chatRemoteId,
         name: displayName,
         last_message: lastText,
         last_message_at: lastTs,
-      });
+      };
+
+      if (existing?.id) {
+        row.id = existing.id;
+      }
+
+      rows.push(row);
     }
 
     if (rows.length === 0) {
