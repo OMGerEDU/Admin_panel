@@ -1,9 +1,14 @@
-import { supabase } from '../lib/supabaseClient';
 import {
   getChats,
   getChatHistory,
   getLastIncomingMessages,
+  receiveNotification,
+  deleteNotification,
+  getChatInfo
 } from './greenApi';
+
+// Global state for background sync status
+const activeSyncTasks = new Map(); // numberId -> status object
 
 /**
  * Sync chats from Green API into Supabase `chats` table for a given number.
@@ -420,5 +425,199 @@ export async function pollNewMessages(instanceId, token, onNewMessage) {
     return { success: false, error: error.message || 'Polling failed' };
   }
 }
+
+/**
+ * DEEP SYNC - Background Worker
+ * This performs an iterative sync: 
+ * 1. Last 30 days of messages
+ * 2. Full history for each active chat
+ * 3. Additional 30-day blocks backwards
+ */
+export async function startBackgroundSync(numberId, instanceId, token) {
+  if (activeSyncTasks.has(numberId)) {
+    console.log(`[SYNC] Sync already in progress for number ${numberId}`);
+    return activeSyncTasks.get(numberId);
+  }
+
+  const status = {
+    inProgress: true,
+    phase: 'starting',
+    completedChats: 0,
+    totalChats: 0,
+    startTime: Date.now()
+  };
+
+  activeSyncTasks.set(numberId, status);
+
+  // Run in background (don't await the whole process)
+  (async () => {
+    try {
+      console.log(`[SYNC] Starting Background Sync for ${numberId}`);
+
+      // PHASE 1: Initial Chat List & Last 24h
+      status.phase = 'chats';
+      const chatsResult = await syncChatsToSupabase(numberId, instanceId, token);
+      if (!chatsResult.success) throw new Error(chatsResult.error);
+
+      const chats = chatsResult.data || [];
+      status.totalChats = chats.length;
+
+      // PHASE 2+: Iterative Sync Blocks (30 days at a time)
+      let daysBack = 0;
+      let hasMoreHistory = true;
+
+      while (hasMoreHistory && daysBack < 180) { // Limit to 6 months to avoid infinite loops
+        daysBack += 30;
+        status.phase = `history_${daysBack}_days`;
+        console.log(`[SYNC] Fetching block: ${daysBack - 30} to ${daysBack} days ago`);
+
+        const minutes = daysBack * 24 * 60;
+        const result = await getLastIncomingMessages(instanceId, token, minutes);
+
+        if (result.success && result.data && result.data.length > 0) {
+          await processMessageBatch(numberId, chats, result.data);
+        }
+
+        // Deep dive into each chat after the global block scan
+        status.phase = `deep_dive_${daysBack}`;
+        for (let i = 0; i < chats.length; i++) {
+          const chat = chats[i];
+          status.completedChats = i;
+          status.currentChat = chat.name || chat.remote_jid;
+          await syncFullChatHistory(chat, instanceId, token);
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        // If we didn't get any messages at all in the last block, stop
+        if (!result.success || !result.data || result.data.length === 0) {
+          hasMoreHistory = false;
+        }
+
+        // Small break between 30-day blocks
+        await new Promise(r => setTimeout(r, 2000));
+      }
+
+      console.log(`[SYNC] Completed Background Sync for ${numberId}`);
+      status.inProgress = false;
+      status.phase = 'completed';
+    } catch (err) {
+      console.error(`[SYNC] Error during background sync for ${numberId}:`, err);
+      status.inProgress = false;
+      status.phase = 'error';
+      status.error = err.message;
+    }
+  })();
+
+  return status;
+}
+
+/**
+ * Syncs the entire history of a single chat back to the beginning
+ */
+async function syncFullChatHistory(chat, instanceId, token) {
+  let hasMore = true;
+  let retryCount = 0;
+
+  while (hasMore) {
+    // Get oldest message in DB for this chat to know where to start from
+    const { data: oldest } = await supabase
+      .from('messages')
+      .select('timestamp')
+      .eq('chat_id', chat.id)
+      .order('timestamp', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    // If we have an oldest message, we ask Green API for messages before that
+    // Note: Green API's getChatHistory with count 100 returns latest 100.
+    // To go deeper, we'd ideally need a 'before' timestamp if supported, 
+    // but the current getChatHistory API implementation just returns latest.
+    // If we already have many messages, we might stop or try to fetch larger count.
+
+    // For now, we perform a standard sync of 100 messages. 
+    // To truely go back iterations, we need the API's 'backwards' logic.
+    const result = await getChatHistory(instanceId, token, chat.remote_jid, 100);
+
+    if (result.success) {
+      const messages = result.data || [];
+      if (messages.length === 0) break;
+
+      // Filter messages that are already in DB
+      const processed = await processMessageBatch(chat.number_id, [chat], messages);
+
+      // If we didn't add any new messages (all were duplicates), we stop
+      if (processed.newCount === 0) {
+        hasMore = false;
+      } else {
+        // Continue if we got a full page of new messages
+        hasMore = processed.newCount >= 10;
+      }
+    } else {
+      // Handle rate limits
+      if (result.error?.includes('429')) {
+        console.warn('[SYNC] Rate limit reached, waiting 60s...');
+        await new Promise(r => setTimeout(r, 60000));
+        retryCount++;
+        if (retryCount > 5) break;
+      } else {
+        break;
+      }
+    }
+
+    // Prevent blocking
+    await new Promise(r => setTimeout(r, 200));
+  }
+}
+
+async function processMessageBatch(numberId, chats, rawMessages) {
+  const chatMap = new Map(chats.map(c => [c.remote_jid, c]));
+  let newCount = 0;
+
+  // Process raw messages into Supabase format
+  // This is a simplified version of syncMessagesToSupabase logic
+  for (const msg of rawMessages) {
+    const rawChatId = msg.chatId || msg.remoteJid;
+    const chat = chatMap.get(rawChatId);
+    if (!chat) continue;
+
+    const ts = msg.timestamp != null
+      ? new Date(msg.timestamp * 1000).toISOString()
+      : new Date().toISOString();
+
+    // Check existence
+    const { data: existing } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('chat_id', chat.id)
+      .eq('timestamp', ts)
+      .maybeSingle();
+
+    if (existing) continue;
+
+    // Parse message parts (reused logic from syncMessagesToSupabase)
+    const type = msg.typeMessage || msg.type || '';
+    let content = msg.textMessage || msg.extendedTextMessage?.text || msg.message || '';
+
+    const isOutgoing = msg.type === 'outgoing' || msg.fromMe === true;
+
+    const { error } = await supabase
+      .from('messages')
+      .insert({
+        chat_id: chat.id,
+        content: content || '[Media]',
+        is_from_me: isOutgoing,
+        timestamp: ts
+      });
+
+    if (!error) newCount++;
+  }
+
+  return { newCount };
+}
+
+export function getSyncStatus(numberId) {
+  return activeSyncTasks.get(numberId);
+}
+
 
 

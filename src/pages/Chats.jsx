@@ -23,13 +23,16 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
-import { pollNewMessages } from '../services/messageSync';
+import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase } from '../services/messageSync';
 import { logger } from '../lib/logger';
+import { playNotificationSound } from '../utils/audio';
 import {
     saveMessagesToCache,
     loadMessagesFromCache,
     mergeMessages,
     clearChatCache as clearLocalChatCache,
+    saveChatsToCache,
+    loadChatsFromCache,
 } from '../lib/messageLocalCache';
 
 export default function Chats() {
@@ -74,6 +77,7 @@ export default function Chats() {
     // Media URLs cache - stores fetched downloadUrls by message ID
     const [mediaUrls, setMediaUrls] = useState({});
     const [loadingMedia, setLoadingMedia] = useState({});
+    const [syncStatus, setSyncStatus] = useState({}); // numberId -> status object
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -136,6 +140,76 @@ export default function Chats() {
             fetchMessages();
         }
     }, [selectedChat]);
+
+    // Background Sync Initiation
+    useEffect(() => {
+        if (numbers.length > 0) {
+            numbers.forEach(num => {
+                if (num.instance_id && num.api_token) {
+                    startBackgroundSync(num.id, num.instance_id, num.api_token);
+                }
+            });
+        }
+    }, [numbers]);
+
+    // Enhanced Polling & Real-time Sync (2-minute window + Sounds)
+    useEffect(() => {
+        if (!selectedNumber || isPolling) return;
+
+        const interval = setInterval(async () => {
+            if (isPolling) return;
+            setIsPolling(true);
+
+            try {
+                // 1. Notification queue polling
+                await pollNewMessages(
+                    selectedNumber.instance_id,
+                    selectedNumber.api_token,
+                    async (msg, notification) => {
+                        console.log('[POLLING] Message received:', msg);
+                        const isIncoming = msg.type === 'incoming' || notification?.body?.typeWebhook === 'incomingMessageReceived';
+
+                        if (isIncoming) {
+                            playNotificationSound();
+                        }
+
+                        const msgChatId = msg.chatId || notification?.body?.senderData?.chatId;
+                        if (selectedChat && (selectedChat.chatId === msgChatId || selectedChat.remote_jid === msgChatId)) {
+                            fetchMessages(true);
+                        }
+                        fetchChats(true);
+                    }
+                );
+
+                // 2. Real-time 2-minute scan (as requested)
+                const recentResult = await getLastIncomingMessages(selectedNumber.instance_id, selectedNumber.api_token, 2);
+                if (recentResult.success && recentResult.data && recentResult.data.length > 0) {
+                    const existingTimestamps = new Set(messages.slice(-20).map(m => m.timestamp));
+                    const hasNew = recentResult.data.some(m => !existingTimestamps.has(m.timestamp));
+
+                    if (hasNew) {
+                        console.log('[POLLING] Found new recent messages, refreshing');
+                        playNotificationSound();
+                        fetchChats(true);
+                        if (selectedChat) fetchMessages(true);
+                    }
+                }
+
+                // 3. Update background sync status
+                const status = getSyncStatus(selectedNumber.id);
+                if (status) {
+                    setSyncStatus(prev => ({ ...prev, [selectedNumber.id]: status }));
+                }
+
+            } catch (err) {
+                console.warn('[POLLING] Error in loop:', err);
+            } finally {
+                setIsPolling(false);
+            }
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [selectedNumber, selectedChat, messages.length]);
 
     // Load avatar for a chat
     const loadChatAvatar = async (chatId) => {
@@ -224,11 +298,21 @@ export default function Chats() {
             return [];
         }
 
-        // Check cache first (like extension)
+        // Check memory cache first (during same session)
         if (!forceRefresh && chatsCacheRef.current.data && (Date.now() - chatsCacheRef.current.timestamp < chatsCacheRef.current.ttl)) {
-            console.log('[CHATS] Using cached chats list');
+            console.log('[CHATS] Using memory cached chats list');
             setChats(chatsCacheRef.current.data);
             return chatsCacheRef.current.data;
+        }
+
+        // Check localStorage cache (across navigation)
+        if (!forceRefresh && chats.length === 0) {
+            const localCachedChats = loadChatsFromCache(acc.instance_id);
+            if (localCachedChats && localCachedChats.length > 0) {
+                console.log('[CHATS] Using localStorage cached chats list');
+                setChats(localCachedChats);
+                // Continue fetching fresh in background
+            }
         }
 
         try {
@@ -424,6 +508,7 @@ export default function Chats() {
             // Update cache
             chatsCacheRef.current.data = chats;
             chatsCacheRef.current.timestamp = Date.now();
+            saveChatsToCache(acc.instance_id, chats);
 
             setChats(chats);
             return chats;
@@ -450,13 +535,23 @@ export default function Chats() {
             return;
         }
 
-        // Check cache first (like extension - 10 seconds)
+        // Check memory cache first (same session - 10 seconds)
         if (!forceRefresh && historyCacheRef.current.has(chatId)) {
             const cached = historyCacheRef.current.get(chatId);
             if (Date.now() - cached.timestamp < 10000) {
-                console.log('[HISTORY] Using cached history');
+                console.log('[HISTORY] Using memory cached history');
                 setMessages(cached.messages);
                 return;
+            }
+        }
+
+        // Check localStorage cache (across navigation)
+        if (!forceRefresh && messages.length === 0) {
+            const localCachedMessages = loadMessagesFromCache(acc.instance_id, chatId);
+            if (localCachedMessages && localCachedMessages.length > 0) {
+                console.log('[HISTORY] Using localStorage cached history');
+                setMessages(localCachedMessages);
+                // Continue fetching fresh
             }
         }
 
@@ -814,48 +909,6 @@ export default function Chats() {
 
         return null;
     };
-
-    // SMART Polling: Slower interval + only refresh if we got a notification
-    useEffect(() => {
-        if (!selectedNumber?.instance_id || !selectedNumber?.api_token) {
-            return;
-        }
-
-        setIsPolling(true);
-        let lastNotificationTime = Date.now();
-
-        const interval = setInterval(() => {
-            pollNewMessages(
-                selectedNumber.instance_id,
-                selectedNumber.api_token,
-                async (message) => {
-                    // Only refresh if we actually got a new message
-                    const now = Date.now();
-                    if (now - lastNotificationTime > 1000) {
-                        // Throttle: max once per second
-                        lastNotificationTime = now;
-                        // Only refresh the current chat, not all chats
-                        if (selectedChat) {
-                            // Clear cache and force refresh
-                            const chatId = selectedChat.chatId || selectedChat.remote_jid;
-                            if (chatId) {
-                                historyCacheRef.current.delete(chatId);
-                            }
-                            await fetchMessages(true);
-                        }
-                        // Light refresh of chat list
-                        await fetchChats(true);
-                    }
-                },
-            );
-        }, 15000); // Slower: 15 seconds instead of 5
-
-        return () => {
-            clearInterval(interval);
-            setIsPolling(false);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedNumber?.instance_id, selectedNumber?.api_token, selectedChat?.chatId]);
 
     const getChatInitials = (chat) => {
         const base = (chat.name || chat.phone || chat.chatId || 'WA').toString();
@@ -1269,7 +1322,15 @@ export default function Chats() {
                                 <span className="font-semibold">
                                     {selectedChat.name || selectedChat.phone || selectedChat.chatId}
                                 </span>
-                                <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
+                                    {syncStatus[selectedNumber?.id]?.inProgress && (
+                                        <span className="text-[9px] text-primary animate-pulse flex items-center gap-1 bg-primary/5 px-1.5 rounded">
+                                            <span className="w-1 h-1 bg-primary rounded-full"></span>
+                                            {t('sync.syncing') || 'מסנכרן'}...
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <div className="ml-auto">
                                 <Button

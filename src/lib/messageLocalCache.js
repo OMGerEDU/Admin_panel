@@ -5,6 +5,7 @@ const CACHE_PREFIX = 'whatsapp_messages_';
 const CACHE_VERSION = '1.0';
 const MAX_CACHE_AGE = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_MESSAGES_PER_CHAT = 500; // Limit cache size per chat
+const CHATS_CACHE_PREFIX = 'whatsapp_chats_';
 
 /**
  * Get cache key for a chat
@@ -43,13 +44,13 @@ export function loadMessagesFromCache(instanceId, chatId) {
     try {
         const key = getCacheKey(instanceId, chatId);
         const cached = localStorage.getItem(key);
-        
+
         if (!cached) {
             return null;
         }
 
         const cacheData = JSON.parse(cached);
-        
+
         // Check if cache is valid
         if (cacheData.version !== CACHE_VERSION) {
             console.log('[CACHE] Cache version mismatch, clearing');
@@ -153,7 +154,7 @@ function cleanOldCache() {
     try {
         const keys = Object.keys(localStorage);
         const cacheEntries = [];
-        
+
         keys.forEach(key => {
             if (key.startsWith(CACHE_PREFIX)) {
                 try {
@@ -184,16 +185,57 @@ function cleanOldCache() {
 }
 
 /**
+ * Save chat list to localStorage
+ */
+export function saveChatsToCache(instanceId, chats) {
+    try {
+        const key = `${CHATS_CACHE_PREFIX}${instanceId}`;
+        const cacheData = {
+            version: CACHE_VERSION,
+            timestamp: Date.now(),
+            chats: chats,
+        };
+        localStorage.setItem(key, JSON.stringify(cacheData));
+        console.log(`[CACHE] Saved ${chats.length} chats for instance ${instanceId}`);
+    } catch (error) {
+        console.error('[CACHE] Error saving chats to localStorage:', error);
+    }
+}
+
+/**
+ * Load chat list from localStorage
+ */
+export function loadChatsFromCache(instanceId) {
+    try {
+        const key = `${CHATS_CACHE_PREFIX}${instanceId}`;
+        const cached = localStorage.getItem(key);
+
+        if (!cached) return null;
+
+        const cacheData = JSON.parse(cached);
+
+        // Cache is valid for 1 hour for the list summary
+        const age = Date.now() - cacheData.timestamp;
+        if (age > 60 * 60 * 1000) return null;
+
+        return cacheData.chats;
+    } catch (error) {
+        console.error('[CACHE] Error loading chats from localStorage:', error);
+        return null;
+    }
+}
+
+/**
  * Get cache statistics
  */
 export function getCacheStats() {
     try {
         const keys = Object.keys(localStorage);
         const cacheEntries = keys.filter(key => key.startsWith(CACHE_PREFIX));
-        
+
         let totalMessages = 0;
         let totalSize = 0;
-        
+
         cacheEntries.forEach(key => {
             try {
                 const cached = JSON.parse(localStorage.getItem(key));

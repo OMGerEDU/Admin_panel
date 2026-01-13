@@ -243,7 +243,8 @@ const resources = {
                 "last_message_date": "Last Message Date",
                 "from_date": "From",
                 "to_date": "To",
-                "filter_by_tag": "Filter by Tag"
+                "filter_by_tag": "Filter by Tag",
+                "syncing_background": "Syncing history in background..."
             },
             "login": {
                 "title": "Welcome Back",
@@ -445,6 +446,15 @@ const resources = {
                         "customer_support": "Customer Support",
                         "priority_support": "Priority Support",
                         "features": "Features"
+                    },
+                    "sync": {
+                        "syncing": "Syncing",
+                        "phase_starting": "Starting",
+                        "phase_chats": "Scanning Chats",
+                        "phase_last_30_days": "Fetching Last 30 Days",
+                        "phase_chat_deep_dive": "Historical Deep Dive",
+                        "phase_completed": "Completed",
+                        "phase_error": "Sync Error"
                     }
                 },
                 "footer": {
@@ -835,7 +845,8 @@ const resources = {
                 "last_message_date": "תאריך הודעה אחרונה",
                 "from_date": "מתאריך",
                 "to_date": "עד תאריך",
-                "filter_by_tag": "סינון לפי תג"
+                "filter_by_tag": "סינון לפי תג",
+                "syncing_background": "מסנכרן היסטוריה ברקע..."
             },
             "login": {
                 "title": "ברוכים הבאים",
@@ -1402,6 +1413,15 @@ const resources = {
                 "security_text": "אנו מטפלים בנתונים שלך בצורה מאובטחת. כל העברת הנתונים ל-Green API ו-Supabase מתבצעת על גבי חיבורי HTTPS מוצפנים. אנו לא חושפים את פרטי ההתחברות או המידע הפיננסי שלך בפומבי.",
                 "contact_title": "צור קשר",
                 "contact_text": "אם יש לך שאלות לגבי מדיניות זו או שיטות הנתונים שלנו, אנא צור איתנו קשר בכתובת"
+            },
+            "sync": {
+                "syncing": "מסנכרן",
+                "phase_starting": "מתחיל",
+                "phase_chats": "סורק צ'אטים",
+                "phase_last_30_days": "מושך 30 יום אחרונים",
+                "phase_chat_deep_dive": "סנכרון היסטוריה עמוק",
+                "phase_completed": "הסתיים",
+                "phase_error": "שגיאת סנכרון"
             }
         }
     }
