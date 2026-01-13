@@ -59,7 +59,7 @@ export default function Chats() {
     // Advanced Filters
     const [showFilters, setShowFilters] = useState(false);
     const [filterDateFrom, setFilterDateFrom] = useState('');
-    const [filterDateTo, setFilterDateTo] = useState('');
+    const [filterDateTo, setFilterDateTo] = useState(new Date().toLocaleDateString('en-CA'));
     const [filterTags, setFilterTags] = useState([]); // array of tag IDs
 
 
@@ -878,9 +878,10 @@ export default function Chats() {
     }
 
     // Check if any advanced filters are active
-    const hasActiveFilters = filterDateFrom || filterDateTo || filterTags.length > 0;
+    // We don't count the default "To Today" as an active filter unless they have a From date or Tags or they changed it
+    const hasActiveFilters = filterDateFrom || filterTags.length > 0 || (filterDateTo !== new Date().toLocaleDateString('en-CA'));
 
-    const filteredChats = chats.filter((chat) => {
+    const filteredChats = chatsWithTags.filter((chat) => {
         // First apply text search
         const matchesSearch =
             (chat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -902,9 +903,18 @@ export default function Chats() {
         // Apply date filters
         if (filterDateFrom || filterDateTo) {
             const chatTimestamp = chat.lastMessageTime || chat.timestamp || 0;
-            const chatDate = chatTimestamp ? new Date(chatTimestamp * 1000) : null;
+            // Robust date handling: support seconds, milliseconds, or ISO strings
+            let chatDate = null;
+            if (chatTimestamp) {
+                if (typeof chatTimestamp === 'number') {
+                    // Seconds vs Milliseconds detection
+                    chatDate = chatTimestamp < 10000000000 ? new Date(chatTimestamp * 1000) : new Date(chatTimestamp);
+                } else {
+                    chatDate = new Date(chatTimestamp);
+                }
+            }
 
-            if (chatDate) {
+            if (chatDate && !isNaN(chatDate.getTime())) {
                 if (filterDateFrom) {
                     const fromDate = new Date(filterDateFrom);
                     fromDate.setHours(0, 0, 0, 0);
@@ -916,15 +926,17 @@ export default function Chats() {
                     if (chatDate > toDate) return false;
                 }
             } else {
-                // No date available, filter out if date filter is active
-                return false;
+                // If we have an active Date filter and chat has no valid date, hide it
+                // Except if the filter is just the default "To Today"
+                if (filterDateFrom || (filterDateTo && filterDateTo !== new Date().toLocaleDateString('en-CA'))) {
+                    return false;
+                }
             }
         }
 
         // Apply tag filters
         if (filterTags.length > 0) {
-            const chatId = chat.chatId || chat.remote_jid || '';
-            const chatTagIds = chatTags[chatId] || [];
+            const chatTagIds = chat.tags || [];
             const hasMatchingTag = filterTags.some(tagId => chatTagIds.includes(tagId));
             if (!hasMatchingTag) return false;
         }
@@ -1049,7 +1061,7 @@ export default function Chats() {
                                     {t('chats_page.filters') || 'פילטרים'}
                                     {hasActiveFilters && (
                                         <span className="ml-1 bg-white/20 rounded-full px-1.5 text-[10px]">
-                                            {(filterDateFrom ? 1 : 0) + (filterDateTo ? 1 : 0) + filterTags.length}
+                                            {(filterDateFrom ? 1 : 0) + (filterDateTo && filterDateTo !== new Date().toLocaleDateString('en-CA') ? 1 : 0) + filterTags.length}
                                         </span>
                                     )}
                                 </button>
@@ -1062,7 +1074,7 @@ export default function Chats() {
                                             <button
                                                 onClick={() => {
                                                     setFilterDateFrom('');
-                                                    setFilterDateTo('');
+                                                    setFilterDateTo(new Date().toLocaleDateString('en-CA'));
                                                     setFilterTags([]);
                                                 }}
                                                 className="text-xs text-primary dark:text-[#00a884] hover:underline"
