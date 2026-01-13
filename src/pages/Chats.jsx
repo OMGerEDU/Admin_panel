@@ -23,7 +23,7 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
-import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory } from '../services/messageSync';
+import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory, resetChatNames } from '../services/messageSync';
 import { logger } from '../lib/logger';
 import { playNotificationSound } from '../utils/audio';
 import {
@@ -758,6 +758,24 @@ export default function Chats() {
         }
     };
 
+    const handleRefreshNames = async () => {
+        if (!selectedNumber || !window.confirm(t('chats_page.confirm_reset_names'))) return;
+
+        try {
+            setSyncing(true);
+            const res = await resetChatNames(selectedNumber.id);
+            if (res.success) {
+                // Now trigger a sync with enrichNames = true
+                await syncChatsToSupabase(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token, true);
+                await fetchChats(true);
+            }
+        } catch (error) {
+            console.error('[SYNC] Reset names error:', error);
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     const handleFullSync = async () => {
         if (!selectedNumber?.instance_id || !selectedNumber.api_token) {
             console.warn('[SYNC] Missing number Green API configuration');
@@ -965,6 +983,15 @@ export default function Chats() {
                             className="ml-1 bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-primary-foreground dark:text-white border-0 text-xs px-3"
                         >
                             {syncing ? t('common.syncing') || 'Syncing...' : t('common.sync') || 'Sync'}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleRefreshNames}
+                            disabled={syncing || !selectedNumber}
+                            className="ml-1 text-xs px-3 border-muted-foreground/30 hover:bg-muted"
+                        >
+                            {t('chats_page.refresh_names') || 'Refresh Names'}
                         </Button>
                         <Button
                             size="icon"
@@ -1186,7 +1213,7 @@ export default function Chats() {
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium truncate text-foreground dark:text-[#e9edef]">{chat.name || chat.phone || chatId}</p>
                                             <p className="text-sm text-muted-foreground dark:text-[#8696a0] truncate">
-                                                {chat.lastMessage || t('chats_page.no_chats')}
+                                                {chat.lastMessage || t('chats_page.no_messages') || ''}
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">

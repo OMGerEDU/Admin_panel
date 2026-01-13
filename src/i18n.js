@@ -247,7 +247,10 @@ const resources = {
                 "syncing_background": "Syncing history in background...",
                 "load_more_messages": "Load older messages",
                 "click_to_load": "Click to load image",
-                "click_to_view_doc": "Click to view document"
+                "click_to_view_doc": "Click to view document",
+                "refresh_names": "Refresh Names",
+                "confirm_reset_names": "Are you sure you want to reset all names? This will clear stored names and re-fetch them from WhatsApp.",
+                "no_messages": "No messages"
             },
             "login": {
                 "title": "Welcome Back",
@@ -852,7 +855,10 @@ const resources = {
                 "syncing_background": "מסנכרן היסטוריה ברקע...",
                 "load_more_messages": "טען הודעות ישנות יותר",
                 "click_to_load": "לחץ לטעינת תמונה",
-                "click_to_view_doc": "לחץ להצגת מסמך"
+                "click_to_view_doc": "לחץ להצגת מסמך",
+                "refresh_names": "רענן שמות",
+                "confirm_reset_names": "האם אתה בטוח שברצונך לרענן את כל השמות? פעולה זו תנקה את השמות השמורים ותטען אותם מחדש מ-WhatsApp.",
+                "no_messages": "אין הודעות"
             },
             "login": {
                 "title": "ברוכים הבאים",

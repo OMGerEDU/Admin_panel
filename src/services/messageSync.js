@@ -76,16 +76,16 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
 
       const existing = existingMap.get(chatRemoteId);
 
-      let displayName =
-        existing?.name ||
-        chat.name ||
-        chat.chatName ||
-        chat.pushName ||
-        chatRemoteId;
+      // Improved name detection: if name is just a JID or a phone number, consider it "missing"
+      const currentName = existing?.name || chat.name || chat.chatName || chat.pushName;
+      const isMissingRealName = !currentName || currentName.includes('@') || /^\d+$/.test(currentName);
 
-      // Optional enrichment for names when explicitly requested (e.g. for a single chat)
-      if (enrichNames && !existing?.name) {
+      let displayName = currentName || chatRemoteId;
+
+      // Optional enrichment for names when explicitly requested or if we only have a JID/phone
+      if (enrichNames && isMissingRealName) {
         try {
+          // Add a small delay/throttle if doing many in a loop, but here it's better to do selective enrichment
           const infoResult = await getChatInfo(instanceId, token, chatRemoteId);
           if (infoResult.success) {
             displayName =
@@ -93,6 +93,8 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
               infoResult.data?.chatName ||
               displayName;
           }
+          // Small delay to avoid 429 during bulk enrichment
+          await new Promise(r => setTimeout(r, 250));
         } catch {
           // Ignore enrichment errors
         }
@@ -669,6 +671,25 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
 
 export function getSyncStatus(numberId) {
   return activeSyncTasks.get(numberId);
+}
+
+/**
+ * Resets chat names for a given number ID (clears them in DB)
+ * This allows the sync process to try and re-discover names from Green API
+ */
+export async function resetChatNames(numberId) {
+  try {
+    const { error } = await supabase
+      .from('chats')
+      .update({ name: null })
+      .eq('number_id', numberId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('[SYNC] Error resetting chat names:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 
