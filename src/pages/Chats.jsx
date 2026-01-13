@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Send, Phone, Tag, Settings, Filter, Calendar, X } from 'lucide-react';
+import { Plus, Search, Send, Phone, Tag, Settings, Filter, Calendar, X, RefreshCw, UserCheck } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
@@ -977,21 +977,23 @@ export default function Chats() {
                             <Plus className="h-4 w-4" />
                         </Button>
                         <Button
-                            size="sm"
+                            size="icon"
                             onClick={handleFullSync}
                             disabled={syncing || !selectedNumber}
-                            className="ml-1 bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-primary-foreground dark:text-white border-0 text-xs px-3"
+                            title={t('common.sync') || 'Sync'}
+                            className="ml-1 bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-primary-foreground dark:text-white border-0"
                         >
-                            {syncing ? t('common.syncing') || 'Syncing...' : t('common.sync') || 'Sync'}
+                            <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
                         </Button>
                         <Button
-                            size="sm"
-                            variant="outline"
+                            size="icon"
+                            variant="ghost"
                             onClick={handleRefreshNames}
                             disabled={syncing || !selectedNumber}
-                            className="ml-1 text-xs px-3 border-muted-foreground/30 hover:bg-muted"
+                            title={t('chats_page.refresh_names') || 'Refresh Names'}
+                            className="ml-1 text-muted-foreground hover:text-foreground hover:bg-muted"
                         >
-                            {t('chats_page.refresh_names') || 'Refresh Names'}
+                            <UserCheck className="h-4 w-4" />
                         </Button>
                         <Button
                             size="icon"
