@@ -182,6 +182,10 @@ export default function Chats() {
                     fetchChats(true); // Soft refresh with cache update
                     // If we have a selected chat that was empty, refresh it now
                     if (selectedChat) fetchMessages(true);
+
+                    // TRIGGER SNAPSHOT NOW: We have the warm history, let's freeze it for others
+                    console.log('[SNAPSHOT] Triggering immediate snapshot after warm-up...');
+                    triggerStateSnapshot(selectedNumber.instance_id);
                 })
                 .catch(err => console.error('[SYNC] Warm-up failed:', err))
                 .finally(() => setIsWarmUpSyncing(false));
