@@ -1485,8 +1485,8 @@ export default function Chats() {
                                         messages.map((message, idx) => {
                                             // Parse message like extension does
                                             const item = message;
-                                            const typeMessage = item.typeMessage || '';
-                                            const isFromMe = item.type === 'outgoing' || item.fromMe === true;
+                                            const typeMessage = item.typeMessage || item.media_meta?.typeMessage || '';
+                                            const isFromMe = item.type === 'outgoing' || item.fromMe === true || item.is_from_me === true;
 
                                             // Extract text from multiple possible locations (like extension)
                                             // IMPORTANT: Check textMessage FIRST, then extendedTextMessage.text
@@ -1751,6 +1751,30 @@ export default function Chats() {
                                                                 })()}
                                                                 {text && (
                                                                     <div className="text-sm mt-2">{text}</div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Contact Message */}
+                                                        {(typeMessage === 'contactMessage' || typeMessage === 'contactsArrayMessage' || item.media_meta?.type === 'contact') && (
+                                                            <div className="space-y-2 py-1 min-w-[200px]">
+                                                                <div className="flex items-center gap-3 p-2 bg-white/5 rounded-md border border-white/10">
+                                                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl">
+                                                                        👤
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-semibold truncate">
+                                                                            {item.media_meta?.displayName || item.contactMessage?.displayName || item.displayName || 'Contact'}
+                                                                        </div>
+                                                                        <div className="text-[10px] text-muted-foreground uppercase">
+                                                                            {t('chats_page.contact_card') || 'Contact Card'}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                {item.media_meta?.vcard && (
+                                                                    <div className="text-[11px] opacity-70 italic truncate px-1">
+                                                                        VCF Data available
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         )}

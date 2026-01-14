@@ -99,8 +99,7 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
           remote_jid: chatRemoteId,
           name: displayName,
           last_message: lastText,
-          last_message_at: lastTs,
-          ...(existing?.id ? { id: existing.id } : {})
+          last_message_at: lastTs
         });
       }
     }
@@ -130,13 +129,12 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
             remote_jid: task.chatRemoteId,
             name: enrichedName,
             last_message: task.lastText,
-            last_message_at: task.lastTs,
-            ...(task.existingId ? { id: task.existingId } : {})
+            last_message_at: task.lastTs
           });
         }));
-        // Small pause between chunks to respect rate limits
+        // Small pause between chunks to respect rate limits (jitter added)
         if (i + CHUNK_SIZE < enrichmentTasks.length) {
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
         }
       }
     }
@@ -148,7 +146,7 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
     // 5) Upsert all chats in a single call
     const { data: upserted, error: upsertError } = await supabase
       .from('chats')
-      .upsert(rows)
+      .upsert(rows, { onConflict: 'number_id,remote_jid' })
       .select();
 
     if (upsertError) {
@@ -434,7 +432,8 @@ export async function startBackgroundSync(numberId, instanceId, token) {
           status.completedChats = i;
           status.currentChat = chat.name || chat.remote_jid;
           await syncFullChatHistory(chat, instanceId, token);
-          if (i % 5 === 0) await new Promise(r => setTimeout(r, 200));
+          // Moderate delay between different chats
+          await new Promise(r => setTimeout(r, 1500 + Math.random() * 500));
         }
 
         // Stop scanning blocks if we got no messages in this block
@@ -518,7 +517,7 @@ export async function syncFullChatHistory(chat, instanceId, token) {
         }
       }
 
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000));
     }
   } finally {
     activeChatSyncs.delete(syncKey);
@@ -642,6 +641,7 @@ function extractMessageContentAndMeta(msg) {
     msg.message ||
     msg.conversation ||
     msg.caption ||
+    msg.text ||
     '';
 
   let mediaMeta = null;
@@ -699,14 +699,17 @@ function extractMessageContentAndMeta(msg) {
       downloadUrl: msg.downloadUrl || msg.urlFile || null,
     };
     if (!content) content = '🩹 Sticker';
-  } else if (type === 'locationMessage') {
-    mediaMeta = {
-      type: 'location',
-      typeMessage: 'locationMessage',
-      latitude: msg.latitude || msg.locationMessage?.latitude || null,
-      longitude: msg.longitude || msg.locationMessage?.longitude || null,
-    };
     if (!content) content = '📍 Location';
+  } else if (type === 'contactMessage' || type === 'contactsArrayMessage') {
+    const contactMsg = msg.contactMessage || msg.contactsArrayMessage || msg;
+    const displayName = contactMsg.displayName || contactMsg.contacts?.[0]?.displayName || 'Contact';
+    mediaMeta = {
+      type: 'contact',
+      typeMessage: type,
+      displayName: displayName,
+      vcard: contactMsg.vcard || contactMsg.contacts?.[0]?.vcard || null,
+    };
+    if (!content) content = `👤 Contact: ${displayName}`;
   }
 
   if (!content && !mediaMeta) {
