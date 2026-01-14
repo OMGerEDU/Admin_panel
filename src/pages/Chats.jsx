@@ -35,7 +35,7 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
-import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory, resetChatNames, warmUpSync, triggerStateSnapshot } from '../services/messageSync';
+import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncMessagesToSupabase, syncFullChatHistory, resetChatNames, warmUpSync, triggerStateSnapshot } from '../services/messageSync';
 import { bootstrapFromSnapshot } from '../services/snapshotService';
 import { logger } from '../lib/logger';
 import { playNotificationSound } from '../utils/audio';

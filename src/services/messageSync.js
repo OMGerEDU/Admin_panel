@@ -14,6 +14,9 @@ import { uploadStateSnapshot } from './snapshotService';
 // Global state for background sync status
 const activeSyncTasks = new Map(); // numberId -> status object
 
+// Helper to check if a string is a JID
+const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
+
 /**
  * Sync chats from Green API into Supabase `chats` table for a given number.
  *
@@ -85,7 +88,6 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
       // Improved name detection: if name is just a JID or a phone number, consider it "missing"
       const currentName = existing?.name || chat.name || chat.chatName || chat.pushName;
       // Filter out JIDs from names
-      const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
       const isMissingRealName = !currentName || isJid(currentName) || /^\d+$/.test(currentName);
 
       let displayName = isJid(currentName) ? null : (currentName || null);
@@ -604,7 +606,6 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
 
     // IN-STREAM NAME UPDATE: If we have a pushName or senderName and current chat name is bad, update it
     const senderName = msg.senderName || msg.senderContactName || msg.pushName;
-    const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
     const isBadName = !chat.name || isJid(chat.name) || /^\d+$/.test(chat.name);
 
     if (senderName && isBadName && !isJid(senderName)) {
