@@ -85,6 +85,7 @@ export default function Chats() {
     const [showPanelMaster, setShowPanelMaster] = useState(false);
     const pendingChatIdFromUrlRef = useRef(null);
     const isGatheringAvatarsRef = useRef(false);
+    const activeChatIdRef = useRef(null);
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -129,9 +130,15 @@ export default function Chats() {
 
     useEffect(() => {
         if (selectedNumber) {
+            // Priority: Load avatars from cache immediately when number changes
+            const cachedAvatars = loadAvatarsFromCache(selectedNumber.instance_id);
+            if (cachedAvatars.size > 0) {
+                console.log(`[AVATAR] Loaded ${cachedAvatars.size} cached avatars for ${selectedNumber.instance_id}`);
+                setChatAvatars(cachedAvatars);
+            }
             fetchChats();
         }
-    }, [selectedNumber]);
+    }, [selectedNumber?.id]);
 
     // Load chat from URL params
     useEffect(() => {
@@ -164,6 +171,11 @@ export default function Chats() {
             // Reset pagination state
             setHasMoreMessages(true);
             setOldestMessageTimestamp(null);
+            const chatId = selectedChat.chatId || selectedChat.remote_jid;
+            activeChatIdRef.current = chatId;
+            // Clear messages immediately so we don't see previous chat's data
+            setMessages([]);
+
             fetchMessages();
 
             // Background deep sync for this specific chat
@@ -192,12 +204,11 @@ export default function Chats() {
         }
     }, [numbers]);
 
-    // PREFETCHING: Load latest messages for top chats in background
     useEffect(() => {
         if (chats.length > 0 && selectedNumber) {
             const prefetchChats = async () => {
-                const topChats = chats.slice(0, 10); // Top 10 recent chats
-                console.log(`[PREFETCH] Starting background sync for ${topChats.length} active chats...`);
+                const topChats = chats.slice(0, 30); // Prioritize top 30 chats (Resource is not an issue)
+                console.log(`[PREFETCH] Deep background sync for ${topChats.length} recent chats...`);
 
                 for (const chat of topChats) {
                     const chatId = chat.chatId || chat.remote_jid;
@@ -229,8 +240,8 @@ export default function Chats() {
                             });
                         }
 
-                        // Small delay between prefetches to avoid burying the browser
-                        await new Promise(r => setTimeout(r, 1000));
+                        // Faster prefetch - less delay between chats (Powerful machines)
+                        await new Promise(r => setTimeout(r, 400));
                     } catch (e) {
                         // Ignore prefetch errors
                     }
@@ -332,17 +343,19 @@ export default function Chats() {
             let mounted = true;
 
             const loadAvatarsSequentially = async () => {
+                // Double check cache before filtering
+                const currentCache = loadAvatarsFromCache(selectedNumber.instance_id);
+
                 const chatsToLoad = chats.filter(chat => {
                     const id = chat.chatId || chat.remote_jid;
-                    return id && !chatAvatars.has(id);
-                }).slice(0, 50); // Limit each batch to avoid massive loops
+                    return id && !chatAvatars.has(id) && !currentCache.has(id);
+                }).slice(0, 100); // Larger batch allowed now
 
                 if (chatsToLoad.length === 0) return;
 
                 isGatheringAvatarsRef.current = true;
-                console.log(`[AVATAR] Gathering ${chatsToLoad.length} new avatars...`);
+                const freshAvatars = new Map([...chatAvatars, ...currentCache]);
                 let newAvatarsLoaded = false;
-                const freshAvatars = new Map(chatAvatars);
 
                 for (let i = 0; i < chatsToLoad.length; i++) {
                     if (!mounted) break;
@@ -571,6 +584,7 @@ export default function Chats() {
 
         const chatId = selectedChat.chatId || selectedChat.remote_jid;
         if (!chatId) return;
+        activeChatIdRef.current = chatId;
 
         // 1. INSTANT LOAD: Check localStorage cache first
         const localCachedMessages = loadMessagesFromCache(selectedNumber.instance_id, chatId);
@@ -580,6 +594,7 @@ export default function Chats() {
             console.log(`[CHATS] Instant load from cache: ${localCachedMessages.length} messages`);
             setMessages(localCachedMessages);
             setLoading(false); // Hide global loader immediately
+            setMessagesLoading(false);
 
             // Check if we even need to sync
             const liveLastMessageId = selectedChat.lastMessageId;
@@ -606,14 +621,20 @@ export default function Chats() {
 
         try {
             // 2. BACKGROUND/DELTA SYNC: Fetch latest from API/Supabase
-            // We use the sync service to ensure Supabase is also updated
+            // PRIORITY: This is the user's focus, fetch more messages than prefetch
             const result = await syncMessagesToSupabase(
                 selectedChat.id,
                 selectedNumber.instance_id,
                 selectedNumber.api_token,
                 chatId,
-                100
+                50 // Request 50 fresh messages for the active chat
             );
+
+            // Double check we are still on the same chat!
+            if (activeChatIdRef.current !== chatId) {
+                console.log('[CHATS] Ignoring stale results for', chatId);
+                return;
+            }
 
             if (result.success && result.data) {
                 const apiMessages = result.data;
@@ -1321,6 +1342,8 @@ export default function Chats() {
                                     onClick={() => {
                                         if (chat.chatId === selectedChat?.chatId) return;
 
+                                        // Instant UI feedback: Clear current messages while loading new one
+                                        setMessages([]);
                                         setSelectedChat(chat);
                                         // Update URL when chat is clicked - use only the number part (without any @ suffix)
                                         if (selectedNumber) {

@@ -710,6 +710,20 @@ function extractMessageContentAndMeta(msg) {
       vcard: contactMsg.vcard || contactMsg.contacts?.[0]?.vcard || null,
     };
     if (!content) content = `👤 Contact: ${displayName}`;
+  } else if (type === 'pollCreationMessage') {
+    const pollMsg = msg.pollCreationMessage || msg;
+    content = `📊 Poll: ${pollMsg.name || 'Untitled Poll'}`;
+    mediaMeta = {
+      type: 'poll',
+      typeMessage: 'pollCreationMessage',
+      pollName: pollMsg.name,
+      options: pollMsg.options || [],
+    };
+  } else if (type === 'revokedMessage') {
+    content = '🚫 This message was deleted';
+  } else if (type === 'reactionMessage') {
+    const react = msg.reactionMessage || msg;
+    content = `[Reaction] ${react.text || ''}`;
   }
 
   if (!content && !mediaMeta) {

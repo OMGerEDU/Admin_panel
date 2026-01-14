@@ -3,8 +3,8 @@
 
 const CACHE_PREFIX = 'whatsapp_messages_';
 const CACHE_VERSION = '1.0';
-const MAX_CACHE_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days instead of 1
-const MAX_MESSAGES_PER_CHAT = 1000; // Increase limit
+const MAX_CACHE_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
+const MAX_MESSAGES_PER_CHAT = 2000; // Increase limit even more
 const CHATS_CACHE_PREFIX = 'whatsapp_chats_';
 const AVATARS_CACHE_PREFIX = 'whatsapp_avatars_';
 const SYNC_META_PREFIX = 'whatsapp_sync_meta_';
@@ -216,9 +216,9 @@ export function loadChatsFromCache(instanceId) {
 
         const cacheData = JSON.parse(cached);
 
-        // Cache is valid for 1 hour for the list summary
+        // Cache is valid for 24 hours for the list summary (instant load)
         const age = Date.now() - cacheData.timestamp;
-        if (age > 60 * 60 * 1000) return null;
+        if (age > 24 * 60 * 60 * 1000) return null;
 
         return cacheData.chats;
     } catch (error) {
@@ -262,9 +262,9 @@ export function loadAvatarsFromCache(instanceId) {
 
         const cacheData = JSON.parse(cached);
 
-        // Avatars cache is valid for 24 hours
+        // Avatars cache is valid for 30 days
         const age = Date.now() - cacheData.timestamp;
-        if (age > 24 * 60 * 60 * 1000) return new Map();
+        if (age > 30 * 24 * 60 * 60 * 1000) return new Map();
 
         return new Map(Object.entries(cacheData.avatars || {}));
     } catch (error) {
