@@ -35,6 +35,8 @@ import {
     loadChatsFromCache,
     saveAvatarsToCache,
     loadAvatarsFromCache,
+    saveSyncMeta,
+    getSyncMeta,
 } from '../lib/messageLocalCache';
 
 export default function Chats() {
@@ -181,6 +183,57 @@ export default function Chats() {
             });
         }
     }, [numbers]);
+
+    // PREFETCHING: Load latest messages for top chats in background
+    useEffect(() => {
+        if (chats.length > 0 && selectedNumber) {
+            const prefetchChats = async () => {
+                const topChats = chats.slice(0, 10); // Top 10 recent chats
+                console.log(`[PREFETCH] Starting background sync for ${topChats.length} active chats...`);
+
+                for (const chat of topChats) {
+                    const chatId = chat.chatId || chat.remote_jid;
+                    if (!chatId) continue;
+
+                    // Check if we already synced this very recently
+                    const meta = getSyncMeta(selectedNumber.instance_id, chatId);
+                    if (meta && (Date.now() - meta.updatedAt < 300000)) { // 5 minutes
+                        continue;
+                    }
+
+                    try {
+                        // Silent sync in background
+                        const result = await syncMessagesToSupabase(
+                            chat.id,
+                            selectedNumber.instance_id,
+                            selectedNumber.api_token,
+                            chatId,
+                            50 // Just fetch latest 50 for prefetch
+                        );
+
+                        if (result.success && result.data) {
+                            // Merge with existing cache and save
+                            const cached = loadMessagesFromCache(selectedNumber.instance_id, chatId) || [];
+                            const merged = mergeMessages(cached, result.data);
+                            saveMessagesToCache(selectedNumber.instance_id, chatId, merged);
+                            saveSyncMeta(selectedNumber.instance_id, chatId, {
+                                lastMessageId: merged[merged.length - 1]?.idMessage || merged[merged.length - 1]?.id
+                            });
+                        }
+
+                        // Small delay between prefetches to avoid burying the browser
+                        await new Promise(r => setTimeout(r, 1000));
+                    } catch (e) {
+                        // Ignore prefetch errors
+                    }
+                }
+            };
+
+            // Start prefetching after a short delay to let the UI settle
+            const timer = setTimeout(prefetchChats, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [chats.length > 0, selectedNumber?.id]);
 
     // Enhanced Polling & Real-time Sync (2-minute window + Sounds)
     useEffect(() => {
@@ -408,6 +461,7 @@ export default function Chats() {
 
                 // Use live data if available, fallback to DB
                 let lastMessageText = dbChat.last_message || '';
+                let lastMessageId = dbChat.last_message_id || '';
                 let timestamp = dbChat.last_message_at ? Math.floor(new Date(dbChat.last_message_at).getTime() / 1000) : 0;
                 let unreadCount = 0;
 
@@ -416,6 +470,7 @@ export default function Chats() {
                     if (liveChat.lastMessage) {
                         const lm = liveChat.lastMessage;
                         lastMessageText = lm.textMessage || lm.extendedTextMessage?.text || lm.message || '[Media]';
+                        lastMessageId = lm.idMessage || lm.id || lastMessageId;
                         timestamp = liveChat.timestamp || lm.timestamp || timestamp;
                     }
                 }
@@ -431,6 +486,7 @@ export default function Chats() {
                     name: cleanName || phone,
                     avatar: liveChat?.avatar || liveChat?.urlAvatar || '',
                     lastMessage: lastMessageText,
+                    lastMessageId: lastMessageId,
                     lastMessageTime: timestamp,
                     timestamp: timestamp,
                     unreadCount: unreadCount,
@@ -452,6 +508,7 @@ export default function Chats() {
                         name: cleanName || phone,
                         avatar: liveChat.avatar || liveChat.urlAvatar || '',
                         lastMessage: lm ? (lm.textMessage || lm.extendedTextMessage?.text || '[Media]') : '',
+                        lastMessageId: lm?.idMessage || lm?.id || '',
                         lastMessageTime: liveChat.timestamp || lm?.timestamp || 0,
                         timestamp: liveChat.timestamp || lm?.timestamp || 0,
                         unreadCount: liveChat.unreadCount ?? liveChat.unread ?? 0,
@@ -486,56 +543,69 @@ export default function Chats() {
         const chatId = selectedChat.chatId || selectedChat.remote_jid;
         if (!chatId) return;
 
-        // Check memory cache first (same session - 10 seconds)
-        if (!forceRefresh && historyCacheRef.current.has(chatId)) {
-            const cached = historyCacheRef.current.get(chatId);
-            if (Date.now() - cached.timestamp < 10000) {
-                setMessages(cached.messages);
-                return;
+        // 1. INSTANT LOAD: Check localStorage cache first
+        const localCachedMessages = loadMessagesFromCache(selectedNumber.instance_id, chatId);
+        let skipSync = false;
+
+        if (localCachedMessages && localCachedMessages.length > 0) {
+            console.log(`[CHATS] Instant load from cache: ${localCachedMessages.length} messages`);
+            setMessages(localCachedMessages);
+            setLoading(false); // Hide global loader immediately
+
+            // Check if we even need to sync
+            const liveLastMessageId = selectedChat.lastMessageId;
+            const alreadyHasLatest = localCachedMessages.some(m => (m.idMessage === liveLastMessageId || m.id === liveLastMessageId));
+
+            if (!forceRefresh && liveLastMessageId && alreadyHasLatest) {
+                console.log(`[CHATS] Cache is already up-to-date with latest message: ${liveLastMessageId}`);
+                skipSync = true;
             }
+
+            // Also skip if very recently synced
+            const meta = getSyncMeta(selectedNumber.instance_id, chatId);
+            if (!forceRefresh && meta && (Date.now() - meta.updatedAt < 10000)) {
+                skipSync = true;
+            }
+        } else {
+            setMessagesLoading(true);
         }
 
-        // Check localStorage cache (across navigation)
-        if (!forceRefresh && messages.length === 0) {
-            const localCachedMessages = loadMessagesFromCache(selectedNumber.instance_id, chatId);
-            if (localCachedMessages && localCachedMessages.length > 0) {
-                setMessages(localCachedMessages);
-            }
+        if (skipSync) {
+            setMessagesLoading(false);
+            return;
         }
-
-        setMessagesLoading(true);
 
         try {
-            // PANELMASTER: Use centralized sync service instead of raw fetch
-            // This ensures every message we see is also saved in Supabase
+            // 2. BACKGROUND/DELTA SYNC: Fetch latest from API/Supabase
+            // We use the sync service to ensure Supabase is also updated
             const result = await syncMessagesToSupabase(
-                selectedChat.id, // Supabase Chat ID
+                selectedChat.id,
                 selectedNumber.instance_id,
                 selectedNumber.api_token,
-                chatId, // Remote JID
-                100 // limit
+                chatId,
+                100
             );
 
             if (result.success && result.data) {
-                const newMessages = result.data;
-                setMessages(newMessages);
-                setHasMoreMessages(newMessages.length >= 100);
-                if (newMessages.length > 0) {
-                    setOldestMessageTimestamp(newMessages[0].timestamp);
+                const apiMessages = result.data;
+
+                // Merge with local cache to handle gaps or newly sent/received messages
+                const merged = mergeMessages(localCachedMessages || [], apiMessages);
+
+                setMessages(merged);
+                setHasMoreMessages(apiMessages.length >= 100);
+                if (merged.length > 0) {
+                    setOldestMessageTimestamp(merged[0].timestamp);
                 }
 
                 // Update caches
-                historyCacheRef.current.set(chatId, {
-                    messages: newMessages,
-                    timestamp: Date.now()
+                saveMessagesToCache(selectedNumber.instance_id, chatId, merged);
+                saveSyncMeta(selectedNumber.instance_id, chatId, {
+                    lastMessageId: merged[merged.length - 1]?.idMessage || merged[merged.length - 1]?.id
                 });
-                saveMessagesToCache(selectedNumber.instance_id, chatId, newMessages);
-            } else {
-                console.warn('[HISTORY] Sync failed, keeping existing messages');
             }
         } catch (error) {
             console.error('[HISTORY] Fetch error:', error);
-            await logger.error('Failed to fetch chat history', { error: error.message, chatId }, selectedNumber.id);
         } finally {
             setMessagesLoading(false);
             setLoading(false);

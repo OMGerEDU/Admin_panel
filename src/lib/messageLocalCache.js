@@ -3,10 +3,11 @@
 
 const CACHE_PREFIX = 'whatsapp_messages_';
 const CACHE_VERSION = '1.0';
-const MAX_CACHE_AGE = 24 * 60 * 60 * 1000; // 24 hours
-const MAX_MESSAGES_PER_CHAT = 500; // Limit cache size per chat
+const MAX_CACHE_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days instead of 1
+const MAX_MESSAGES_PER_CHAT = 1000; // Increase limit
 const CHATS_CACHE_PREFIX = 'whatsapp_chats_';
 const AVATARS_CACHE_PREFIX = 'whatsapp_avatars_';
+const SYNC_META_PREFIX = 'whatsapp_sync_meta_';
 
 /**
  * Get cache key for a chat
@@ -269,6 +270,32 @@ export function loadAvatarsFromCache(instanceId) {
     } catch (error) {
         console.error('[CACHE] Error loading avatars from localStorage:', error);
         return new Map();
+    }
+}
+
+/**
+ * Save sync metadata for a chat (e.g. last fetched timestamp)
+ */
+export function saveSyncMeta(instanceId, chatId, meta) {
+    try {
+        const key = `${SYNC_META_PREFIX}${instanceId}_${chatId}`;
+        localStorage.setItem(key, JSON.stringify({
+            ...meta,
+            updatedAt: Date.now()
+        }));
+    } catch (e) { }
+}
+
+/**
+ * Get sync metadata for a chat
+ */
+export function getSyncMeta(instanceId, chatId) {
+    try {
+        const key = `${SYNC_META_PREFIX}${instanceId}_${chatId}`;
+        const cached = localStorage.getItem(key);
+        return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+        return null;
     }
 }
 
