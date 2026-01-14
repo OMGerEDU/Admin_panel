@@ -81,6 +81,7 @@ export default function Chats() {
     // Media URLs cache - stores fetched downloadUrls by message ID
     const [mediaUrls, setMediaUrls] = useState({});
     const [loadingMedia, setLoadingMedia] = useState({});
+    const [syncStatus, setSyncStatus] = useState({}); // numberId -> status object
     const [showPanelMaster, setShowPanelMaster] = useState(false);
     const pendingChatIdFromUrlRef = useRef(null);
     const isGatheringAvatarsRef = useRef(false);
