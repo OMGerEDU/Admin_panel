@@ -68,6 +68,8 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
         chat.lastMessage?.textMessage ||
         chat.lastMessage?.extendedTextMessage?.text ||
         chat.lastMessage?.message ||
+        chat.lastMessage?.conversation ||
+        chat.lastMessage?.caption ||
         null;
 
       const lastTs =
@@ -603,6 +605,46 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
   }
 
   return { newCount };
+}
+
+/**
+ * WARM-UP SYNC:
+ * Fetches the very latest global history across ALL chats.
+ * This ensures the user sees something immediately in their recent chats.
+ */
+export async function warmUpSync(numberId, instanceId, token) {
+  try {
+    console.log(`[SYNC] WARM-UP starting for ${numberId}...`);
+
+    // 1. Fetch last incoming (Global)
+    const incoming = await getLastIncomingMessages(instanceId, token, 1440);
+
+    // 2. Fetch last outgoing (Global)
+    const outgoingResult = await getLastOutgoingMessages(instanceId, token);
+
+    // Green API's lastIncoming/Outgoing usually return up to 100-200 messages total
+    // We combine and process them to discover chats
+    const messages = [
+      ...(incoming.success ? incoming.data : []),
+      ...(outgoingResult.success ? outgoingResult.data : [])
+    ];
+
+    if (messages.length === 0) return { success: true, count: 0 };
+
+    // Sort by timestamp newest first
+    messages.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    // Get current chats to avoid duplicate discovery
+    const { data: currentChats } = await supabase.from('chats').select('*').eq('number_id', numberId);
+
+    await processMessageBatch(numberId, currentChats || [], messages, instanceId, token);
+
+    console.log(`[SYNC] WARM-UP finished. Processed ${messages.length} global messages.`);
+    return { success: true, count: messages.length, messages };
+  } catch (error) {
+    console.error('[SYNC] Warm-up error:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 export function getSyncStatus(numberId) {

@@ -23,7 +23,7 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
-import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory, resetChatNames } from '../services/messageSync';
+import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory, resetChatNames, warmUpSync } from '../services/messageSync';
 import { logger } from '../lib/logger';
 import { playNotificationSound } from '../utils/audio';
 import {
@@ -56,6 +56,7 @@ export default function Chats() {
     const [syncing, setSyncing] = useState(false);
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
+    const [isWarmUpSyncing, setIsWarmUpSyncing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
@@ -122,21 +123,52 @@ export default function Chats() {
                 historyCacheRef.current.clear();
 
                 // Load cached avatars for this instance immediately
-                const cachedAvatars = loadAvatarsFromCache(num.instance_id);
-                setChatAvatars(cachedAvatars);
             }
         }
     }, [numberId, numbers]);
 
     useEffect(() => {
         if (selectedNumber) {
-            // Priority: Load avatars from cache immediately when number changes
+            // 1. Priority: Load avatars from cache immediately when number changes
             const cachedAvatars = loadAvatarsFromCache(selectedNumber.instance_id);
             if (cachedAvatars.size > 0) {
                 console.log(`[AVATAR] Loaded ${cachedAvatars.size} cached avatars for ${selectedNumber.instance_id}`);
                 setChatAvatars(cachedAvatars);
             }
+
+            // 2. Load basic chat list
             fetchChats();
+
+            // 3. Perform a "Warm-up" sync to populate latest history immediately (Global History)
+            setIsWarmUpSyncing(true);
+            warmUpSync(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token)
+                .then((result) => {
+                    console.log('[SYNC] Warm-up complete, refreshing list');
+
+                    // Populate local cache based on discovered history
+                    if (result.success && result.messages) {
+                        const grouped = {};
+                        result.messages.forEach(msg => {
+                            const cid = msg.chatId || (msg.key?.remoteJid);
+                            if (cid) {
+                                if (!grouped[cid]) grouped[cid] = [];
+                                grouped[cid].push(msg);
+                            }
+                        });
+
+                        Object.keys(grouped).forEach(cid => {
+                            const current = loadMessagesFromCache(selectedNumber.instance_id, cid) || [];
+                            const merged = mergeMessages(current, grouped[cid]);
+                            saveMessagesToCache(selectedNumber.instance_id, cid, merged);
+                        });
+                    }
+
+                    fetchChats(true); // Soft refresh with cache update
+                    // If we have a selected chat that was empty, refresh it now
+                    if (selectedChat) fetchMessages(true);
+                })
+                .catch(err => console.error('[SYNC] Warm-up failed:', err))
+                .finally(() => setIsWarmUpSyncing(false));
         }
     }, [selectedNumber?.id]);
 
@@ -390,15 +422,15 @@ export default function Chats() {
         }
     }, [chats.length, selectedNumber?.id]);
 
-    // Load avatar for selected chat after messages are loaded
+    // Load avatar for selected chat
     useEffect(() => {
-        if (selectedChat && selectedNumber && messages.length > 0) {
+        if (selectedChat && selectedNumber) {
             const chatId = selectedChat.chatId || selectedChat.remote_jid;
-            if (chatId) {
+            if (chatId && !chatAvatars.has(chatId)) {
                 loadChatAvatar(chatId);
             }
         }
-    }, [messages.length, selectedChat, selectedNumber]);
+    }, [selectedChat, selectedNumber?.id]);
 
     // Auto-scroll to bottom when messages change
     const messagesEndRef = useRef(null);
@@ -1430,19 +1462,28 @@ export default function Chats() {
                     <>
                         {/* Chat Header */}
                         <div className="p-3 border-b border-border dark:border-[#202c33] bg-secondary dark:bg-[#202c33] flex items-center gap-3 text-foreground dark:text-[#e9edef]">
-                            <div className="w-10 h-10 rounded-full bg-primary/20 dark:bg-[#00a884]/20 flex items-center justify-center">
-                                <Phone className="h-5 w-5 text-primary dark:text-[#00a884]" />
-                            </div>
+                            {/* Avatar or Phone Icon */}
+                            {chatAvatars.has(selectedChat.chatId || selectedChat.remote_jid) ? (
+                                <img
+                                    src={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
+                                    alt={selectedChat.name}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 rounded-full bg-primary/20 dark:bg-[#00a884]/20 flex items-center justify-center">
+                                    <Phone className="h-5 w-5 text-primary dark:text-[#00a884]" />
+                                </div>
+                            )}
                             <div className="flex flex-col">
                                 <span className="font-semibold">
                                     {selectedChat.name || selectedChat.phone || selectedChat.chatId}
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
-                                    {syncStatus[selectedNumber?.id]?.inProgress && (
+                                    {(syncStatus[selectedNumber?.id]?.inProgress || isWarmUpSyncing) && (
                                         <span className="text-[9px] text-primary animate-pulse flex items-center gap-1 bg-primary/5 px-1.5 rounded">
                                             <span className="w-1 h-1 bg-primary rounded-full"></span>
-                                            {t('sync.syncing') || 'מסנכרן'}...
+                                            {isWarmUpSyncing ? "Synchronizing Global History..." : (t('sync.syncing') || 'מסנכרן') + "..."}
                                         </span>
                                     )}
                                 </div>
