@@ -7,6 +7,7 @@ import {
   getChatMetadata
 } from './greenApi';
 import { supabase } from '../lib/supabaseClient';
+import { uploadStateSnapshot } from './snapshotService';
 
 // Global state for background sync status
 const activeSyncTasks = new Map(); // numberId -> status object
@@ -601,7 +602,32 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
         media_meta: mediaMeta
       });
 
-    if (!error) newCount++;
+    if (!error) {
+      newCount++;
+      // Update chat's last message info if this message is newer
+      const currentLastTs = chat.last_message_at ? new Date(chat.last_message_at).getTime() : 0;
+      const msgTs = new Date(ts).getTime();
+
+      if (msgTs >= currentLastTs) {
+        chat.last_message = content;
+        chat.last_message_at = ts;
+      }
+    }
+  }
+
+  // Final metadata update: ensure chats table reflects discovery
+  if (newCount > 0) {
+    const chatUpdates = Array.from(chatMap.values()).map(c => ({
+      id: c.id,
+      last_message: c.last_message,
+      last_message_at: c.last_message_at,
+      name: c.name,
+      number_id: c.number_id,
+      remote_jid: c.remote_jid
+    }));
+
+    // Upsert to update just the metadata
+    await supabase.from('chats').upsert(chatUpdates, { onConflict: 'number_id,remote_jid' });
   }
 
   return { newCount };
@@ -649,6 +675,50 @@ export async function warmUpSync(numberId, instanceId, token) {
 
 export function getSyncStatus(numberId) {
   return activeSyncTasks.get(numberId);
+}
+
+/**
+ * TRIGGER SNAPSHOT:
+ * Gathers the current known state for an instance and uploads it as a JSON bundle.
+ */
+export async function triggerStateSnapshot(instanceId) {
+  try {
+    console.log(`[SNAPSHOT] Creating snapshot for ${instanceId}...`);
+
+    // 1. Get cached chats
+    const chats = loadChatsFromCache(instanceId) || [];
+
+    // 2. Get cached avatars
+    const avatarsMap = loadAvatarsFromCache(instanceId);
+    const avatars = Object.fromEntries(avatarsMap);
+
+    // 3. Get message chunks for recent chats (top 50)
+    const messageChunks = {};
+    const topChats = chats.slice(0, 50);
+
+    for (const chat of topChats) {
+      const cid = chat.chatId || chat.remote_jid;
+      if (cid) {
+        const msgs = loadMessagesFromCache(instanceId, cid);
+        if (msgs && msgs.length > 0) {
+          messageChunks[cid] = msgs;
+        }
+      }
+    }
+
+    const payload = {
+      instanceId,
+      timestamp: new Date().toISOString(),
+      chats,
+      avatars,
+      messageChunks
+    };
+
+    return await uploadStateSnapshot(instanceId, payload);
+  } catch (error) {
+    console.error('[SNAPSHOT] Failed to trigger snapshot:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 /**

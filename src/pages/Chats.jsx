@@ -23,7 +23,8 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
-import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory, resetChatNames, warmUpSync } from '../services/messageSync';
+import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncFullChatHistory, resetChatNames, warmUpSync, triggerStateSnapshot } from '../services/messageSync';
+import { bootstrapFromSnapshot } from '../services/snapshotService';
 import { logger } from '../lib/logger';
 import { playNotificationSound } from '../utils/audio';
 import {
@@ -57,6 +58,7 @@ export default function Chats() {
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
     const [isWarmUpSyncing, setIsWarmUpSyncing] = useState(false);
+    const [isBootstrapping, setIsBootstrapping] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
@@ -129,14 +131,28 @@ export default function Chats() {
 
     useEffect(() => {
         if (selectedNumber) {
-            // 1. Priority: Load avatars from cache immediately when number changes
+            // 0. Priority Alpha: Bootstrap from Storage Snapshot (Ultra Fast)
+            setIsBootstrapping(true);
+            bootstrapFromSnapshot(selectedNumber.instance_id)
+                .then((res) => {
+                    if (res.success) {
+                        console.log('[SNAPSHOT] Quick bootstrap successful, reloading UI');
+                        // Reload state from newly populated cache
+                        const cachedAvatars = loadAvatarsFromCache(selectedNumber.instance_id);
+                        if (cachedAvatars.size > 0) setChatAvatars(cachedAvatars);
+                        fetchChats();
+                    }
+                })
+                .finally(() => setIsBootstrapping(false));
+
+            // 1. Priority: Load avatars from cache immediately (Local only)
             const cachedAvatars = loadAvatarsFromCache(selectedNumber.instance_id);
             if (cachedAvatars.size > 0) {
                 console.log(`[AVATAR] Loaded ${cachedAvatars.size} cached avatars for ${selectedNumber.instance_id}`);
                 setChatAvatars(cachedAvatars);
             }
 
-            // 2. Load basic chat list
+            // 2. Load basic chat list (Local Cache / DB)
             fetchChats();
 
             // 3. Perform a "Warm-up" sync to populate latest history immediately (Global History)
@@ -227,13 +243,20 @@ export default function Chats() {
     // Background Sync Initiation
     useEffect(() => {
         if (numbers.length > 0) {
+            const intervals = [];
             numbers.forEach(num => {
                 if (num.instance_id && num.api_token) {
                     startBackgroundSync(num.id, num.instance_id, num.api_token);
+                    // Periodic snapshot (e.g. 5 minutes)
+                    const snapshotInterval = setInterval(() => {
+                        triggerStateSnapshot(num.instance_id);
+                    }, 300000);
+                    intervals.push(snapshotInterval);
                 }
             });
+            return () => intervals.forEach(clearInterval);
         }
-    }, [numbers]);
+    }, [numbers, selectedNumber?.id]);
 
     useEffect(() => {
         if (chats.length > 0 && selectedNumber) {
@@ -487,7 +510,6 @@ export default function Chats() {
             if (localCachedChats && localCachedChats.length > 0) {
                 console.log('[CHATS] Using localStorage cached chats list');
                 setChats(localCachedChats);
-                // Continue fetching fresh in background
             }
         }
 
@@ -501,7 +523,6 @@ export default function Chats() {
                 syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token, refreshNames)
                     .then(() => {
                         saveSyncMeta(acc.instance_id, 'global_chats_sync', { updatedAt: Date.now() });
-                        // Trigger a soft refresh to show results
                         fetchChats(false);
                     })
                     .catch(() => { });
@@ -518,25 +539,25 @@ export default function Chats() {
                 });
             }
 
-            // 2. Fetch all chats from Supabase (Discovery source)
+            // 2. Fetch all chats from Supabase
             const { data: dbChats } = await supabase
                 .from('chats')
                 .select('*')
                 .eq('number_id', acc.id);
 
-            // 3. Merge: Database serves as the list of all "known" chats, 
-            // API provides the "live" status (unread, latest msg)
+            // 3. Merge: Database serves as the list, API provides unread/live status
             let freshChats = (dbChats || []).map(dbChat => {
                 const liveChat = liveChatMap.get(dbChat.remote_jid);
                 const chatId = dbChat.remote_jid;
                 const phone = removeJidSuffix(chatId);
 
-                // Use live data if available, fallback to DB
+                // Start with DB data
                 let lastMessageText = dbChat.last_message || '';
                 let lastMessageId = dbChat.last_message_id || '';
                 let timestamp = dbChat.last_message_at ? Math.floor(new Date(dbChat.last_message_at).getTime() / 1000) : 0;
                 let unreadCount = 0;
 
+                // Priority 2: Use live data if available
                 if (liveChat) {
                     unreadCount = liveChat.unreadCount ?? liveChat.unread ?? 0;
                     if (liveChat.lastMessage) {
@@ -547,12 +568,22 @@ export default function Chats() {
                     }
                 }
 
-                const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
+                // Priority 3: If STILL empty, check local message cache (PanelMaster special optimization)
+                if (!lastMessageText) {
+                    const cachedMsgs = loadMessagesFromCache(acc.instance_id, chatId);
+                    if (cachedMsgs && cachedMsgs.length > 0) {
+                        const lastMsg = cachedMsgs[cachedMsgs.length - 1];
+                        lastMessageText = lastMsg.textMessage || lastMsg.content || '[Media]';
+                        timestamp = lastMsg.timestamp || timestamp;
+                    }
+                }
+
+                const isJidHelper = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
                 const rawName = dbChat.name || liveChat?.name || liveChat?.chatName || null;
-                const cleanName = isJid(rawName) ? null : rawName;
+                const cleanName = isJidHelper(rawName) ? null : rawName;
 
                 return {
-                    id: dbChat.id, // Supabase ID
+                    id: dbChat.id,
                     chatId: chatId,
                     phone: phone,
                     name: cleanName || phone,
@@ -565,19 +596,14 @@ export default function Chats() {
                 };
             });
 
-            // If some live chats are NOT in DB yet, add them (though background sync should handle this)
-            liveChatMap.forEach((liveChat, chatId) => {
-                if (!freshChats.some(c => c.chatId === chatId)) {
-                    const phone = removeJidSuffix(chatId);
+            // Add chats that are ONLY in the live list (Discovery)
+            liveChatMap.forEach((liveChat, cid) => {
+                if (!freshChats.some(c => c.chatId === cid)) {
                     const lm = liveChat.lastMessage;
-                    const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
-                    const rawName = liveChat.name || liveChat.chatName || null;
-                    const cleanName = isJid(rawName) ? null : rawName;
-
                     freshChats.push({
-                        chatId,
-                        phone,
-                        name: cleanName || phone,
+                        chatId: cid,
+                        phone: removeJidSuffix(cid),
+                        name: liveChat.name || liveChat.chatName || removeJidSuffix(cid),
                         avatar: liveChat.avatar || liveChat.urlAvatar || '',
                         lastMessage: lm ? (lm.textMessage || lm.extendedTextMessage?.text || '[Media]') : '',
                         lastMessageId: lm?.idMessage || lm?.id || '',
@@ -588,10 +614,9 @@ export default function Chats() {
                 }
             });
 
-            // Sort by timestamp (newest first)
             freshChats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-            // Update cache
+            // Update memory and disk cache
             chatsCacheRef.current.data = freshChats;
             chatsCacheRef.current.timestamp = Date.now();
             chatsCacheRef.current.instanceId = acc.instance_id;
@@ -601,7 +626,6 @@ export default function Chats() {
             return freshChats;
         } catch (error) {
             console.error('[CHATS] Fetch chats error:', error);
-            await logger.error('Failed to fetch chats', { error: error.message }, selectedNumber?.id);
             return [];
         }
     };
