@@ -6,7 +6,24 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { CloudUpload, Plus, Search, Send, Phone, Tag, Settings, Filter, Calendar, X, RefreshCw, UserCheck, Cpu, Database, Activity, Info } from 'lucide-react';
+import {
+    CloudUpload,
+    Plus,
+    Search,
+    Send,
+    Phone,
+    Tag,
+    Settings,
+    Filter,
+    Calendar,
+    X,
+    RefreshCw,
+    UserCheck,
+    Cpu,
+    Database,
+    Activity,
+    Info
+} from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
