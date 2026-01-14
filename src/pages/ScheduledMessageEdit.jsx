@@ -18,6 +18,7 @@ import {
     Tag,
     Phone,
     Users,
+    Mic,
 } from 'lucide-react';
 import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
 import { useTags } from '../hooks/useTags';
