@@ -20,6 +20,7 @@ const activeChatSyncs = new Set(); // chatRemoteId set
 let lastHistoryCallTime = 0;
 const HISTORY_CALL_COOLDOWN = 4000; // 4 seconds between history calls globally
 let backoffUntil = 0; // Timestamp to resume sync after 429
+let isWebhookMode = false; // If true, we stop polling `receiveNotification` to avoid 400 spam
 
 async function throttleHistoryCall() {
   const now = Date.now();
@@ -358,48 +359,47 @@ export async function fullSync(numberId, instanceId, token, messageLimit = 50) {
  */
 export async function pollNewMessages(instanceId, token, onNewMessage) {
   try {
+    // If we know this instance uses webhooks, skip `receiveNotification` entirely
+    // and just use the history fallback (but throttled)
+    if (isWebhookMode) {
+      await throttleHistoryCall(); // Ensure we don't spam 
+      // Fallback: Check last 2 minutes (covering the query param user saw failing)
+      const historyResult = await getLastIncomingMessages(instanceId, token, 2);
+
+      if (historyResult.success && Array.isArray(historyResult.data)) {
+        // Filter for very recent messages (last 60 seconds to be safe)
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        const cutoff = nowSeconds - 60;
+
+        const recentMessages = historyResult.data.filter(msg => {
+          const ts = msg.timestamp || 0;
+          return ts >= cutoff;
+        });
+
+        if (recentMessages.length > 0 && onNewMessage) {
+          await onNewMessage(recentMessages[0], null);
+        }
+        return { success: true, fallback: true, count: recentMessages.length };
+      }
+      return { success: true, count: 0 };
+    }
+
     const result = await receiveNotification(instanceId, token);
 
     // FAILURE CASE: Check for Webhook conflict
     if (!result.success) {
       // If error indicates custom webhook is set (400 Bad Request)
       if (result.error && (result.error.includes('custom webhook url') || result.error.includes('400'))) {
-        console.warn('[POLLING] Custom webhook detected, falling back to history polling.');
-
-        // Polling Fallback: Check last 1 minute of income messages
-        const historyResult = await getLastIncomingMessages(instanceId, token, 1);
-
-        if (historyResult.success && Array.isArray(historyResult.data)) {
-          // Filter for very recent messages (last 30 seconds to be safe)
-          const nowSeconds = Math.floor(Date.now() / 1000);
-          const cutoff = nowSeconds - 30;
-
-          const recentMessages = historyResult.data.filter(msg => {
-            const ts = msg.timestamp || 0;
-            return ts >= cutoff;
-          });
-
-          // If we found recent messages, trigger the callback for each
-          if (recentMessages.length > 0) {
-            console.log(`[POLLING] Found ${recentMessages.length} recent messages via history fallback.`);
-            if (onNewMessage) {
-              // We pass just the message object, simulating the 'incomingMessageReceived' payload
-              // Chats.jsx mainly needs to know *something* arrived to trigger a refresh.
-              // We pass the last one to be representative.
-              await onNewMessage(recentMessages[0], null);
-
-              // Note: We don't delete these form the queue because they are from history/storage, not the notification queue.
-            }
-          }
-
-          return { success: true, fallback: true, count: recentMessages.length };
-        }
+        console.warn('[POLLING] Custom webhook detected! Switching to Webhook Mode (History Polling).');
+        isWebhookMode = true; // PERMANENTLY SWITCH for this session
+        return { success: false, error: 'Switched to webhook mode' };
       }
       return { success: false, error: result.error };
     }
 
+    // 3. STANDARD POLLING PATH
     if (!result.data) {
-      return { success: false };
+      return { success: true };
     }
 
     const notification = result.data;
@@ -533,11 +533,6 @@ export async function startBackgroundSync(numberId, instanceId, token) {
 
   return status;
 }
-
-/**
- * Syncs the entire history of a single chat back to the beginning
- */
-const activeChatSyncs = new Set(); // chatId string
 
 export async function syncFullChatHistory(chat, instanceId, token, maxPages = 5) {
   const syncKey = `${chat.number_id}:${chat.remote_jid}`;
@@ -931,6 +926,3 @@ function extractMessageContentAndMeta(msg) {
 
   return { content, mediaMeta };
 }
-
-
-

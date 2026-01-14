@@ -17,7 +17,8 @@ import {
     Filter,
     Calendar,
     X,
-    RefreshCw
+    RefreshCw,
+    Mic
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';

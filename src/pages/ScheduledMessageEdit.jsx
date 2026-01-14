@@ -72,6 +72,42 @@ function convertIsraelTimeToUTC(year, month, day, hour, minute) {
     return new Date(trueUtcTimestamp);
 }
 
+// Custom 24h Time Picker
+function TimePicker24h({ value, onChange, className }) {
+    // value is "HH:mm"
+    const [h, m] = (value || '00:00').split(':');
+    const hour = h || '00';
+    const minute = m || '00';
+
+    // Generate options
+    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+    const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+
+    const handleChange = (newHour, newMinute) => {
+        onChange(`${newHour}:${newMinute}`);
+    };
+
+    return (
+        <div className={`flex items-center gap-1 ${className}`}>
+            <select
+                value={hour}
+                onChange={(e) => handleChange(e.target.value, minute)}
+                className="h-10 w-[70px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                {hours.map(h => <option key={h} value={h}>{h}</option>)}
+            </select>
+            <span className="text-muted-foreground font-bold">:</span>
+            <select
+                value={minute}
+                onChange={(e) => handleChange(hour, e.target.value)}
+                className="h-10 w-[70px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                {minutes.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+        </div>
+    );
+}
+
 export default function ScheduledMessageEdit() {
     const { t } = useTranslation();
     const { id } = useParams();
@@ -1219,12 +1255,10 @@ export default function ScheduledMessageEdit() {
                                     <label className="text-sm font-medium">
                                         {t('scheduled.time') || 'Time'} *
                                     </label>
-                                    <Input
-                                        type="time"
+                                    <TimePicker24h
                                         value={formData.scheduled_time}
-                                        onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
-                                        required
-                                        className="max-w-[150px]"
+                                        onChange={(val) => setFormData({ ...formData, scheduled_time: val })}
+                                        className="max-w-[160px]"
                                     />
                                 </div>
                             </div>
@@ -1255,11 +1289,9 @@ export default function ScheduledMessageEdit() {
                                         <label className="text-sm font-medium">
                                             {t('scheduled.time') || 'Time'} *
                                         </label>
-                                        <Input
-                                            type="time"
+                                        <TimePicker24h
                                             value={formData.scheduled_time}
-                                            onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
-                                            required
+                                            onChange={(val) => setFormData({ ...formData, scheduled_time: val })}
                                         />
                                     </div>
                                 </div>
