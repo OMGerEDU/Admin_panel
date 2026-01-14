@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { fetchCurrentSubscriptionAndPlan, canUseScheduledMessages } from '../lib/planLimits';
 import { useTags } from '../hooks/useTags';
+import VoiceRecorder from '../components/VoiceRecorder';
 
 // Days of week for recurring
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -292,6 +293,47 @@ export default function ScheduledMessageEdit() {
         const interval = setInterval(updateCurrentTime, 1000);
         return () => clearInterval(interval);
     }, []);
+
+    const handleVoiceRecordingComplete = async (blob, fileName) => {
+        try {
+            setUploading(true);
+            const path = `${user.id}/${Date.now()}_voice.webm`;
+            const bucketName = import.meta.env.VITE_STORAGE_BUCKET || 'GreenBuilders';
+
+            const { error: uploadError } = await supabase.storage
+                .from(bucketName)
+                .upload(path, blob, {
+                    cacheControl: '3600',
+                    upsert: false,
+                    contentType: 'audio/webm'
+                });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(path);
+
+            setFormData({
+                ...formData,
+                media_url: urlData.publicUrl,
+                media_type: 'audio',
+                media_filename: fileName,
+            });
+
+            setUploadedFile({
+                name: fileName,
+                size: blob.size,
+                type: 'audio/webm',
+                url: urlData.publicUrl,
+            });
+        } catch (error) {
+            console.error('Error uploading voice:', error);
+            alert(`Failed to upload voice: ${error.message}`);
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
@@ -952,67 +994,70 @@ export default function ScheduledMessageEdit() {
                         </div>
 
                         {/* Media Upload */}
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             <label className="text-sm font-medium">
-                                {t('scheduled.media_url') || 'Media (optional)'}
+                                {t('scheduled.media_url') || 'Media & Voice Recording'}
                             </label>
 
-                            {!formData.media_url && !uploadedFile ? (
-                                <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                                    <input
-                                        type="file"
-                                        id="media-upload"
-                                        onChange={handleFileUpload}
-                                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
-                                        className="hidden"
-                                        disabled={uploading}
-                                    />
-                                    <label
-                                        htmlFor="media-upload"
-                                        className={`flex flex-col items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        {uploading ? (
-                                            <>
-                                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                                <span className="text-sm text-muted-foreground">Uploading...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload className="h-8 w-8 text-muted-foreground" />
-                                                <span className="text-sm text-muted-foreground">
-                                                    Click to upload or drag and drop
-                                                </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    Images, Videos, Audio, Documents
-                                                </span>
-                                            </>
-                                        )}
-                                    </label>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {uploadedFile && (
-                                        <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
-                                            {formData.media_type === 'image' && (
-                                                <ImageIcon className="h-5 w-5 text-primary" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Traditional Upload */}
+                                {!formData.media_url && !uploadedFile ? (
+                                    <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                                        <input
+                                            type="file"
+                                            id="media-upload"
+                                            onChange={handleFileUpload}
+                                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                                            className="hidden"
+                                            disabled={uploading}
+                                        />
+                                        <label
+                                            htmlFor="media-upload"
+                                            className={`flex flex-col items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            {uploading ? (
+                                                <>
+                                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                                    <span className="text-sm text-muted-foreground">Uploading...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="h-8 w-8 text-muted-foreground" />
+                                                    <span className="text-sm text-muted-foreground font-medium">
+                                                        {t('scheduled.upload_file', 'Upload File')}
+                                                    </span>
+                                                </>
                                             )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">{uploadedFile.name}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {(uploadedFile.size / 1024).toFixed(2)} KB
-                                                </p>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={handleRemoveFile}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <div className="border border-primary/20 bg-primary/5 rounded-lg p-6 flex flex-col items-center justify-center text-center">
+                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                                            {formData.media_type === 'audio' ? <Mic className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-primary" />}
                                         </div>
-                                    )}
+                                        <p className="text-sm font-medium truncate max-w-full px-2">{formData.media_filename || 'File attached'}</p>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleRemoveFile}
+                                            className="mt-2 text-destructive hover:bg-destructive/10"
+                                        >
+                                            <X className="h-4 w-4 mr-2" />
+                                            {t('common.remove', 'Remove')}
+                                        </Button>
+                                    </div>
+                                )}
 
+                                {/* Voice Recorder */}
+                                <VoiceRecorder
+                                    onRecordingComplete={handleVoiceRecordingComplete}
+                                    onClear={handleRemoveFile}
+                                />
+                            </div>
+
+                            {(formData.media_url || uploadedFile) && (
+                                <div className="space-y-2 pt-2">
                                     <div className="flex gap-2">
                                         <select
                                             value={formData.media_type}
@@ -1040,7 +1085,7 @@ export default function ScheduledMessageEdit() {
                                         className="text-xs"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Or enter a URL manually above
+                                        {t('scheduled.media_url_hint', 'Direct URL to media if not uploaded')}
                                     </p>
                                 </div>
                             )}

@@ -717,6 +717,46 @@ const resources = {
                 "chats_with_tag": "Chats with tag",
                 "no_chats_with_tag": "No chats have this tag yet",
                 "tag_id": "#{{id}}"
+            },
+            "updates": {
+                "title": "System Updates",
+                "subtitle": "What's new in Ferns and the Chrome Extension",
+                "suggestion_title": "Have a suggestion?",
+                "suggestion_desc": "We're building Ferns together. Share your ideas with us!",
+                "suggestion_note": "Use the feedback button in the sidebar to submit a feature request."
+            },
+            "recorder": {
+                "recording": "Recording...",
+                "preview": "Voice Preview",
+                "title": "Voice Message",
+                "start": "Record Voice",
+                "stop": "Stop Recording"
+            },
+            "analytics": {
+                "title": "Intelligence Dashboard",
+                "subtitle": "Real-time messaging insights and performance metrics.",
+                "chats_today": "Chats Today",
+                "avg_response": "Avg Response Time",
+                "dormant": "Dormant Clients",
+                "total_activity": "Weekly Activity",
+                "from_yesterday": "from yesterday",
+                "improvement": "improvement",
+                "dormant_desc": "No contact for > 7 days",
+                "messages_sent_received": "Messages exchanged",
+                "activity_overtime": "Messaging Activity",
+                "activity_desc": "Visualizing message volume for the past 7 days.",
+                "dormant_list": "Dormant Clients",
+                "dormant_list_desc": "Clients you might want to follow up with.",
+                "no_dormant": "No dormant clients found.",
+                "last_active": "Last active:",
+                "reengage": "Re-engage"
+            },
+            "feedback": {
+                "category": "Category",
+                "cat_feedback": "Feedback",
+                "cat_bug": "Bug",
+                "cat_improvement": "Improvement",
+                "cat_feature_request": "Feature Request"
             }
         }
     },
@@ -1387,6 +1427,46 @@ const resources = {
                 "status_title": "סטטוס Green API",
                 "status_text": "בדוק את הסטטוס התפעולי של שירות Green API.",
                 "visit_status": "בקר ב-Green API"
+            },
+            "updates": {
+                "title": "עדכוני מערכת",
+                "subtitle": "מה חדש ב-Ferns ובתוסף לכרום",
+                "suggestion_title": "יש לכם הצעה?",
+                "suggestion_desc": "אנחנו בונים את Ferns יחד. שתפו אותנו ברעיונות שלכם!",
+                "suggestion_note": "השתמשו בכפתור המשוב בסרגל הצד כדי לשלוח בקשה לתכונה חדשה."
+            },
+            "recorder": {
+                "recording": "מקליט...",
+                "preview": "תצוגה מקדימה",
+                "title": "הודעת קול",
+                "start": "הקלט הודעה",
+                "stop": "עצור הקלטה"
+            },
+            "analytics": {
+                "title": "לוח מודיעין",
+                "subtitle": "תובנות הודעות בזמן אמת ומדדי ביצועים.",
+                "chats_today": "צ'אטים היום",
+                "avg_response": "זמן תגובה ממוצע",
+                "dormant": "לקוחות רדומים",
+                "total_activity": "פעילות שבועית",
+                "from_yesterday": "מאתמול",
+                "improvement": "שיפור",
+                "dormant_desc": "אין קשר מעל 7 ימים",
+                "messages_sent_received": "הודעות הוחלפו",
+                "activity_overtime": "פעילות הודעות",
+                "activity_desc": "ויזואליזציה של נפח ההודעות ב-7 הימים האחרונים.",
+                "dormant_list": "לקוחות רדומים",
+                "dormant_list_desc": "לקוחות שאולי תרצו לחזור אליהם.",
+                "no_dormant": "לא נמצאו לקוחות רדומים.",
+                "last_active": "פעיל לאחרונה:",
+                "reengage": "צור קשר מחדש"
+            },
+            "feedback": {
+                "category": "קטגוריה",
+                "cat_feedback": "משוב",
+                "cat_bug": "דיווח על באג",
+                "cat_improvement": "שיפור",
+                "cat_feature_request": "בקשת תכונה"
             },
             "privacy_policy": {
                 "title": "מדיניות פרטיות",

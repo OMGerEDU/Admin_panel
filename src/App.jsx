@@ -27,6 +27,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import Terms from './pages/Terms'
 import Support from './pages/Support'
 import Api from './pages/Api'
+import Updates from './pages/Updates'
+import Analytics from './pages/Analytics'
 import './index.css'
 
 function App() {
@@ -71,6 +73,8 @@ function App() {
                   <Route path="organization" element={<OrganizationOverview />} />
                   <Route path="organization/:orgId" element={<OrganizationSettings />} />
                   <Route path="extension" element={<Extension />} />
+                  <Route path="updates" element={<Updates />} />
+                  <Route path="analytics" element={<Analytics />} />
                 </Route>
               </Route>
             </Routes>

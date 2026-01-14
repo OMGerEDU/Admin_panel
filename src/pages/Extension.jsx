@@ -27,7 +27,7 @@ export default function Extension() {
                                 <h4 className="font-semibold">{t('extension_page.chrome_extension')}</h4>
                                 <p className="text-sm text-muted-foreground">{t('extension_page.version')} 2.4.0</p>
                             </div>
-                            <Button>
+                            <Button onClick={() => window.open('https://chromewebstore.google.com/detail/ferns-%E2%80%A2-green-api-crm-hel/hlabljhdgmjdknnmdhlepecmkbicdnmi', '_blank')}>
                                 <Download className="mr-2 h-4 w-4" />
                                 {t('extension_page.download')}
                             </Button>

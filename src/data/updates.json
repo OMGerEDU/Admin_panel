@@ -1,0 +1,42 @@
+[
+    {
+        "version": "1.0.1",
+        "date": "2026-01-14",
+        "title": "Green API Compatibility & Feedback Overhaul",
+        "type": "major",
+        "features": [
+            {
+                "title": "Green API Fix",
+                "description": "Resolved 404 errors by implementing correct getContactInfo and getGroupData endpoints."
+            },
+            {
+                "title": "Feedback System",
+                "description": "New categorized feedback system with support for Feature Requests and Bug reports."
+            },
+            {
+                "title": "Extension Update",
+                "description": "Updated link to the latest version of Ferns Chrome Extension."
+            }
+        ]
+    },
+    {
+        "version": "1.0.0",
+        "date": "2026-01-12",
+        "title": "Official Launch of Ferns Admin Panel",
+        "type": "launch",
+        "features": [
+            {
+                "title": "Dashboard",
+                "description": "Real-time overview of your WhatsApp instances and message statistics."
+            },
+            {
+                "title": "Scheduled Messages",
+                "description": "Plan and automate your WhatsApp communication with recurring message support."
+            },
+            {
+                "title": "Chat Synchronization",
+                "description": "High-performance sync between Green API and your private database."
+            }
+        ]
+    }
+]

@@ -16,6 +16,8 @@ import {
     CalendarClock,
     X,
     Code,
+    Sparkles,
+    BarChart3,
 } from 'lucide-react';
 
 export function Sidebar({ className, isMobile, onClose }) {
@@ -29,6 +31,8 @@ export function Sidebar({ className, isMobile, onClose }) {
         { href: '/app/numbers', label: t('sidebar.numbers'), icon: Smartphone },
         { href: '/app/scheduled', label: t('sidebar.scheduled'), icon: CalendarClock },
         { href: '/app/extension', label: t('sidebar.extension'), icon: Chrome },
+        { href: '/app/analytics', label: t('sidebar.analytics', 'Analytics'), icon: BarChart3 },
+        { href: '/app/updates', label: t('sidebar.updates', 'Updates'), icon: Sparkles },
         // { href: '/app/api', label: t('sidebar.api') || 'API', icon: Code },
     ];
 

@@ -12,6 +12,7 @@ export function FeedbackModal({ open, onOpenChange, source = 'manual' }) {
   const { user } = useAuth()
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
+  const [category, setCategory] = useState('feedback')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -29,16 +30,16 @@ export function FeedbackModal({ open, onOpenChange, source = 'manual' }) {
         .insert({
           user_id: user?.id,
           rating,
+          category,
           comment,
           source, // 'manual' or 'prompt_7_days'
           user_agent: navigator.userAgent
         })
 
-      // If table doesn't exist, this will error, but we'll show success anyway for UI demo
-      if (error && error.code !== '42P01') {
+      if (error) {
         console.error('Error saving feedback:', error)
       } else {
-        console.log('Feedback submitted:', { rating, comment, source })
+        console.log('Feedback submitted:', { rating, category, comment, source })
       }
 
       // If this was an auto-prompt, save that we showed it/user responded
@@ -53,6 +54,7 @@ export function FeedbackModal({ open, onOpenChange, source = 'manual' }) {
         setTimeout(() => {
           setSubmitted(false)
           setRating(0)
+          setCategory('feedback')
           setComment('')
         }, 500)
       }, 2000)
@@ -84,7 +86,7 @@ export function FeedbackModal({ open, onOpenChange, source = 'manual' }) {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col gap-6 py-4">
+            <div className="flex flex-col gap-4 py-4">
               <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -101,12 +103,41 @@ export function FeedbackModal({ open, onOpenChange, source = 'manual' }) {
                 ))}
               </div>
 
-              <Textarea
-                placeholder={t('feedback.placeholder', 'Tell us what you like or what we can improve...')}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-              />
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {t('feedback.category', 'Category')}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['feedback', 'bug', 'improvement', 'feature_request'].map((cat) => (
+                    <Button
+                      key={cat}
+                      type="button"
+                      variant={category === cat ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCategory(cat)}
+                      className="text-xs h-8"
+                    >
+                      {t(`feedback.cat_${cat}`, cat.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()))}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {t('feedback.details', 'Message')}
+                </label>
+                <Textarea
+                  placeholder={
+                    category === 'bug' ? t('feedback.bug_placeholder', 'What went wrong?') :
+                      category === 'feature_request' ? t('feedback.feature_placeholder', 'What would you like to see?') :
+                        t('feedback.placeholder', 'Tell us what you like or what we can improve...')
+                  }
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={4}
+                />
+              </div>
             </div>
 
             <DialogFooter className="sm:justify-between">
