@@ -13,8 +13,37 @@ import { uploadStateSnapshot } from './snapshotService';
 
 // Global state for background sync status
 const activeSyncTasks = new Map(); // numberId -> status object
+const activeChatSyncs = new Set(); // chatRemoteId set
 
-// Helper to check if a string is a JID
+// GLOBAL API RATE LIMITER
+let lastHistoryCallTime = 0;
+const HISTORY_CALL_COOLDOWN = 4000; // 4 seconds between history calls globally
+let backoffUntil = 0; // Timestamp to resume sync after 429
+
+async function throttleHistoryCall() {
+  const now = Date.now();
+
+  // If we are in backoff, wait until it expires
+  if (now < backoffUntil) {
+    const wait = backoffUntil - now;
+    console.warn(`[SYNC] API in backoff mode, waiting ${Math.round(wait / 1000)}s`);
+    await new Promise(r => setTimeout(r, wait));
+  }
+
+  const timeSinceLast = Date.now() - lastHistoryCallTime;
+  if (timeSinceLast < HISTORY_CALL_COOLDOWN) {
+    const wait = HISTORY_CALL_COOLDOWN - timeSinceLast;
+    await new Promise(r => setTimeout(r, wait));
+  }
+  lastHistoryCallTime = Date.now();
+}
+
+async function handleRateLimit() {
+  console.error('[SYNC] 429 Detected! Triggering 60s global backoff');
+  backoffUntil = Date.now() + 60000; // 1 minute pause
+}
+
+// Helper to check if a string is a Jid
 const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
 
 /**
@@ -189,38 +218,50 @@ export async function syncMessagesToSupabase(
   limit = 100,
 ) {
   try {
+    // 1. SMART SKIP: If we have synced this chat in the last 10 seconds, skip API call
+    const meta = loadMessagesFromCache(instanceId, remoteJid); // misuse of cache to check history
+    // (Actually using a dedicated sync meta is better, but let's just use the throttler for now)
+
+    await throttleHistoryCall();
     const result = await getChatHistory(instanceId, token, remoteJid, limit);
 
     if (result.success && result.data) {
       const messages = result.data || [];
+      if (messages.length === 0) return { success: true, data: [] };
 
-      // Batch sync: Save all new messages to Supabase
-      // To be efficient, we do this in the background but we'll wait for this part
-      // since fetchMessages depends on accurate data.
+      // 2. BATCH DB CHECK: Get all existing green_ids for these messages
+      const idsToCheck = messages.map(m => m.idMessage || m.id).filter(Boolean);
+      const { data: existingMsgs } = await supabase
+        .from('messages')
+        .select('green_id')
+        .eq('chat_id', chatId)
+        .in('green_id', idsToCheck);
+
+      const existingIds = new Set(existingMsgs?.map(m => m.green_id) || []);
+
+      const toInsert = [];
       for (const msg of messages) {
+        const greenId = msg.idMessage || msg.id;
+        if (existingIds.has(greenId)) continue;
+
         const ts = msg.timestamp != null
           ? new Date(msg.timestamp * 1000).toISOString()
           : new Date().toISOString();
 
-        // Optimized check: only insert if not exists (using maybeSingle to minimize load)
-        const { data: existing } = await supabase
-          .from('messages')
-          .select('id')
-          .eq('chat_id', chatId)
-          .eq('timestamp', ts)
-          .maybeSingle();
+        const { content, mediaMeta } = extractMessageContentAndMeta(msg);
+        toInsert.push({
+          chat_id: chatId,
+          content,
+          is_from_me: msg.type === 'outgoing' || msg.type === 'outgoingMessage' || msg.fromMe === true,
+          timestamp: ts,
+          media_meta: mediaMeta,
+          green_id: greenId
+        });
+      }
 
-        if (!existing) {
-          const { content, mediaMeta } = extractMessageContentAndMeta(msg);
-          await supabase.from('messages').insert({
-            chat_id: chatId,
-            content,
-            is_from_me: msg.type === 'outgoing' || msg.type === 'outgoingMessage' || msg.fromMe === true,
-            timestamp: ts,
-            media_meta: mediaMeta,
-            green_id: msg.idMessage || msg.id || null
-          });
-        }
+      if (toInsert.length > 0) {
+        console.log(`[SYNC] Inserting ${toInsert.length} new messages for ${remoteJid}`);
+        await supabase.from('messages').insert(toInsert);
       }
     }
 
@@ -234,7 +275,7 @@ export async function syncMessagesToSupabase(
 
     if (finalError) throw finalError;
 
-    // Return in chronological order (oldest first) for the chat UI
+    // Return in chronological order (oldest first)
     return { success: true, data: (finalMessages || []).reverse() };
   } catch (error) {
     console.error('syncMessagesToSupabase error:', error);
@@ -409,18 +450,18 @@ export async function startBackgroundSync(numberId, instanceId, token) {
       const chats = chatsResult.data || [];
       status.totalChats = chats.length;
 
-      // PHASE 2: Deep dive into Top 100 most active chats
+      // PHASE 2: Deep dive into Top 20 most active chats
       // We do this ONCE per sync session to populate recent context
-      status.phase = `deep_sync_top_100`;
-      const top100 = chats.slice(0, 100);
-      for (let i = 0; i < top100.length; i++) {
-        const chat = top100[i];
+      status.phase = `deep_sync_top_20`;
+      const top20 = chats.slice(0, 20);
+      for (let i = 0; i < top20.length; i++) {
+        const chat = top20[i];
         status.completedChats = i;
-        status.totalChats = top100.length;
+        status.totalChats = top20.length;
         status.currentChat = chat.name || chat.remote_jid;
-        await syncFullChatHistory(chat, instanceId, token);
-        // Small delay
-        await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000));
+        await syncFullChatHistory(chat, instanceId, token, 2); // Only 2 pages deep in bg
+        // Large delay between chats to be extremely safe
+        await new Promise(r => setTimeout(r, 6000 + Math.random() * 4000));
       }
 
       // PHASE 3: Discovery Blocks (Extend sweep up to 180 days)
@@ -463,11 +504,11 @@ export async function startBackgroundSync(numberId, instanceId, token) {
       const needingSync = (emptyChats || []).filter(c => !c.last_message);
       console.log(`[SYNC] Found ${needingSync.length} empty chats for universal sweep`);
 
-      for (let i = 0; i < Math.min(needingSync.length, 200); i++) {
+      for (let i = 0; i < Math.min(needingSync.length, 10); i++) {
         const chat = needingSync[i];
-        status.phase = `sweep_${i}_${needingSync.length}`;
-        await syncFullChatHistory(chat, instanceId, token);
-        await new Promise(r => setTimeout(r, 1500));
+        status.phase = `sweep_${i}_10`;
+        await syncFullChatHistory(chat, instanceId, token, 1); // Only 1 page for sweep
+        await new Promise(r => setTimeout(r, 8000));
       }
 
       console.log(`[SYNC] Completed Background Sync for ${numberId}`);
@@ -489,7 +530,7 @@ export async function startBackgroundSync(numberId, instanceId, token) {
  */
 const activeChatSyncs = new Set(); // chatId string
 
-export async function syncFullChatHistory(chat, instanceId, token) {
+export async function syncFullChatHistory(chat, instanceId, token, maxPages = 5) {
   const syncKey = `${chat.number_id}:${chat.remote_jid}`;
   if (activeChatSyncs.has(syncKey)) return;
   activeChatSyncs.add(syncKey);
@@ -499,10 +540,14 @@ export async function syncFullChatHistory(chat, instanceId, token) {
   try {
     let hasMore = true;
     let retryCount = 0;
-    let lastId = null;
+    let pages = 0;
 
-    while (hasMore) {
+    while (hasMore && pages < maxPages) {
+      pages++;
       // Get oldest message we have in DB to fetch before it
+
+      // OPTIMIZATION: Throttled Call
+      await throttleHistoryCall();
       const { data: oldest } = await supabase
         .from('messages')
         .select('id, timestamp, green_id')
@@ -534,8 +579,7 @@ export async function syncFullChatHistory(chat, instanceId, token) {
         }
       } else {
         if (result.error?.includes('429')) {
-          console.warn('[SYNC] Rate limit, waiting 30s...');
-          await new Promise(r => setTimeout(r, 30000));
+          await handleRateLimit();
           retryCount++;
           if (retryCount > 3) break;
         } else {

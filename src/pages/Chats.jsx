@@ -304,20 +304,19 @@ export default function Chats() {
     }, [selectedNumber?.id, selectedChat?.chatId]);
 
 
-    // Background prefetching for active chat history
     useEffect(() => {
         if (chats.length > 0 && selectedNumber) {
             const prefetchChats = async () => {
-                const topChats = chats.slice(0, 100);
-                console.log(`[PREFETCH] Deep background sync for ${topChats.length} recent chats...`);
+                const topChats = chats.slice(0, 20); // Only top 20 for prefetch
+                console.log(`[PREFETCH] Background sync for ${topChats.length} recent chats...`);
 
                 for (const chat of topChats) {
                     const chatId = chat.chatId || chat.remote_jid;
                     if (!chatId) continue;
 
                     const meta = getSyncMeta(selectedNumber.instance_id, chatId);
-                    // 15-minute cooldown for prefetch
-                    if (meta && (Date.now() - meta.updatedAt < 900000)) continue;
+                    // 30-minute cooldown for prefetch to be very conservative
+                    if (meta && (Date.now() - meta.updatedAt < 1800000)) continue;
 
                     try {
                         await syncMessagesToSupabase(
@@ -330,11 +329,11 @@ export default function Chats() {
                         saveSyncMeta(selectedNumber.instance_id, chatId, { updatedAt: Date.now() });
                     } catch (err) { }
 
-                    // Slightly slower to avoid background noise/rate limits
-                    await new Promise(r => setTimeout(r, 3000));
+                    // Even slower progress
+                    await new Promise(r => setTimeout(r, 6000 + Math.random() * 2000));
                 }
             };
-            const timer = setTimeout(prefetchChats, 5000);
+            const timer = setTimeout(prefetchChats, 10000); // Wait 10s after mount to start noisy work
             return () => clearTimeout(timer);
         }
     }, [chats.length, selectedNumber?.id]);
