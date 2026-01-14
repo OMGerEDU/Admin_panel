@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import {
-    CloudUpload,
+    UploadCloud,
     Plus,
     Search,
     Send,
@@ -1555,7 +1555,7 @@ export default function Chats() {
                                     {isSnapshotting ? (
                                         <RefreshCw className="h-4 w-4 animate-spin" />
                                     ) : (
-                                        <CloudUpload className="h-4 w-4" />
+                                        <UploadCloud className="h-4 w-4" />
                                     )}
                                     <span className="hidden sm:inline">
                                         {isSnapshotting ? 'Saving...' : 'Backup to Cloud'}
