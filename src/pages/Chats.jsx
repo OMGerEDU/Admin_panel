@@ -115,7 +115,7 @@ export default function Chats() {
             const chatId = chat.chatId || chat.remote_jid || '';
             return {
                 ...chat,
-                id: chatId,
+                // id: chatId, // REMOVE: This overwrites UUID with JID, causing DB errors
                 remote_jid: chatId,
                 tags: chatTags[chatId] || []
             };
