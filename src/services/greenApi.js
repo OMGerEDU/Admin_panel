@@ -175,6 +175,11 @@ export async function getContactInfo(instanceId, token, chatId) {
   });
 }
 
+// 7a. Get All Contacts (Batch)
+export async function getContacts(instanceId, token) {
+  return greenApiCall(instanceId, token, 'getContacts');
+}
+
 // 7b. Group info
 export async function getGroupData(instanceId, token, groupId) {
   return greenApiCall(instanceId, token, 'getGroupData', {

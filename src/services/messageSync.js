@@ -1,11 +1,11 @@
-import {
-  getChats,
+getChats,
   getChatHistory,
   getLastIncomingMessages,
   getLastOutgoingMessages,
   receiveNotification,
   deleteNotification,
-  getChatMetadata
+  getChatMetadata,
+  getContacts
 } from './greenApi';
 import { supabase } from '../lib/supabaseClient';
 import { loadChatsFromCache, loadMessagesFromCache, loadAvatarsFromCache } from '../lib/messageLocalCache';
@@ -141,39 +141,47 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
       }
     }
 
-    // 4) Perform Parallel Enrichment in Chunks (faster than serial, safer than massive Promise.all)
+    // 4) BATCH ENRICHMENT: Fetch all contacts ONCE found in the system
+    // This replaces the loop of 100+ individual getContactInfo calls
+    let knownContacts = new Map();
     if (enrichmentTasks.length > 0) {
-      console.log(`[SYNC] Enriching names for ${enrichmentTasks.length} chats in parallel...`);
-      const CHUNK_SIZE = 10;
-      for (let i = 0; i < enrichmentTasks.length; i += CHUNK_SIZE) {
-        const chunk = enrichmentTasks.slice(i, i + CHUNK_SIZE);
-        await Promise.all(chunk.map(async (task) => {
-          let enrichedName = task.currentDisplayName;
-          try {
-            const infoResult = await getChatMetadata(instanceId, token, task.chatRemoteId);
-            if (infoResult.success) {
-              const remoteName = infoResult.data?.name || infoResult.data?.contactName || infoResult.data?.chatName;
-              if (remoteName && !isJid(remoteName)) {
-                enrichedName = remoteName;
-              }
+      console.log(`[SYNC] Batch enriching names for ${enrichmentTasks.length} chats...`);
+      try {
+        const contactsResult = await getContacts(instanceId, token);
+        if (contactsResult.success && contactsResult.data) {
+          contactsResult.data.forEach(c => {
+            const jid = c.id || c.chatId;
+            const name = c.name || c.contactName;
+            if (jid && name && !isJid(name)) {
+              knownContacts.set(jid, name);
             }
-          } catch (e) {
-            console.warn(`[SYNC] Enrichment error for ${task.chatRemoteId}:`, e.message);
-          }
-
-          rows.push({
-            number_id: numberId,
-            remote_jid: task.chatRemoteId,
-            name: enrichedName,
-            last_message: task.lastText,
-            last_message_at: task.lastTs
           });
-        }));
-        // Small pause between chunks to respect rate limits (jitter added)
-        if (i + CHUNK_SIZE < enrichmentTasks.length) {
-          await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
         }
+      } catch (err) {
+        console.warn(`[SYNC] Batch contact fetch failed, skipping enrichment`, err);
       }
+    }
+
+    for (const task of enrichmentTasks) {
+      let enrichedName = task.currentDisplayName;
+
+      // Try to find in the batch contact list first
+      const contactName = knownContacts.get(task.chatRemoteId);
+      if (contactName) {
+        enrichedName = contactName;
+      } else {
+        // Fallback: If it's a group (@g.us), we still might need individual fetch as getContacts is often just users
+        // But let's only do it for extremely critical missing names or limited set
+        // For now, we accept we might miss some group names in exchange for API safety
+      }
+
+      rows.push({
+        number_id: numberId,
+        remote_jid: task.chatRemoteId,
+        name: enrichedName,
+        last_message: task.lastText,
+        last_message_at: task.lastTs
+      });
     }
 
     if (rows.length === 0) {
