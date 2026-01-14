@@ -1,5 +1,21 @@
 [
     {
+        "version": "1.0.2",
+        "date": "2026-01-14",
+        "title": "Lightning-Fast Chat Loading & Cloud Backup",
+        "type": "major",
+        "features": [
+            {
+                "title": "Optimized Loading",
+                "description": "Significantly improved chat loading speeds using the new Snapshot Sync system."
+            },
+            {
+                "title": "Cloud Backup Button",
+                "description": "Added a new \"Backup to Cloud\" button to manually refresh and save the application state."
+            }
+        ]
+    },
+    {
         "version": "1.0.1",
         "date": "2026-01-14",
         "title": "Green API Compatibility & Feedback Overhaul",
