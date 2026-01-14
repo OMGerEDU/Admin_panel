@@ -90,7 +90,8 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
 
       let displayName = isJid(currentName) ? null : (currentName || null);
 
-      if (enrichNames && isMissingRealName) {
+      // AUTO-ENRICH: Even if enrichNames is false, we enrich 5 per cycle if they are missing
+      if (isMissingRealName && (enrichNames || enrichmentTasks.length < 5)) {
         enrichmentTasks.push({
           chatRemoteId,
           lastText,
@@ -406,11 +407,25 @@ export async function startBackgroundSync(numberId, instanceId, token) {
       const chats = chatsResult.data || [];
       status.totalChats = chats.length;
 
-      // PHASE 2: Discovery Blocks (7 days at a time to be less aggressive)
+      // PHASE 2: Deep dive into Top 100 most active chats
+      // We do this ONCE per sync session to populate recent context
+      status.phase = `deep_sync_top_100`;
+      const top100 = chats.slice(0, 100);
+      for (let i = 0; i < top100.length; i++) {
+        const chat = top100[i];
+        status.completedChats = i;
+        status.totalChats = top100.length;
+        status.currentChat = chat.name || chat.remote_jid;
+        await syncFullChatHistory(chat, instanceId, token);
+        // Small delay
+        await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000));
+      }
+
+      // PHASE 3: Discovery Blocks (Extend sweep up to 180 days)
       let daysBack = 0;
       let hasMoreHistory = true;
 
-      while (hasMoreHistory && daysBack < 90) { // Limit to 3 months for auto-sync
+      while (hasMoreHistory && daysBack < 180) {
         daysBack += 7;
         status.phase = `discovery_${daysBack}_days`;
         console.log(`[SYNC] Scanning: ${daysBack - 7} to ${daysBack} days ago`);
@@ -421,35 +436,36 @@ export async function startBackgroundSync(numberId, instanceId, token) {
         if (result.success && result.data && result.data.length > 0) {
           await processMessageBatch(numberId, chats, result.data, instanceId, token);
 
-          // Only refresh chat list if we found many new messages
-          if (result.data.length > 20) {
-            const refreshResult = await syncChatsToSupabase(numberId, instanceId, token);
-            if (refreshResult.success) {
-              chats.splice(0, chats.length, ...refreshResult.data);
-              status.totalChats = chats.length;
-            }
+          // Periodically update chat list if many discovered
+          if (result.data.length > 50) {
+            await syncChatsToSupabase(numberId, instanceId, token, false);
           }
         }
 
-        // Deep dive into only the NEWEST/MOST ACTIVE chats (Top 50)
-        // Others will sync when the user clicks them
-        status.phase = `deep_sync_top_50`;
-        const subset = chats.slice(0, 50);
-        for (let i = 0; i < subset.length; i++) {
-          const chat = subset[i];
-          status.completedChats = i;
-          status.currentChat = chat.name || chat.remote_jid;
-          await syncFullChatHistory(chat, instanceId, token);
-          // Long delay between chats to avoid 429
-          await new Promise(r => setTimeout(r, 3000 + Math.random() * 2000));
-        }
-
-        // Stop scanning blocks if we got no messages in this block
+        // Stop scanning blocks only if we get persistent emptiness (try one more block)
         if (!result.success || !result.data || result.data.length === 0) {
-          hasMoreHistory = false;
+          if (daysBack > 30) hasMoreHistory = false;
         }
 
-        await new Promise(r => setTimeout(r, 5000)); // Pause between discovery blocks
+        await new Promise(r => setTimeout(r, 4000)); // Pause between discovery blocks
+      }
+
+      // PHASE 4: Universal Sweep for empty chats
+      status.phase = 'universal_sweep';
+      const { data: emptyChats } = await supabase
+        .from('chats')
+        .select('*')
+        .eq('number_id', numberId)
+        .order('last_message_at', { ascending: false });
+
+      const needingSync = (emptyChats || []).filter(c => !c.last_message);
+      console.log(`[SYNC] Found ${needingSync.length} empty chats for universal sweep`);
+
+      for (let i = 0; i < Math.min(needingSync.length, 200); i++) {
+        const chat = needingSync[i];
+        status.phase = `sweep_${i}_${needingSync.length}`;
+        await syncFullChatHistory(chat, instanceId, token);
+        await new Promise(r => setTimeout(r, 1500));
       }
 
       console.log(`[SYNC] Completed Background Sync for ${numberId}`);
@@ -536,6 +552,7 @@ export async function syncFullChatHistory(chat, instanceId, token) {
 async function processMessageBatch(numberId, chats, rawMessages, instanceId, token) {
   const chatMap = new Map(chats.map(c => [c.remote_jid, c]));
   let newCount = 0;
+  let nameUpdatedCount = 0;
 
   for (const msg of rawMessages) {
     const rawChatId = msg.chatId || msg.remoteJid;
@@ -585,6 +602,17 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
       ? new Date(msg.timestamp * 1000).toISOString()
       : new Date().toISOString();
 
+    // IN-STREAM NAME UPDATE: If we have a pushName or senderName and current chat name is bad, update it
+    const senderName = msg.senderName || msg.senderContactName || msg.pushName;
+    const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
+    const isBadName = !chat.name || isJid(chat.name) || /^\d+$/.test(chat.name);
+
+    if (senderName && isBadName && !isJid(senderName)) {
+      console.log(`[SYNC] In-stream name update for ${chat.remote_jid}: ${senderName}`);
+      chat.name = senderName;
+      nameUpdatedCount++;
+    }
+
     const { data: existing } = await supabase
       .from('messages')
       .select('id')
@@ -620,8 +648,8 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
     }
   }
 
-  // Final metadata update: ensure chats table reflects discovery
-  if (newCount > 0) {
+  // Final metadata update: ensure chats table reflects discovery or name updates
+  if (newCount > 0 || nameUpdatedCount > 0) {
     const chatUpdates = Array.from(chatMap.values()).map(c => ({
       id: c.id,
       last_message: c.last_message,

@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { Sun, Moon, Languages, LogOut, ChevronRight, Home, Sparkles, Crown, Building2, Menu } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { fetchCurrentSubscriptionAndPlan } from '../lib/planLimits';
+import { UpdatesDropdown } from './UpdatesDropdown';
 
 export function Header({ onMobileMenuToggle }) {
     const { theme, toggleTheme } = useTheme();
@@ -129,6 +130,8 @@ export function Header({ onMobileMenuToggle }) {
                     <Languages className="h-5 w-5" />
                     <span className="sr-only">Display Language</span>
                 </Button>
+
+                <UpdatesDropdown />
 
                 {planName && (
                     <button

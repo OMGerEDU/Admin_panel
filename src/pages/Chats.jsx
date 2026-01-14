@@ -295,7 +295,7 @@ export default function Chats() {
     useEffect(() => {
         if (chats.length > 0 && selectedNumber) {
             const prefetchChats = async () => {
-                const topChats = chats.slice(0, 30);
+                const topChats = chats.slice(0, 100);
                 console.log(`[PREFETCH] Deep background sync for ${topChats.length} recent chats...`);
 
                 for (const chat of topChats) {
@@ -303,7 +303,8 @@ export default function Chats() {
                     if (!chatId) continue;
 
                     const meta = getSyncMeta(selectedNumber.instance_id, chatId);
-                    if (meta && (Date.now() - meta.updatedAt < 300000)) continue;
+                    // 15-minute cooldown for prefetch
+                    if (meta && (Date.now() - meta.updatedAt < 900000)) continue;
 
                     try {
                         await syncMessagesToSupabase(
@@ -316,7 +317,8 @@ export default function Chats() {
                         saveSyncMeta(selectedNumber.instance_id, chatId, { updatedAt: Date.now() });
                     } catch (err) { }
 
-                    await new Promise(r => setTimeout(r, 2000));
+                    // Slightly slower to avoid background noise/rate limits
+                    await new Promise(r => setTimeout(r, 3000));
                 }
             };
             const timer = setTimeout(prefetchChats, 5000);
