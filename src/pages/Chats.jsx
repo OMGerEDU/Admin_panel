@@ -81,9 +81,9 @@ export default function Chats() {
     // Media URLs cache - stores fetched downloadUrls by message ID
     const [mediaUrls, setMediaUrls] = useState({});
     const [loadingMedia, setLoadingMedia] = useState({});
-    const [syncStatus, setSyncStatus] = useState({}); // numberId -> status object
     const [showPanelMaster, setShowPanelMaster] = useState(false);
     const pendingChatIdFromUrlRef = useRef(null);
+    const isGatheringAvatarsRef = useRef(false);
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -112,6 +112,13 @@ export default function Chats() {
             const num = numbers.find(n => n.id === numberId);
             if (num && num.id !== selectedNumber?.id) {
                 setSelectedNumber(num);
+                // Reset state for new number
+                setChats([]);
+                setSelectedChat(null);
+                setMessages([]);
+                chatsCacheRef.current = { data: null, timestamp: 0, ttl: 30000, instanceId: num.instance_id };
+                historyCacheRef.current.clear();
+
                 // Load cached avatars for this instance immediately
                 const cachedAvatars = loadAvatarsFromCache(num.instance_id);
                 setChatAvatars(cachedAvatars);
@@ -260,7 +267,8 @@ export default function Chats() {
                         if (selectedChat && (selectedChat.chatId === msgChatId || selectedChat.remote_jid === msgChatId)) {
                             fetchMessages(true);
                         }
-                        fetchChats(true);
+                        // Lightweight refresh only
+                        fetchChats(false);
                     }
                 );
 
@@ -273,17 +281,17 @@ export default function Chats() {
                     if (hasNew) {
                         console.log('[POLLING] Found new recent messages, refreshing');
                         playNotificationSound();
-                        fetchChats(true);
+                        fetchChats(false);
                         if (selectedChat) fetchMessages(true);
                     }
                 }
 
-                // 3. Periodic full list refresh (if no new messages found, still refresh every 60s)
+                // 3. Periodic full list refresh (lightweight)
                 const now = Date.now();
                 const lastFullRefresh = chatsCacheRef.current.timestamp || 0;
                 if (now - lastFullRefresh > 60000) {
                     console.log('[POLLING] Periodic full list refresh');
-                    fetchChats(true);
+                    fetchChats(false);
                 }
 
                 // 4. Update background sync status
@@ -319,23 +327,25 @@ export default function Chats() {
 
     // Load avatars sequentially with a delay to avoid 429
     useEffect(() => {
-        if (chats.length > 0 && selectedNumber?.instance_id && selectedNumber?.api_token) {
+        if (chats.length > 0 && selectedNumber?.instance_id && !isGatheringAvatarsRef.current) {
             let mounted = true;
 
             const loadAvatarsSequentially = async () => {
                 const chatsToLoad = chats.filter(chat => {
                     const id = chat.chatId || chat.remote_jid;
                     return id && !chatAvatars.has(id);
-                });
+                }).slice(0, 50); // Limit each batch to avoid massive loops
 
                 if (chatsToLoad.length === 0) return;
 
+                isGatheringAvatarsRef.current = true;
                 console.log(`[AVATAR] Gathering ${chatsToLoad.length} new avatars...`);
                 let newAvatarsLoaded = false;
                 const freshAvatars = new Map(chatAvatars);
 
-                for (const chat of chatsToLoad) {
+                for (let i = 0; i < chatsToLoad.length; i++) {
                     if (!mounted) break;
+                    const chat = chatsToLoad[i];
                     const chatId = chat.chatId || chat.remote_jid;
 
                     try {
@@ -343,22 +353,27 @@ export default function Chats() {
                         if (result.success && result.data?.urlAvatar) {
                             freshAvatars.set(chatId, result.data.urlAvatar);
                             newAvatarsLoaded = true;
+
+                            // Update state and cache periodically (every 5 found or at end)
+                            if (freshAvatars.size % 5 === 0) {
+                                setChatAvatars(new Map(freshAvatars));
+                                saveAvatarsToCache(selectedNumber.instance_id, freshAvatars);
+                            }
                         }
                         // Small delay between requests to avoid 429
-                        await new Promise(r => setTimeout(r, 400));
-                    } catch (error) {
-                        // Suppress warnings for expected 404s/timeouts
-                    }
+                        await new Promise(r => setTimeout(r, 600));
+                    } catch (error) { }
                 }
 
                 if (mounted && newAvatarsLoaded) {
                     setChatAvatars(new Map(freshAvatars));
                     saveAvatarsToCache(selectedNumber.instance_id, freshAvatars);
                 }
+                isGatheringAvatarsRef.current = false;
             };
 
             loadAvatarsSequentially();
-            return () => { mounted = false; };
+            return () => { mounted = false; isGatheringAvatarsRef.current = false; };
         }
     }, [chats.length, selectedNumber?.id]);
 
@@ -404,7 +419,7 @@ export default function Chats() {
         }
     };
 
-    const fetchChats = async (forceRefresh = false) => {
+    const fetchChats = async (forceRefresh = false, refreshNames = false) => {
         if (!selectedNumber) return [];
 
         const acc = selectedNumber;
@@ -414,7 +429,8 @@ export default function Chats() {
         }
 
         // Check memory cache first (during same session)
-        if (!forceRefresh && chatsCacheRef.current.data && (Date.now() - chatsCacheRef.current.timestamp < chatsCacheRef.current.ttl)) {
+        const isSameInstance = chatsCacheRef.current.instanceId === acc.instance_id;
+        if (!forceRefresh && isSameInstance && chatsCacheRef.current.data && (Date.now() - chatsCacheRef.current.timestamp < chatsCacheRef.current.ttl)) {
             console.log('[CHATS] Using memory cached chats list');
             setChats(chatsCacheRef.current.data);
             return chatsCacheRef.current.data;
@@ -431,9 +447,20 @@ export default function Chats() {
         }
 
         try {
-            // Priority 1: Fetch Names & Discovery (Background but awaited for list quality)
-            // This ensures Names are updated BEFORE we render the list
-            await syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token, true).catch(() => { });
+            // Priority 1: Fetch Names & Discovery (only if specifically requested or long overdue)
+            const lastSync = getSyncMeta(acc.instance_id, 'global_chats_sync')?.updatedAt || 0;
+            const isOverdue = Date.now() - lastSync > 3600000; // Once per hour
+
+            if (refreshNames || isOverdue) {
+                console.log('[CHATS] Synchronizing names/discovery in background...');
+                syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token, refreshNames)
+                    .then(() => {
+                        saveSyncMeta(acc.instance_id, 'global_chats_sync', { updatedAt: Date.now() });
+                        // Trigger a soft refresh to show results
+                        fetchChats(false);
+                    })
+                    .catch(() => { });
+            }
 
             // 1. Fetch live summary from Green API
             const chatsResult = await getChats(acc.instance_id, acc.api_token);
@@ -522,6 +549,7 @@ export default function Chats() {
             // Update cache
             chatsCacheRef.current.data = freshChats;
             chatsCacheRef.current.timestamp = Date.now();
+            chatsCacheRef.current.instanceId = acc.instance_id;
             saveChatsToCache(acc.instance_id, freshChats);
 
             setChats(freshChats);
@@ -792,8 +820,8 @@ export default function Chats() {
                 chatsCacheRef.current.data = null;
                 chatsCacheRef.current.timestamp = 0;
 
-                // 4. Reload UI
-                await fetchChats(true);
+                // 4. Reload UI with Name Refresh forced
+                await fetchChats(true, true);
                 alert(t('common.success') || 'Success!');
             }
         } catch (error) {
