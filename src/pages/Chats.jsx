@@ -69,9 +69,8 @@ export default function Chats() {
     const [syncing, setSyncing] = useState(false);
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
-    const [isWarmUpSyncing, setIsWarmUpSyncing] = useState(false);
-    const [isBootstrapping, setIsBootstrapping] = useState(false);
     const [isSnapshotting, setIsSnapshotting] = useState(false);
+    const [isActiveChatSyncing, setIsActiveChatSyncing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
@@ -243,15 +242,27 @@ export default function Chats() {
 
             fetchMessages();
 
-            // Background deep sync for this specific chat
-            // This ensures history is loaded into Supabase even if not currently viewed
             if (chatId) {
-                // Find the DB chat object to get the correct 'id'
-                const dbChat = chats.find(c => c.chatId === chatId);
+                // Focused high-priority sync for ACTIVE CHAT
+                const dbChat = chats.find(c => c.chatId === chatId) || selectedChat;
                 if (dbChat && dbChat.id) {
+                    setIsActiveChatSyncing(true);
+                    console.log(`[ACTIVE SYNC] Starting for ${chatId}`);
+                    syncMessagesToSupabase(
+                        dbChat.id,
+                        selectedNumber.instance_id,
+                        selectedNumber.api_token,
+                        chatId,
+                        50
+                    ).then(() => {
+                        console.log(`[ACTIVE SYNC] Completed for ${chatId}`);
+                        fetchMessages(true); // Soft refresh UI
+                    }).finally(() => {
+                        setIsActiveChatSyncing(false);
+                    });
+
+                    // Still trigger full history sync in background
                     syncFullChatHistory(dbChat, selectedNumber.instance_id, selectedNumber.api_token).catch(() => { });
-                } else if (selectedChat.id) {
-                    syncFullChatHistory(selectedChat, selectedNumber.instance_id, selectedNumber.api_token).catch(() => { });
                 }
             }
         }
@@ -1433,7 +1444,13 @@ export default function Chats() {
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
-                                    {(syncStatus[selectedNumber?.id]?.inProgress || isWarmUpSyncing) && (
+                                    {isActiveChatSyncing && (
+                                        <span className="text-[10px] text-green-500 animate-pulse flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 font-bold">
+                                            <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+                                            {t('sync.updating_chat') || 'מעדכן שיחה...'}
+                                        </span>
+                                    )}
+                                    {(syncStatus[selectedNumber?.id]?.inProgress || isWarmUpSyncing) && !isActiveChatSyncing && (
                                         <span className="text-[9px] text-primary animate-pulse flex items-center gap-1 bg-primary/5 px-1.5 rounded">
                                             <span className="w-1 h-1 bg-primary rounded-full"></span>
                                             {isWarmUpSyncing ? "Synchronizing Global History..." : (t('sync.syncing') || 'מסנכרן') + "..."}

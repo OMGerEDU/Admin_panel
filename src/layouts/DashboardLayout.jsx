@@ -52,7 +52,7 @@ export default function DashboardLayout() {
 
             {/* Mobile Sidebar */}
             <Sidebar
-                className={mobileMenuOpen ? "block fixed inset-y-0 left-0 z-50 w-64 shadow-xl" : "hidden"}
+                className={mobileMenuOpen ? "block fixed inset-y-0 left-0 z-[60] w-64 shadow-xl" : "hidden"}
                 isMobile={true}
                 onClose={() => setMobileMenuOpen(false)}
             />

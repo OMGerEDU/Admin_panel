@@ -93,7 +93,7 @@ export function Header({ onMobileMenuToggle }) {
     const breadcrumbs = getBreadcrumbs();
 
     return (
-        <header className="flex h-16 items-center border-b bg-background px-4 md:px-6 justify-between sticky top-0 z-10">
+        <header className="flex h-16 items-center border-b bg-background px-4 md:px-6 justify-between sticky top-0 z-50">
             <div className="flex items-center gap-2 font-semibold text-lg">
                 <Button
                     variant="ghost"
