@@ -69,6 +69,8 @@ export default function Chats() {
     const [syncing, setSyncing] = useState(false);
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
+    const [isWarmUpSyncing, setIsWarmUpSyncing] = useState(false);
+    const [isBootstrapping, setIsBootstrapping] = useState(false);
     const [isSnapshotting, setIsSnapshotting] = useState(false);
     const [isActiveChatSyncing, setIsActiveChatSyncing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
