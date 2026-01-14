@@ -2,11 +2,13 @@ import {
   getChats,
   getChatHistory,
   getLastIncomingMessages,
+  getLastOutgoingMessages,
   receiveNotification,
   deleteNotification,
   getChatMetadata
 } from './greenApi';
 import { supabase } from '../lib/supabaseClient';
+import { loadChatsFromCache, loadMessagesFromCache, loadAvatarsFromCache } from '../lib/messageLocalCache';
 import { uploadStateSnapshot } from './snapshotService';
 
 // Global state for background sync status
@@ -404,39 +406,42 @@ export async function startBackgroundSync(numberId, instanceId, token) {
       const chats = chatsResult.data || [];
       status.totalChats = chats.length;
 
-      // PHASE 2+: Discovery Blocks (30 days at a time)
+      // PHASE 2: Discovery Blocks (7 days at a time to be less aggressive)
       let daysBack = 0;
       let hasMoreHistory = true;
 
-      while (hasMoreHistory && daysBack < 180) { // Limit to 6 months
-        daysBack += 30;
+      while (hasMoreHistory && daysBack < 90) { // Limit to 3 months for auto-sync
+        daysBack += 7;
         status.phase = `discovery_${daysBack}_days`;
-        console.log(`[SYNC] Scanning: ${daysBack - 30} to ${daysBack} days ago`);
+        console.log(`[SYNC] Scanning: ${daysBack - 7} to ${daysBack} days ago`);
 
         const minutes = daysBack * 24 * 60;
         const result = await getLastIncomingMessages(instanceId, token, minutes);
 
         if (result.success && result.data && result.data.length > 0) {
-          // Discover new chats and process their messages
           await processMessageBatch(numberId, chats, result.data, instanceId, token);
 
-          // Refresh internal chat list to include discovered ones
-          const refreshResult = await syncChatsToSupabase(numberId, instanceId, token);
-          if (refreshResult.success) {
-            chats.splice(0, chats.length, ...refreshResult.data);
-            status.totalChats = chats.length;
+          // Only refresh chat list if we found many new messages
+          if (result.data.length > 20) {
+            const refreshResult = await syncChatsToSupabase(numberId, instanceId, token);
+            if (refreshResult.success) {
+              chats.splice(0, chats.length, ...refreshResult.data);
+              status.totalChats = chats.length;
+            }
           }
         }
 
-        // Deep dive into each chat's own history
-        status.phase = `deep_sync_${daysBack}`;
-        for (let i = 0; i < chats.length; i++) {
-          const chat = chats[i];
+        // Deep dive into only the NEWEST/MOST ACTIVE chats (Top 50)
+        // Others will sync when the user clicks them
+        status.phase = `deep_sync_top_50`;
+        const subset = chats.slice(0, 50);
+        for (let i = 0; i < subset.length; i++) {
+          const chat = subset[i];
           status.completedChats = i;
           status.currentChat = chat.name || chat.remote_jid;
           await syncFullChatHistory(chat, instanceId, token);
-          // Moderate delay between different chats
-          await new Promise(r => setTimeout(r, 1500 + Math.random() * 500));
+          // Long delay between chats to avoid 429
+          await new Promise(r => setTimeout(r, 3000 + Math.random() * 2000));
         }
 
         // Stop scanning blocks if we got no messages in this block
@@ -444,7 +449,7 @@ export async function startBackgroundSync(numberId, instanceId, token) {
           hasMoreHistory = false;
         }
 
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 5000)); // Pause between discovery blocks
       }
 
       console.log(`[SYNC] Completed Background Sync for ${numberId}`);

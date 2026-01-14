@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Send, Phone, Tag, Settings, Filter, Calendar, X, RefreshCw, UserCheck, Cpu, Database, Activity, Info } from 'lucide-react';
+import { Plus, Search, Send, Phone, Tag, Settings, Filter, Calendar, X, RefreshCw, UserCheck, Cpu, Database, Activity, Info, CloudUpload } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
@@ -59,6 +59,7 @@ export default function Chats() {
     const [messagesLoading, setMessagesLoading] = useState(false);
     const [isWarmUpSyncing, setIsWarmUpSyncing] = useState(false);
     const [isBootstrapping, setIsBootstrapping] = useState(false);
+    const [isSnapshotting, setIsSnapshotting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState(null);
@@ -1522,14 +1523,26 @@ export default function Chats() {
                                     variant="ghost"
                                     size="sm"
                                     className="gap-2 text-blue-500"
-                                    onClick={() => {
+                                    disabled={isSnapshotting}
+                                    onClick={async () => {
                                         if (selectedNumber) {
-                                            triggerStateSnapshot(selectedNumber.instance_id);
+                                            setIsSnapshotting(true);
+                                            try {
+                                                await triggerStateSnapshot(selectedNumber.instance_id);
+                                            } finally {
+                                                setIsSnapshotting(false);
+                                            }
                                         }
                                     }}
                                 >
-                                    <CloudUpload className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Backup to Cloud</span>
+                                    {isSnapshotting ? (
+                                        <RefreshCw className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <CloudUpload className="h-4 w-4" />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {isSnapshotting ? 'Saving...' : 'Backup to Cloud'}
+                                    </span>
                                 </Button>
                                 <Button
                                     variant="ghost"
