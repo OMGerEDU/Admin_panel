@@ -33,6 +33,8 @@ import {
     clearChatCache as clearLocalChatCache,
     saveChatsToCache,
     loadChatsFromCache,
+    saveAvatarsToCache,
+    loadAvatarsFromCache,
 } from '../lib/messageLocalCache';
 
 export default function Chats() {
@@ -79,6 +81,7 @@ export default function Chats() {
     const [loadingMedia, setLoadingMedia] = useState({});
     const [syncStatus, setSyncStatus] = useState({}); // numberId -> status object
     const [showPanelMaster, setShowPanelMaster] = useState(false);
+    const pendingChatIdFromUrlRef = useRef(null);
 
     // Cache like extension
     const chatsCacheRef = useRef({ data: null, timestamp: 0, ttl: 30000 }); // 30 seconds
@@ -107,6 +110,9 @@ export default function Chats() {
             const num = numbers.find(n => n.id === numberId);
             if (num && num.id !== selectedNumber?.id) {
                 setSelectedNumber(num);
+                // Load cached avatars for this instance immediately
+                const cachedAvatars = loadAvatarsFromCache(num.instance_id);
+                setChatAvatars(cachedAvatars);
             }
         }
     }, [numberId, numbers]);
@@ -119,17 +125,27 @@ export default function Chats() {
 
     // Load chat from URL params
     useEffect(() => {
-        if (remoteJid && chats.length > 0) {
-            // Decode the remoteJid if it was encoded
+        if (remoteJid) {
             const decodedRemoteJid = decodeURIComponent(remoteJid);
-            // Find chat by comparing the number part (without @ suffix) or chatId
-            const chat = chats.find(c => {
-                const chatNumberOnly = removeJidSuffix(c.chatId || c.remote_jid || '');
-                return chatNumberOnly === decodedRemoteJid || c.chatId === decodedRemoteJid || c.phone === decodedRemoteJid;
-            });
-            if (chat && chat.chatId !== selectedChat?.chatId) {
-                setSelectedChat(chat);
+            pendingChatIdFromUrlRef.current = decodedRemoteJid;
+
+            if (chats.length > 0) {
+                const chat = chats.find(c => {
+                    const chatNumberOnly = removeJidSuffix(c.chatId || c.remote_jid || '');
+                    return chatNumberOnly === decodedRemoteJid || c.chatId === decodedRemoteJid || c.phone === decodedRemoteJid;
+                });
+
+                if (chat) {
+                    if (chat.chatId !== selectedChat?.chatId) {
+                        console.log('[CHATS] Setting selected chat from URL:', chat.chatId);
+                        setSelectedChat(chat);
+                    }
+                    pendingChatIdFromUrlRef.current = null;
+                }
             }
+        } else {
+            setSelectedChat(null);
+            pendingChatIdFromUrlRef.current = null;
         }
     }, [remoteJid, chats]);
 
@@ -259,6 +275,12 @@ export default function Chats() {
                     return id && !chatAvatars.has(id);
                 });
 
+                if (chatsToLoad.length === 0) return;
+
+                console.log(`[AVATAR] Gathering ${chatsToLoad.length} new avatars...`);
+                let newAvatarsLoaded = false;
+                const freshAvatars = new Map(chatAvatars);
+
                 for (const chat of chatsToLoad) {
                     if (!mounted) break;
                     const chatId = chat.chatId || chat.remote_jid;
@@ -266,20 +288,26 @@ export default function Chats() {
                     try {
                         const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
                         if (result.success && result.data?.urlAvatar) {
-                            setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
+                            freshAvatars.set(chatId, result.data.urlAvatar);
+                            newAvatarsLoaded = true;
                         }
-                        // Small delay between requests
-                        await new Promise(r => setTimeout(r, 500));
+                        // Small delay between requests to avoid 429
+                        await new Promise(r => setTimeout(r, 400));
                     } catch (error) {
-                        console.warn('[AVATAR] Sequential load error:', chatId, error);
+                        // Suppress warnings for expected 404s/timeouts
                     }
+                }
+
+                if (mounted && newAvatarsLoaded) {
+                    setChatAvatars(new Map(freshAvatars));
+                    saveAvatarsToCache(selectedNumber.instance_id, freshAvatars);
                 }
             };
 
             loadAvatarsSequentially();
             return () => { mounted = false; };
         }
-    }, [chats, selectedNumber?.id]);
+    }, [chats.length, selectedNumber?.id]);
 
     // Load avatar for selected chat after messages are loaded
     useEffect(() => {
@@ -350,6 +378,10 @@ export default function Chats() {
         }
 
         try {
+            // Priority 1: Fetch Names & Discovery (Background but awaited for list quality)
+            // This ensures Names are updated BEFORE we render the list
+            await syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token, true).catch(() => { });
+
             // 1. Fetch live summary from Green API
             const chatsResult = await getChats(acc.instance_id, acc.api_token);
             const liveChatMap = new Map();
@@ -369,7 +401,7 @@ export default function Chats() {
 
             // 3. Merge: Database serves as the list of all "known" chats, 
             // API provides the "live" status (unread, latest msg)
-            let chats = (dbChats || []).map(dbChat => {
+            let freshChats = (dbChats || []).map(dbChat => {
                 const liveChat = liveChatMap.get(dbChat.remote_jid);
                 const chatId = dbChat.remote_jid;
                 const phone = removeJidSuffix(chatId);
@@ -407,14 +439,14 @@ export default function Chats() {
 
             // If some live chats are NOT in DB yet, add them (though background sync should handle this)
             liveChatMap.forEach((liveChat, chatId) => {
-                if (!chats.some(c => c.chatId === chatId)) {
+                if (!freshChats.some(c => c.chatId === chatId)) {
                     const phone = removeJidSuffix(chatId);
                     const lm = liveChat.lastMessage;
                     const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
                     const rawName = liveChat.name || liveChat.chatName || null;
                     const cleanName = isJid(rawName) ? null : rawName;
 
-                    chats.push({
+                    freshChats.push({
                         chatId,
                         phone,
                         name: cleanName || phone,
@@ -428,18 +460,15 @@ export default function Chats() {
             });
 
             // Sort by timestamp (newest first)
-            chats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-            // Background sync (don't wait)
-            syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token).catch(() => { });
+            freshChats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
             // Update cache
-            chatsCacheRef.current.data = chats;
+            chatsCacheRef.current.data = freshChats;
             chatsCacheRef.current.timestamp = Date.now();
-            saveChatsToCache(acc.instance_id, chats);
+            saveChatsToCache(acc.instance_id, freshChats);
 
-            setChats(chats);
-            return chats;
+            setChats(freshChats);
+            return freshChats;
         } catch (error) {
             console.error('[CHATS] Fetch chats error:', error);
             await logger.error('Failed to fetch chats', { error: error.message }, selectedNumber?.id);
@@ -1191,10 +1220,13 @@ export default function Chats() {
                                 <div
                                     key={chatId}
                                     onClick={() => {
+                                        if (chat.chatId === selectedChat?.chatId) return;
+
                                         setSelectedChat(chat);
                                         // Update URL when chat is clicked - use only the number part (without any @ suffix)
                                         if (selectedNumber) {
                                             const numberOnly = removeJidSuffix(chatId);
+                                            // Navigation will trigger the remoteJid effect, but we set it here for instant feedback
                                             navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(numberOnly)}`, { replace: true });
                                         }
                                     }}

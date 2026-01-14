@@ -6,6 +6,7 @@ const CACHE_VERSION = '1.0';
 const MAX_CACHE_AGE = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_MESSAGES_PER_CHAT = 500; // Limit cache size per chat
 const CHATS_CACHE_PREFIX = 'whatsapp_chats_';
+const AVATARS_CACHE_PREFIX = 'whatsapp_avatars_';
 
 /**
  * Get cache key for a chat
@@ -222,6 +223,52 @@ export function loadChatsFromCache(instanceId) {
     } catch (error) {
         console.error('[CACHE] Error loading chats from localStorage:', error);
         return null;
+    }
+}
+
+/**
+ * Save avatar map to localStorage
+ * @param {string} instanceId 
+ * @param {Map|Object} avatars - Map or Object of {chatId: url}
+ */
+export function saveAvatarsToCache(instanceId, avatars) {
+    try {
+        const key = `${AVATARS_CACHE_PREFIX}${instanceId}`;
+        const data = avatars instanceof Map ? Object.fromEntries(avatars) : avatars;
+        const cacheData = {
+            version: CACHE_VERSION,
+            timestamp: Date.now(),
+            avatars: data,
+        };
+        localStorage.setItem(key, JSON.stringify(cacheData));
+        // console.log(`[CACHE] Saved avatars for instance ${instanceId}`);
+    } catch (error) {
+        console.error('[CACHE] Error saving avatars to localStorage:', error);
+    }
+}
+
+/**
+ * Load avatar map from localStorage
+ * @param {string} instanceId 
+ * @returns {Map} Map of {chatId: url}
+ */
+export function loadAvatarsFromCache(instanceId) {
+    try {
+        const key = `${AVATARS_CACHE_PREFIX}${instanceId}`;
+        const cached = localStorage.getItem(key);
+
+        if (!cached) return new Map();
+
+        const cacheData = JSON.parse(cached);
+
+        // Avatars cache is valid for 24 hours
+        const age = Date.now() - cacheData.timestamp;
+        if (age > 24 * 60 * 60 * 1000) return new Map();
+
+        return new Map(Object.entries(cacheData.avatars || {}));
+    } catch (error) {
+        console.error('[CACHE] Error loading avatars from localStorage:', error);
+        return new Map();
     }
 }
 
