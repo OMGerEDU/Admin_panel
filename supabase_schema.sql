@@ -588,12 +588,14 @@ create table if not exists public.messages (
     content text,
     is_from_me boolean default false,
     timestamp timestamp with time zone default timezone('utc'::text, now()) not null,
-    media_meta jsonb -- Store media metadata (urlFile, downloadUrl, jpegThumbnail, fileName, etc.)
+    media_meta jsonb, -- Store media metadata (urlFile, downloadUrl, jpegThumbnail, fileName, etc.)
+    green_id text -- Green API message ID
 );
 
 -- Add media_meta column if table already exists
 alter table public.messages
-add column if not exists media_meta jsonb;
+add column if not exists media_meta jsonb,
+add column if not exists green_id text;
 
 alter table public.messages enable row level security;
 
@@ -1145,6 +1147,7 @@ create table if not exists public.chat_tags (
 -- RLS for Tags
 alter table public.tags enable row level security;
 
+drop policy if exists "Users can view tags for their org or themselves" on public.tags;
 create policy "Users can view tags for their org or themselves"
   on public.tags for select
   using (
@@ -1156,6 +1159,7 @@ create policy "Users can view tags for their org or themselves"
     (user_id = auth.uid())
   );
 
+drop policy if exists "Users can insert tags for their org or themselves" on public.tags;
 create policy "Users can insert tags for their org or themselves"
   on public.tags for insert
   with check (
@@ -1167,6 +1171,7 @@ create policy "Users can insert tags for their org or themselves"
     (user_id = auth.uid())
   );
 
+drop policy if exists "Users can update tags for their org or themselves" on public.tags;
 create policy "Users can update tags for their org or themselves"
   on public.tags for update
   using (
@@ -1178,6 +1183,7 @@ create policy "Users can update tags for their org or themselves"
     (user_id = auth.uid())
   );
 
+drop policy if exists "Users can delete tags for their org or themselves" on public.tags;
 create policy "Users can delete tags for their org or themselves"
   on public.tags for delete
   using (
@@ -1192,6 +1198,7 @@ create policy "Users can delete tags for their org or themselves"
 -- RLS for Chat Tags
 alter table public.chat_tags enable row level security;
 
+drop policy if exists "Users can view chat tags for their org or themselves" on public.chat_tags;
 create policy "Users can view chat tags for their org or themselves"
   on public.chat_tags for select
   using (
@@ -1209,6 +1216,7 @@ create policy "Users can view chat tags for their org or themselves"
     )
   );
 
+drop policy if exists "Users can insert chat tags" on public.chat_tags;
 create policy "Users can insert chat tags"
   on public.chat_tags for insert
   with check (
@@ -1226,6 +1234,7 @@ create policy "Users can insert chat tags"
     )
   );
 
+drop policy if exists "Users can delete chat tags" on public.chat_tags;
 create policy "Users can delete chat tags"
   on public.chat_tags for delete
   using (

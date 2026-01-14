@@ -167,12 +167,31 @@ export async function sendFileByUrl(
   });
 }
 
-// 7. Chat info (name, etc.)
-export async function getChatInfo(instanceId, token, chatId) {
-  return greenApiCall(instanceId, token, 'getChatInfo', {
+// 7. Contact info
+export async function getContactInfo(instanceId, token, chatId) {
+  return greenApiCall(instanceId, token, 'getContactInfo', {
     method: 'POST',
     body: { chatId },
   });
+}
+
+// 7b. Group info
+export async function getGroupData(instanceId, token, groupId) {
+  return greenApiCall(instanceId, token, 'getGroupData', {
+    method: 'POST',
+    body: { groupId },
+  });
+}
+
+/**
+ * Unified helper to get chat metadata (either contact or group)
+ */
+export async function getChatMetadata(instanceId, token, chatId) {
+  if (chatId.endsWith('@g.us')) {
+    return getGroupData(instanceId, token, chatId);
+  } else {
+    return getContactInfo(instanceId, token, chatId);
+  }
 }
 
 // 8. Avatar
@@ -281,7 +300,7 @@ export async function loadFullChats(instanceId, token) {
     chats.map(async (chat) => {
       try {
         const [infoResult, avatarResult] = await Promise.all([
-          getChatInfo(instanceId, token, chat.id || chat.chatId || chat.chatIdString),
+          getChatMetadata(instanceId, token, chat.id || chat.chatId || chat.chatIdString),
           getAvatar(instanceId, token, chat.id || chat.chatId || chat.chatIdString).catch(
             () => ({ success: false }),
           ),

@@ -4,7 +4,7 @@ import {
   getLastIncomingMessages,
   receiveNotification,
   deleteNotification,
-  getChatInfo
+  getChatMetadata
 } from './greenApi';
 import { supabase } from '../lib/supabaseClient';
 
@@ -86,10 +86,11 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
       if (enrichNames && isMissingRealName) {
         try {
           // Add a small delay/throttle if doing many in a loop, but here it's better to do selective enrichment
-          const infoResult = await getChatInfo(instanceId, token, chatRemoteId);
+          const infoResult = await getChatMetadata(instanceId, token, chatRemoteId);
           if (infoResult.success) {
             displayName =
               infoResult.data?.name ||
+              infoResult.data?.contactName ||
               infoResult.data?.chatName ||
               displayName;
           }
@@ -159,144 +160,51 @@ export async function syncMessagesToSupabase(
   try {
     const result = await getChatHistory(instanceId, token, remoteJid, limit);
 
-    if (!result.success) {
-      return result;
-    }
+    if (result.success && result.data) {
+      const messages = result.data || [];
 
-    const messages = result.data || [];
-    const synced = [];
-
-    for (const msg of messages) {
-      const ts =
-        msg.timestamp != null
+      // Batch sync: Save all new messages to Supabase
+      // To be efficient, we do this in the background but we'll wait for this part
+      // since fetchMessages depends on accurate data.
+      for (const msg of messages) {
+        const ts = msg.timestamp != null
           ? new Date(msg.timestamp * 1000).toISOString()
           : new Date().toISOString();
 
-      const { data: existing, error: fetchError } = await supabase
-        .from('messages')
-        .select('id')
-        .eq('chat_id', chatId)
-        .eq('timestamp', ts)
-        .maybeSingle();
+        // Optimized check: only insert if not exists (using maybeSingle to minimize load)
+        const { data: existing } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('chat_id', chatId)
+          .eq('timestamp', ts)
+          .maybeSingle();
 
-      if (fetchError) {
-        console.error('Error fetching existing message during sync:', fetchError);
-        continue;
+        if (!existing) {
+          const { content, mediaMeta } = extractMessageContentAndMeta(msg);
+          await supabase.from('messages').insert({
+            chat_id: chatId,
+            content,
+            is_from_me: msg.type === 'outgoing' || msg.type === 'outgoingMessage' || msg.fromMe === true,
+            timestamp: ts,
+            media_meta: mediaMeta,
+            green_id: msg.idMessage || msg.id || null
+          });
+        }
       }
-
-      if (existing?.id) {
-        continue;
-      }
-
-      const isOutgoing =
-        msg.type === 'outgoing' ||
-        msg.type === 'outgoingMessage' ||
-        msg.fromMe === true;
-
-      // Green API sometimes uses type + typeMessage, sometimes only one of them
-      const type = msg.typeMessage || msg.type || '';
-
-      // Text / caption first (exactly like extension)
-      let content =
-        msg.textMessage ||
-        msg.extendedTextMessage?.text ||
-        msg.extendedTextMessageData?.text ||
-        msg.message ||
-        msg.conversation ||
-        msg.caption ||
-        '';
-
-      // Build media metadata (exactly like extension's makeBubble)
-      let mediaMeta = null;
-
-      if (type === 'imageMessage' || type === 'image') {
-        // Image message - save all media info (handle nested imageMessage object)
-        const imageMsg = msg.imageMessage || msg;
-        mediaMeta = {
-          type: 'image',
-          typeMessage: 'imageMessage',
-          urlFile: imageMsg.urlFile || msg.urlFile || imageMsg.downloadUrl || msg.downloadUrl || imageMsg.mediaUrl || msg.mediaUrl || null,
-          downloadUrl: imageMsg.downloadUrl || msg.downloadUrl || imageMsg.urlFile || msg.urlFile || imageMsg.mediaUrl || msg.mediaUrl || null,
-          jpegThumbnail: imageMsg.jpegThumbnail || msg.jpegThumbnail || null,
-          caption: imageMsg.caption || msg.caption || content || null,
-        };
-        if (!content) content = '📷 Image';
-      } else if (type === 'videoMessage' || type === 'video') {
-        // Video message (handle nested videoMessage object)
-        const videoMsg = msg.videoMessage || msg;
-        mediaMeta = {
-          type: 'video',
-          typeMessage: 'videoMessage',
-          urlFile: videoMsg.urlFile || msg.urlFile || videoMsg.downloadUrl || msg.downloadUrl || videoMsg.mediaUrl || msg.mediaUrl || null,
-          downloadUrl: videoMsg.downloadUrl || msg.downloadUrl || videoMsg.urlFile || msg.urlFile || videoMsg.mediaUrl || msg.mediaUrl || null,
-          jpegThumbnail: videoMsg.jpegThumbnail || msg.jpegThumbnail || null,
-          caption: videoMsg.caption || msg.caption || content || null,
-        };
-        if (!content) content = '🎥 Video';
-      } else if (type === 'audioMessage' || type === 'audio' || type === 'ptt') {
-        // Audio/voice message (handle nested audioMessage object)
-        const audioMsg = msg.audioMessage || msg;
-        const audioUrl = audioMsg.downloadUrl || msg.downloadUrl || audioMsg.url || msg.url || audioMsg.mediaUrl || msg.mediaUrl || null;
-        const duration = audioMsg.seconds || msg.seconds || audioMsg.duration || msg.duration || audioMsg.length || msg.length || 0;
-        mediaMeta = {
-          type: 'audio',
-          typeMessage: type === 'ptt' ? 'ptt' : 'audioMessage',
-          downloadUrl: audioUrl,
-          url: audioUrl,
-          seconds: duration,
-          duration: duration,
-          mimeType: audioMsg.mimeType || msg.mimeType || 'audio/ogg; codecs=opus',
-        };
-        if (!content) content = '🎵 Audio';
-      } else if (type === 'documentMessage' || type === 'document') {
-        // Document message (handle nested documentMessage object)
-        const docMsg = msg.documentMessage || msg;
-        mediaMeta = {
-          type: 'document',
-          typeMessage: 'documentMessage',
-          fileName: docMsg.fileName || msg.fileName || null,
-          downloadUrl: docMsg.downloadUrl || msg.downloadUrl || docMsg.url || msg.url || docMsg.urlFile || msg.urlFile || null,
-          caption: docMsg.caption || msg.caption || content || null,
-        };
-        if (!content) content = '📄 Document';
-      } else if (type === 'stickerMessage') {
-        mediaMeta = {
-          type: 'sticker',
-          typeMessage: 'stickerMessage',
-          downloadUrl: msg.downloadUrl || msg.urlFile || null,
-        };
-        if (!content) content = '🩹 Sticker';
-      } else if (type === 'locationMessage') {
-        mediaMeta = {
-          type: 'location',
-          typeMessage: 'locationMessage',
-          latitude: msg.latitude || msg.locationMessage?.latitude || null,
-          longitude: msg.longitude || msg.locationMessage?.longitude || null,
-        };
-        if (!content) content = '📍 Location';
-      }
-
-      // If we still don't have text, use generic media label
-      if (!content && !mediaMeta) {
-        content = '[Media]';
-      }
-
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          chat_id: chatId,
-          content,
-          is_from_me: isOutgoing,
-          timestamp: ts,
-          media_meta: mediaMeta, // Store media metadata (exactly like extension)
-        })
-        .select()
-        .single();
-
-      if (!error && data) synced.push(data);
     }
 
-    return { success: true, data: synced };
+    // Now fetch the authoritative list from Supabase to return to the UI
+    const { data: finalMessages, error: finalError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+
+    if (finalError) throw finalError;
+
+    // Return in chronological order (oldest first) for the chat UI
+    return { success: true, data: (finalMessages || []).reverse() };
   } catch (error) {
     console.error('syncMessagesToSupabase error:', error);
     return {
@@ -610,9 +518,9 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
         // Attempt to get name/avatar from Green API
         let displayName = msg.senderName || msg.senderContactName || rawChatId.split('@')[0];
         try {
-          const info = await getChatInfo(instanceId, token, rawChatId);
+          const info = await getChatMetadata(instanceId, token, rawChatId);
           if (info.success) {
-            displayName = info.data?.name || info.data?.chatName || displayName;
+            displayName = info.data?.name || info.data?.contactName || info.data?.chatName || displayName;
           }
         } catch (e) {
           console.warn(`[SYNC] Failed to fetch info for ${rawChatId}:`, e.message);
@@ -654,13 +562,17 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
 
     if (existing) continue;
 
+    // Use PanelMaster extraction helper for all sync paths
+    const { content, mediaMeta } = extractMessageContentAndMeta(msg);
+
     const { error } = await supabase
       .from('messages')
       .insert({
         chat_id: chat.id,
-        content: msg.textMessage || msg.extendedTextMessage?.text || msg.message || '[Media]',
+        content: content,
         is_from_me: msg.type === 'outgoing' || msg.fromMe === true,
-        timestamp: ts
+        timestamp: ts,
+        media_meta: mediaMeta
       });
 
     if (!error) newCount++;
@@ -690,6 +602,93 @@ export async function resetChatNames(numberId) {
     console.error('[SYNC] Error resetting chat names:', error);
     return { success: false, error: error.message };
   }
+}
+
+/**
+ * PanelMaster Unified Extraction Helper
+ * Extracts content string and media_meta JSON from any Green API message structure.
+ */
+function extractMessageContentAndMeta(msg) {
+  const type = msg.typeMessage || msg.type || '';
+  let content =
+    msg.textMessage ||
+    msg.extendedTextMessage?.text ||
+    msg.extendedTextMessageData?.text ||
+    msg.message ||
+    msg.conversation ||
+    msg.caption ||
+    '';
+
+  let mediaMeta = null;
+
+  if (type === 'imageMessage' || type === 'image') {
+    const imageMsg = msg.imageMessage || msg;
+    mediaMeta = {
+      type: 'image',
+      typeMessage: 'imageMessage',
+      urlFile: imageMsg.urlFile || msg.urlFile || imageMsg.downloadUrl || msg.downloadUrl || imageMsg.mediaUrl || msg.mediaUrl || null,
+      downloadUrl: imageMsg.downloadUrl || msg.downloadUrl || imageMsg.urlFile || msg.urlFile || imageMsg.mediaUrl || msg.mediaUrl || null,
+      jpegThumbnail: imageMsg.jpegThumbnail || msg.jpegThumbnail || null,
+      caption: imageMsg.caption || msg.caption || content || null,
+    };
+    if (!content) content = '📷 Image';
+  } else if (type === 'videoMessage' || type === 'video') {
+    const videoMsg = msg.videoMessage || msg;
+    mediaMeta = {
+      type: 'video',
+      typeMessage: 'videoMessage',
+      urlFile: videoMsg.urlFile || msg.urlFile || videoMsg.downloadUrl || msg.downloadUrl || videoMsg.mediaUrl || msg.mediaUrl || null,
+      downloadUrl: videoMsg.downloadUrl || msg.downloadUrl || videoMsg.urlFile || msg.urlFile || videoMsg.mediaUrl || msg.mediaUrl || null,
+      jpegThumbnail: videoMsg.jpegThumbnail || msg.jpegThumbnail || null,
+      caption: videoMsg.caption || msg.caption || content || null,
+    };
+    if (!content) content = '🎥 Video';
+  } else if (type === 'audioMessage' || type === 'audio' || type === 'ptt') {
+    const audioMsg = msg.audioMessage || msg;
+    const audioUrl = audioMsg.downloadUrl || msg.downloadUrl || audioMsg.url || msg.url || audioMsg.mediaUrl || msg.mediaUrl || null;
+    const duration = audioMsg.seconds || msg.seconds || audioMsg.duration || msg.duration || audioMsg.length || msg.length || 0;
+    mediaMeta = {
+      type: 'audio',
+      typeMessage: type === 'ptt' ? 'ptt' : 'audioMessage',
+      downloadUrl: audioUrl,
+      url: audioUrl,
+      seconds: duration,
+      duration: duration,
+      mimeType: audioMsg.mimeType || msg.mimeType || 'audio/ogg; codecs=opus',
+    };
+    if (!content) content = '🎵 Audio';
+  } else if (type === 'documentMessage' || type === 'document') {
+    const docMsg = msg.documentMessage || msg;
+    mediaMeta = {
+      type: 'document',
+      typeMessage: 'documentMessage',
+      fileName: docMsg.fileName || msg.fileName || null,
+      downloadUrl: docMsg.downloadUrl || msg.downloadUrl || docMsg.url || msg.url || docMsg.urlFile || msg.urlFile || null,
+      caption: docMsg.caption || msg.caption || content || null,
+    };
+    if (!content) content = '📄 Document';
+  } else if (type === 'stickerMessage') {
+    mediaMeta = {
+      type: 'sticker',
+      typeMessage: 'stickerMessage',
+      downloadUrl: msg.downloadUrl || msg.urlFile || null,
+    };
+    if (!content) content = '🩹 Sticker';
+  } else if (type === 'locationMessage') {
+    mediaMeta = {
+      type: 'location',
+      typeMessage: 'locationMessage',
+      latitude: msg.latitude || msg.locationMessage?.latitude || null,
+      longitude: msg.longitude || msg.locationMessage?.longitude || null,
+    };
+    if (!content) content = '📍 Location';
+  }
+
+  if (!content && !mediaMeta) {
+    content = '[Media]';
+  }
+
+  return { content, mediaMeta };
 }
 
 
