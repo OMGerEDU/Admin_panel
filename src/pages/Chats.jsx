@@ -395,6 +395,7 @@ export default function Chats() {
         }
     };
 
+
     // Load avatars sequentially with a delay to avoid 429
     useEffect(() => {
         if (chats.length > 0 && selectedNumber?.instance_id && !isGatheringAvatarsRef.current) {
@@ -1517,6 +1518,19 @@ export default function Chats() {
                                 </div>
                             </div>
                             <div className="ml-auto">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="gap-2 text-blue-500"
+                                    onClick={() => {
+                                        if (selectedNumber) {
+                                            triggerStateSnapshot(selectedNumber.instance_id);
+                                        }
+                                    }}
+                                >
+                                    <CloudUpload className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Backup to Cloud</span>
+                                </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"
