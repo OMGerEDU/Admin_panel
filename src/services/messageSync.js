@@ -1,4 +1,5 @@
-getChats,
+import {
+  getChats,
   getChatHistory,
   getLastIncomingMessages,
   getLastOutgoingMessages,
