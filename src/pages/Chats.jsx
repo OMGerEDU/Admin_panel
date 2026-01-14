@@ -180,7 +180,6 @@ export default function Chats() {
 
             // Background deep sync for this specific chat
             // This ensures history is loaded into Supabase even if not currently viewed
-            const chatId = selectedChat.chatId || selectedChat.remote_jid;
             if (chatId) {
                 // Find the DB chat object to get the correct 'id'
                 const dbChat = chats.find(c => c.chatId === chatId);
