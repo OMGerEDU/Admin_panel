@@ -24,7 +24,7 @@ export function UpdatesDropdown() {
                     </span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
+            <PopoverContent className="w-80 p-0 z-[100]" align="end">
                 <div className="p-4 border-b bg-amber-500/5">
                     <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-amber-600 uppercase tracking-wider bg-amber-100 px-1.5 py-0.5 rounded">
