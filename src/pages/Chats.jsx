@@ -388,11 +388,15 @@ export default function Chats() {
                     }
                 }
 
+                const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
+                const rawName = dbChat.name || liveChat?.name || liveChat?.chatName || null;
+                const cleanName = isJid(rawName) ? null : rawName;
+
                 return {
                     id: dbChat.id, // Supabase ID
                     chatId: chatId,
                     phone: phone,
-                    name: dbChat.name || liveChat?.name || liveChat?.chatName || phone,
+                    name: cleanName || phone,
                     avatar: liveChat?.avatar || liveChat?.urlAvatar || '',
                     lastMessage: lastMessageText,
                     lastMessageTime: timestamp,
@@ -406,10 +410,14 @@ export default function Chats() {
                 if (!chats.some(c => c.chatId === chatId)) {
                     const phone = removeJidSuffix(chatId);
                     const lm = liveChat.lastMessage;
+                    const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
+                    const rawName = liveChat.name || liveChat.chatName || null;
+                    const cleanName = isJid(rawName) ? null : rawName;
+
                     chats.push({
                         chatId,
                         phone,
-                        name: liveChat.name || liveChat.chatName || phone,
+                        name: cleanName || phone,
                         avatar: liveChat.avatar || liveChat.urlAvatar || '',
                         lastMessage: lm ? (lm.textMessage || lm.extendedTextMessage?.text || '[Media]') : '',
                         lastMessageTime: liveChat.timestamp || lm?.timestamp || 0,
@@ -674,14 +682,24 @@ export default function Chats() {
 
         try {
             setSyncing(true);
+            // 1. Reset names in DB
             const res = await resetChatNames(selectedNumber.id);
             if (res.success) {
-                // Now trigger a sync with enrichNames = true
+                // 2. Trigger optimized parallel sync with enrichNames = true
+                console.log('[SYNC] Starting optimized name enrichment...');
                 await syncChatsToSupabase(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token, true);
+
+                // 3. Clear local caches to reflect changes
+                chatsCacheRef.current.data = null;
+                chatsCacheRef.current.timestamp = 0;
+
+                // 4. Reload UI
                 await fetchChats(true);
+                alert(t('common.success') || 'Success!');
             }
         } catch (error) {
             console.error('[SYNC] Reset names error:', error);
+            alert(t('common.error') || 'Error occurred');
         } finally {
             setSyncing(false);
         }

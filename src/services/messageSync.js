@@ -55,8 +55,9 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
     );
 
     const rows = [];
+    const enrichmentTasks = [];
 
-    // 3) Build rows to upsert (no per-chat SELECTs)
+    // 3) Pre-process and collect enrichment tasks
     for (const chat of chats) {
       const chatRemoteId =
         chat.id || chat.chatId || chat.chatIdString || chat.remoteJid;
@@ -78,49 +79,73 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
 
       // Improved name detection: if name is just a JID or a phone number, consider it "missing"
       const currentName = existing?.name || chat.name || chat.chatName || chat.pushName;
-      const isMissingRealName = !currentName || currentName.includes('@') || /^\d+$/.test(currentName);
+      // Filter out JIDs from names
+      const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') || n.includes('@c.us'));
+      const isMissingRealName = !currentName || isJid(currentName) || /^\d+$/.test(currentName);
 
-      let displayName = currentName || chatRemoteId;
+      let displayName = isJid(currentName) ? null : (currentName || null);
 
-      // Optional enrichment for names when explicitly requested or if we only have a JID/phone
       if (enrichNames && isMissingRealName) {
-        try {
-          // Add a small delay/throttle if doing many in a loop, but here it's better to do selective enrichment
-          const infoResult = await getChatMetadata(instanceId, token, chatRemoteId);
-          if (infoResult.success) {
-            displayName =
-              infoResult.data?.name ||
-              infoResult.data?.contactName ||
-              infoResult.data?.chatName ||
-              displayName;
+        enrichmentTasks.push({
+          chatRemoteId,
+          lastText,
+          lastTs,
+          existingId: existing?.id,
+          currentDisplayName: displayName
+        });
+      } else {
+        rows.push({
+          number_id: numberId,
+          remote_jid: chatRemoteId,
+          name: displayName,
+          last_message: lastText,
+          last_message_at: lastTs,
+          ...(existing?.id ? { id: existing.id } : {})
+        });
+      }
+    }
+
+    // 4) Perform Parallel Enrichment in Chunks (faster than serial, safer than massive Promise.all)
+    if (enrichmentTasks.length > 0) {
+      console.log(`[SYNC] Enriching names for ${enrichmentTasks.length} chats in parallel...`);
+      const CHUNK_SIZE = 10;
+      for (let i = 0; i < enrichmentTasks.length; i += CHUNK_SIZE) {
+        const chunk = enrichmentTasks.slice(i, i + CHUNK_SIZE);
+        await Promise.all(chunk.map(async (task) => {
+          let enrichedName = task.currentDisplayName;
+          try {
+            const infoResult = await getChatMetadata(instanceId, token, task.chatRemoteId);
+            if (infoResult.success) {
+              const remoteName = infoResult.data?.name || infoResult.data?.contactName || infoResult.data?.chatName;
+              if (remoteName && !isJid(remoteName)) {
+                enrichedName = remoteName;
+              }
+            }
+          } catch (e) {
+            console.warn(`[SYNC] Enrichment error for ${task.chatRemoteId}:`, e.message);
           }
-          // Small delay to avoid 429 during bulk enrichment
-          await new Promise(r => setTimeout(r, 250));
-        } catch {
-          // Ignore enrichment errors
+
+          rows.push({
+            number_id: numberId,
+            remote_jid: task.chatRemoteId,
+            name: enrichedName,
+            last_message: task.lastText,
+            last_message_at: task.lastTs,
+            ...(task.existingId ? { id: task.existingId } : {})
+          });
+        }));
+        // Small pause between chunks to respect rate limits
+        if (i + CHUNK_SIZE < enrichmentTasks.length) {
+          await new Promise(r => setTimeout(r, 300));
         }
       }
-
-      const row = {
-        number_id: numberId,
-        remote_jid: chatRemoteId,
-        name: displayName,
-        last_message: lastText,
-        last_message_at: lastTs,
-      };
-
-      if (existing?.id) {
-        row.id = existing.id;
-      }
-
-      rows.push(row);
     }
 
     if (rows.length === 0) {
       return { success: true, data: [] };
     }
 
-    // 4) Upsert all chats in a single call
+    // 5) Upsert all chats in a single call
     const { data: upserted, error: upsertError } = await supabase
       .from('chats')
       .upsert(rows)
