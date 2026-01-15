@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
-import { Label } from '../components/ui/label' // Assuming Label exists or I use standard label
+
 import { Checkbox } from '../components/ui/checkbox' // Assuming Checkbox exists
 import { Loader2, ArrowLeft, Lock, ShieldCheck } from 'lucide-react'
 import { startPlanCheckout } from '../services/billing'
