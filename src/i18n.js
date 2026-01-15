@@ -597,12 +597,28 @@ const resources = {
                 "schedule_message_cta": "Schedule Your First Message 📅",
                 "skip": "Skip for now",
                 "complete": "Got it! ✅",
-                "progress": "Progress 📊"
+                "progress": "Progress 📊",
+                "auto_configure": "Automatically sets mostly used reliable settings for Green API (delays, webhooks).",
+                "use_platform_webhook": "Use platform webhook"
             },
             "plans": {
                 "accept_terms_prefix": "I have read and agree to the ",
                 "terms_link": "Terms of Service",
                 "accept_terms_suffix": " and website terms"
+            },
+            "checkout": {
+                "title": "Secure Checkout",
+                "desc": "Complete your subscription details.",
+                "first_name": "First Name",
+                "last_name": "Last Name",
+                "email": "Email",
+                "phone": "Phone",
+                "country": "Country",
+                "terms_desc": "By checking this box, you confirm that you have read and agree to our Terms of Use and Privacy Policy.",
+                "pay_now": "Complete Payment",
+                "secure_msg": "Payments are securely processed. We do not store credit card details.",
+                "error_terms": "You must agree to the terms and regulations.",
+                "error_fields": "Please fill in all required fields."
             },
             "scheduled": {
                 "title": "Scheduled Messages",
@@ -1282,12 +1298,28 @@ const resources = {
                 "schedule_message_cta": "תזמן את ההודעה הראשונה שלך 📅",
                 "skip": "דלג לעת עתה",
                 "complete": "הבנתי! ✅",
-                "progress": "התקדמות 📊"
+                "progress": "התקדמות 📊",
+                "auto_configure": "מגדיר אוטומטית הגדרות מומלצות ואמינות עבור Green API (השהיות, Webhooks).",
+                "use_platform_webhook": "השתמש ב-Webhook של הפלטפורמה"
             },
             "plans": {
                 "accept_terms_prefix": "קראתי ומסכים/ה ל",
                 "terms_link": "תנאי השימוש",
                 "accept_terms_suffix": " ולתקנון האתר"
+            },
+            "checkout": {
+                "title": "תשלום מאובטח",
+                "desc": "השלם את פרטי המנוי שלך.",
+                "first_name": "שם פרטי",
+                "last_name": "שם משפחה",
+                "email": "אימייל",
+                "phone": "טלפון",
+                "country": "מדינה",
+                "terms_desc": "בסימון תיבה זו, אתה מאשר שקראת והסכמת לתנאי השימוש ומדיניות הפרטיות שלנו.",
+                "pay_now": "השלם תשלום",
+                "secure_msg": "התשלומים מעובדים בצורה מאובטחת. אנו לא שומרים את פרטי כרטיס האשראי.",
+                "error_terms": "חובה להסכים לתנאים ולתקנון.",
+                "error_fields": "נא למלא את כל שדות החובה."
             },
             "scheduled": {
                 "title": "הודעות מתוזמנות",

@@ -33,7 +33,7 @@ export default function Checkout() {
 
     useEffect(() => {
         if (!plan) {
-            navigate('/app/plans')
+            navigate(session ? '/app/plans' : '/')
             return
         }
         fetchUserProfile()
@@ -84,6 +84,19 @@ export default function Checkout() {
         }
 
         setProcessing(true)
+
+        // If not logged in, redirect to register with data
+        if (!session) {
+            navigate('/register', {
+                state: {
+                    prefill: { ...formData },
+                    plan,
+                    interval
+                }
+            })
+            return
+        }
+
         try {
             // Update profile with new info if needed? 
             // For now, we just proceed to billing
@@ -97,15 +110,6 @@ export default function Checkout() {
             })
 
             // Mock success
-            // Refresh local data so UI reflects the new plan (this usually happens in Plans.jsx but we are redirecting)
-            // We can redirect to a success page or back to Plans
-            // For this task, we'll mimic the previous behavior but via this page
-
-            // window.location.assign(redirectUrl) // In real app
-
-            // For the mock implementation in startPlanCheckout, it updates the DB directly.
-            // So we can just navigate back to stats/dashboard/plans with a success message.
-
             navigate('/app/plans', { state: { success: true, message: 'Plan updated successfully!' } })
 
         } catch (err) {
@@ -121,11 +125,12 @@ export default function Checkout() {
     if (!plan) return null
 
     const price = interval === 'year' ? plan.price_yearly : plan.price_monthly
+    const displayPrice = (typeof price === 'number') ? `$${price}` : price
     const billingPeriod = interval === 'year' ? (isHebrew ? 'לשנה' : '/year') : (isHebrew ? 'לחודש' : '/month')
 
     return (
         <div className="container max-w-2xl py-10">
-            <Button variant="ghost" className="mb-4" onClick={() => navigate('/app/plans')}>
+            <Button variant="ghost" className="mb-4" onClick={() => navigate(session ? '/app/plans' : '/')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t('common.back') || 'Back'}
             </Button>
@@ -148,7 +153,7 @@ export default function Checkout() {
                             <p className="text-sm text-muted-foreground capitalize">{interval}ly billing</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-xl font-bold">${price}</p>
+                            <p className="text-xl font-bold">{displayPrice}</p>
                             <p className="text-xs text-muted-foreground">{billingPeriod}</p>
                         </div>
                     </div>

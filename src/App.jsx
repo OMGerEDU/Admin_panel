@@ -44,6 +44,7 @@ function App() {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/support" element={<Support />} />
+                <Route path="/checkout" element={<Checkout />} />
 
                 {/* Auth */}
                 <Route element={<AuthLayout />}>
