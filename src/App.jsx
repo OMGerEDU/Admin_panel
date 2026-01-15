@@ -21,6 +21,7 @@ import Extension from './pages/Extension'
 import OrganizationSettings from './pages/OrganizationSettings'
 import OrganizationOverview from './pages/OrganizationOverview'
 import Plans from './pages/Plans'
+import Checkout from './pages/Checkout'
 import ScheduledMessages from './pages/ScheduledMessages'
 import ScheduledMessageEdit from './pages/ScheduledMessageEdit'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -67,6 +68,7 @@ function App() {
                   <Route path="logs" element={<Logs />} />
                   <Route path="automation" element={<Automation />} />
                   <Route path="plans" element={<Plans />} />
+                  <Route path="checkout" element={<Checkout />} />
                   <Route path="api" element={<Api />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="organization" element={<OrganizationOverview />} />

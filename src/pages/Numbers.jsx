@@ -61,7 +61,9 @@ export default function Numbers() {
         phone_number: '',
         instance_id: '',
         api_token: '',
-        status: 'active'
+        status: 'active',
+        configureSettings: true,
+        usePlatformWebhook: false
     });
     const [saving, setSaving] = useState(false);
     const [numbersUsage, setNumbersUsage] = useState({
@@ -270,11 +272,39 @@ export default function Numbers() {
                     `New number added: ${formData.phone_number || formData.instance_id}`,
                     { instance_id: formData.instance_id }
                 );
+
+                // Configure settings if selected
+                if (formData.configureSettings) {
+                    // Fetch basic number ID (assuming user_id + instance_id uniqueness)
+                    const { data: numData } = await supabase
+                        .from('numbers')
+                        .select('id')
+                        .eq('instance_id', formData.instance_id)
+                        .eq('user_id', user.id)
+                        .single()
+
+                    if (numData) {
+                        const session = await supabase.auth.getSession()
+                        const token = session.data.session?.access_token
+
+                        await fetch('/api/v1/numbers/configure', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                number_id: numData.id,
+                                use_platform_webhook: formData.usePlatformWebhook
+                            })
+                        })
+                    }
+                }
             }
 
             setShowModal(false);
             setEditingNumber(null);
-            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
+            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active', configureSettings: true, usePlatformWebhook: false });
             fetchNumbers();
             fetchNumbersUsage();
         } catch (error) {
@@ -466,7 +496,8 @@ export default function Numbers() {
                                     onClick={() => {
                                         setShowModal(false);
                                         setEditingNumber(null);
-                                        setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
+                                        setEditingNumber(null);
+                                        setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active', configureSettings: true, usePlatformWebhook: false });
                                     }}
                                 >
                                     <X className="h-4 w-4" />
@@ -526,6 +557,58 @@ export default function Numbers() {
                                         <option value="inactive">{t('disconnected')}</option>
                                     </select>
                                 </div>
+
+                                {!editingNumber && (
+                                    <div className="space-y-3 pt-2 border-t">
+                                        <div className="flex items-start space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                id="configureSettings"
+                                                checked={formData.configureSettings}
+                                                onChange={(e) => setFormData({ ...formData, configureSettings: e.target.checked })}
+                                                className="mt-1"
+                                            />
+                                            <div className="grid gap-1.5 leading-none">
+                                                <label
+                                                    htmlFor="configureSettings"
+                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {t('onboarding.auto_configure') || 'Auto-configure recommended settings'}
+                                                </label>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Automatically sets mostly used reliable settings for Green API (delays, webhooks).
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {formData.configureSettings && (
+                                            <div className="flex items-start space-x-2 pl-6 animate-in slide-in-from-top-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="usePlatformWebhook"
+                                                    checked={formData.usePlatformWebhook}
+                                                    onChange={(e) => setFormData({ ...formData, usePlatformWebhook: e.target.checked })}
+                                                    className="mt-1"
+                                                />
+                                                <div className="grid gap-1.5 leading-none">
+                                                    <label
+                                                        htmlFor="usePlatformWebhook"
+                                                        className="text-sm font-medium leading-none flex items-center gap-2"
+                                                    >
+                                                        {t('onboarding.use_platform_webhook') || 'Use Platform Webhook'}
+                                                        <div className="group relative">
+                                                            <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md border z-50">
+                                                                Redirects Green API webhooks to this platform to enable features like chat history and improved syncing.
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div className="flex gap-2">
                                     <Button type="submit" className="flex-1" disabled={saving}>
                                         {saving ? t('common.loading') : t('common.add')}
@@ -536,7 +619,8 @@ export default function Numbers() {
                                         onClick={() => {
                                             setShowModal(false);
                                             setEditingNumber(null);
-                                            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active' });
+                                            setEditingNumber(null);
+                                            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active', configureSettings: true, usePlatformWebhook: false });
                                         }}
                                     >
                                         {t('common.cancel')}

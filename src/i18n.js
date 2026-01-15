@@ -137,7 +137,7 @@ const resources = {
                 "perm_context_menus": "contextMenus",
                 "perm_context_menus_desc": "To provide a right-click option to open chats.",
                 "security_title": "Security",
-                "security_text": "We handle your data securely. All data transmission to Green API and Supabase occurs over encrypted HTTPS connections. We do not expose your credentials or financial information publicly.",
+                "security_text": "We take acceptable precautions to maintain, as much as possible, the confidentiality of the information. We commit not to make use of user details registered on the site except for the needs of operating the site only, and in order to enable the execution of the purchase. All data transmission occurs over encrypted HTTPS connections.",
                 "contact_title": "Contact Us",
                 "contact_text": "If you have questions about this policy or our data practices, please contact us at"
             },
@@ -1503,7 +1503,7 @@ const resources = {
                 "perm_context_menus": "contextMenus",
                 "perm_context_menus_desc": "כדי לספק אפשרות קליק ימני לפתיחת צ'אטים.",
                 "security_title": "אבטחה",
-                "security_text": "אנו מטפלים בנתונים שלך בצורה מאובטחת. כל העברת הנתונים ל-Green API ו-Supabase מתבצעת על גבי חיבורי HTTPS מוצפנים. אנו לא חושפים את פרטי ההתחברות או המידע הפיננסי שלך בפומבי.",
+                "security_text": "החנות נוקטת באמצעי זהירות מקובלים על מנת לשמור, ככל האפשר על סודיות המידע. החנות מתחייבת לא לעשות שימוש בפרטי הלקוחות הרשומים באתר אלא לצרכי תפעול האתר בלבד, ועל מנת לאפשר את ביצוע הרכישה. כל העברת הנתונים מתבצעת על גבי חיבורי HTTPS מוצפנים.",
                 "contact_title": "צור קשר",
                 "contact_text": "אם יש לך שאלות לגבי מדיניות זו או שיטות הנתונים שלנו, אנא צור איתנו קשר בכתובת"
             },

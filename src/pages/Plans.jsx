@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Check, Sparkles, Crown, Building2, Loader2, X } from 'lucide-react'
@@ -26,6 +26,7 @@ const getPlanIcon = (name) => {
 export default function Plans() {
   const { session } = useAuth()
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [plans, setPlans] = useState([])
   const [currentSubscription, setCurrentSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -41,7 +42,7 @@ export default function Plans() {
   const [billingEvents, setBillingEvents] = useState([])
   const [processingPlanId, setProcessingPlanId] = useState(null)
   const [billingInterval, setBillingInterval] = useState('month') // 'month' | 'year'
-  const [termsAccepted, setTermsAccepted] = useState(false) // Terms acceptance for payment compliance
+
 
   useEffect(() => {
     fetchPlans()
@@ -144,37 +145,13 @@ export default function Plans() {
     }
   }
 
-  const handleSubscribe = async (plan) => {
-    if (!session?.user?.id) return
-    setProcessingPlanId(plan.id)
-    try {
-      const { redirectUrl } = await startPlanCheckout({
-        supabase,
-        userId: session.user.id,
+  const handleSubscribe = (plan) => {
+    navigate('/app/checkout', {
+      state: {
         plan,
-        interval: billingInterval,
-      })
-
-      // In production, you would redirect the user to the billing provider:
-      // window.location.assign(redirectUrl)
-      console.log('Billing redirect URL (placeholder):', redirectUrl)
-
-      // Refresh local data so UI reflects the new plan
-      await Promise.all([
-        fetchSubscription(),
-        fetchUsage(),
-        fetchBillingEvents(),
-      ])
-      // Optional: minimal UX feedback for test environment
-      // eslint-disable-next-line no-alert
-      alert('Plan updated (test environment, no real payment processed).')
-    } catch (error) {
-      console.error('Error starting plan checkout:', error)
-      // eslint-disable-next-line no-alert
-      alert('Error updating plan: ' + (error.message || 'Unknown error'))
-    } finally {
-      setProcessingPlanId(null)
-    }
+        interval: billingInterval
+      }
+    })
   }
 
   if (loading) return <div className="text-center py-8 text-muted-foreground">{t('common.loading')}</div>
@@ -393,34 +370,11 @@ export default function Plans() {
                   )}
                 </ul>
 
-                {/* Terms Acceptance Checkbox - Required by payment provider */}
-                {!isCurrent && (
-                  <div className="mb-4">
-                    <label className="flex items-start gap-2 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={termsAccepted}
-                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        {t('plans.accept_terms_prefix') || 'קראתי ומסכים/ה ל'}
-                        <Link
-                          to="/terms"
-                          target="_blank"
-                          className="text-primary underline hover:text-primary/80"
-                        >
-                          {t('plans.terms_link') || 'תנאי השימוש'}
-                        </Link>
-                        {t('plans.accept_terms_suffix') || ' ולתקנון האתר'}
-                      </span>
-                    </label>
-                  </div>
-                )}
+
 
                 <Button
                   onClick={() => handleSubscribe(plan)}
-                  disabled={isCurrent || processingPlanId === plan.id || (!isCurrent && !termsAccepted)}
+                  disabled={isCurrent || processingPlanId === plan.id}
                   className="w-full"
                   variant={isCurrent ? 'outline' : 'default'}
                 >
