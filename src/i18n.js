@@ -469,6 +469,58 @@ const resources = {
                     "privacy": "Privacy Policy",
                     "terms": "Terms of Use"
                 },
+                "terms": {
+                    "title": "Terms of Service",
+                    "last_updated": "Last updated: January 2026",
+                    "business_details": {
+                        "title": "Business Details",
+                        "name_label": "Business Name:",
+                        "phone_label": "Phone:",
+                        "address_label": "Address:",
+                        "address_value": "10 HaNasi St., Ashkelon, Israel",
+                        "email_label": "Email:"
+                    },
+                    "age_restriction": {
+                        "title": "Age Restriction",
+                        "text": "A condition for purchasing and using Ferns services is that the user is 18 years of age or older. By purchasing a subscription or using the service, the user declares that they meet this age requirement."
+                    },
+                    "service_delivery": {
+                        "title": "Service Delivery Policy",
+                        "intro": "Ferns is a Software as a Service (SaaS) for managing business WhatsApp communication.",
+                        "list1": "Access to the service will be granted immediately upon completion of registration and payment.",
+                        "list2": "Access details and confirmation will be sent to the email address provided during registration.",
+                        "list3": "The service is available 24/7, except during planned maintenance periods or unexpected outages."
+                    },
+                    "cancellation": {
+                        "title": "Cancellation & Refund Policy",
+                        "alert": "Subscription can be cancelled within 24 hours from the time of purchase only.",
+                        "list1": "After 24 hours from the time of purchase, no refund can be requested.",
+                        "list2": "There is no prorated refund for unused subscription periods.",
+                        "list3": "Cancelling the subscription will not immediately revoke access - access will remain active until the end of the current billing period.",
+                        "how_to_title": "How to request cancellation:",
+                        "how_to_email": "Send an email to ",
+                        "how_to_settings": "Through the \"Settings\" page on the website"
+                    },
+                    "liability": {
+                        "title": "Liability & Disclaimer",
+                        "intro": "Ferns provides a platform for managing business WhatsApp communication. The service is provided \"As Is\" and we make reasonable efforts to maintain service availability and reliability.",
+                        "list1": "The company and/or its representatives shall not be liable for any direct or indirect damages resulting from the use of the service.",
+                        "list2": "The service depends on third-party services (such as WhatsApp, Green API) and we are not responsible for failures or changes in these services.",
+                        "list3": "The user is responsible for legal and ethical use of the service, in accordance with WhatsApp's terms of use and spam/privacy laws.",
+                        "list4": "Ferns will not be responsible for phone number blocking by WhatsApp as a result of improper use of the platform."
+                    },
+                    "privacy": {
+                        "title": "Privacy Policy",
+                        "text_pre": "Detailed information about the collection and use of personal data can be found in our ",
+                        "link_text": "Privacy Policy"
+                    },
+                    "contact": {
+                        "title": "Contact Us",
+                        "intro": "For questions or inquiries regarding these terms, please contact us:",
+                        "email_label": "Email:",
+                        "phone_label": "Phone:"
+                    }
+                },
                 "chaos": {
                     "heading": "The daily chaos holding your business back",
                     "item1": "Missed leads due to overload or lack of response",
@@ -1093,14 +1145,14 @@ const resources = {
                     },
                     "pro": {
                         "title": "מלאה",
-                        "price": "בתשלום",
-                        "period": "",
+                        "price": "9.99$",
+                        "period": "/חודש",
                         "badge": "ללא הגבלה"
                     },
                     "business": {
                         "title": "צוות",
-                        "price": "בתשלום",
-                        "period": "",
+                        "price": "39$",
+                        "period": "/חודש",
                         "badge": "לצוותים וניהול מתקדם"
                     },
                     "subheadline": "תמחור פשוט שגדל עם העסק שלך.",
@@ -1548,6 +1600,58 @@ const resources = {
                 "phase_chat_deep_dive": "סנכרון היסטוריה עמוק",
                 "phase_completed": "הסתיים",
                 "phase_error": "שגיאת סנכרון"
+            },
+            "terms": {
+                "title": "תקנון ותנאי שימוש",
+                "last_updated": "עודכן לאחרונה: ינואר 2026",
+                "business_details": {
+                    "title": "פרטי העסק",
+                    "name_label": "שם העסק:",
+                    "phone_label": "טלפון:",
+                    "address_label": "כתובת:",
+                    "address_value": "הנשיא 10, אשקלון",
+                    "email_label": "מייל:"
+                },
+                "age_restriction": {
+                    "title": "הגבלת גיל",
+                    "text": "תנאי לרכישה ושימוש בשירותי Ferns הוא שהמשתמש הינו בן 18 שנים ומעלה. באמצעות רכישת המנוי או שימוש בשירות, המשתמש מצהיר כי הוא עומד בתנאי גיל זה."
+                },
+                "service_delivery": {
+                    "title": "מדיניות אספקת השירות",
+                    "intro": "Ferns הינו שירות תוכנה כשירות (SaaS) לניהול תקשורת עסקית בוואטסאפ.",
+                    "list1": "הגישה לשירות תינתן מיידית עם השלמת תהליך הרישום והתשלום.",
+                    "list2": "פרטי הגישה והאישור יישלחו לכתובת המייל שהוזנה בעת ההרשמה.",
+                    "list3": "השירות זמין 24/7, למעט תקופות תחזוקה מתוכננות או תקלות בלתי צפויות."
+                },
+                "cancellation": {
+                    "title": "מדיניות ביטול והחזרים",
+                    "alert": "ניתן לבטל את המנוי תוך 24 שעות ממועד הרכישה בלבד.",
+                    "list1": "לאחר 24 שעות מרגע הרכישה, לא ניתן לבקש החזר כספי.",
+                    "list2": "אין זיכוי יחסי עבור תקופת מנוי שלא נוצלה.",
+                    "list3": "ביטול המנוי לא יבטל את הגישה באופן מיידי - הגישה תישאר פעילה עד סוף תקופת החיוב הנוכחית.",
+                    "how_to_title": "כיצד לבקש ביטול:",
+                    "how_to_email": "שליחת מייל ל-",
+                    "how_to_settings": "דרך עמוד \"הגדרות\" באתר"
+                },
+                "liability": {
+                    "title": "אחריות והגבלת אחריות",
+                    "intro": "Ferns מספקת פלטפורמה לניהול תקשורת עסקית בוואטסאפ. השירות מסופק \"As Is\" ואנו עושים מאמצים סבירים לשמור על זמינות ואמינות השירות.",
+                    "list1": "החברה ו/או מי מטעמה לא יהיו אחראים לנזק ישיר ו/או עקיף שיגרם כתוצאה משימוש בשירות.",
+                    "list2": "השירות תלוי בשירותי צד שלישי (כגון WhatsApp, Green API) ולא נישא באחריות לתקלות או שינויים בשירותים אלו.",
+                    "list3": "המשתמש אחראי לשימוש חוקי ואתי בשירות, בהתאם לתנאי השימוש של WhatsApp ולחוקי הספאם והפרטיות.",
+                    "list4": "Ferns לא תהיה אחראית לחסימת מספרי טלפון על ידי WhatsApp כתוצאה משימוש לא נאות בפלטפורמה."
+                },
+                "privacy": {
+                    "title": "מדיניות פרטיות",
+                    "text_pre": "מידע מפורט על איסוף ושימוש במידע אישי מופיע ב",
+                    "link_text": "מדיניות הפרטיות"
+                },
+                "contact": {
+                    "title": "יצירת קשר",
+                    "intro": "לשאלות או בירורים בנוגע לתקנון זה, ניתן לפנות אלינו:",
+                    "email_label": "מייל:",
+                    "phone_label": "טלפון:"
+                }
             }
         }
     }
