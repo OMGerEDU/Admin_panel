@@ -96,6 +96,22 @@ export class GreenAPIProvider extends BaseProvider {
         return { messageId: result.idMessage }
     }
 
+    async setSettings(instanceId, apiToken, settings) {
+        const url = `${this.baseUrl}/waInstance${instanceId}/setSettings/${apiToken}`
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings)
+        })
+
+        if (!response.ok) {
+            const error = await response.text()
+            throw new Error(`GreenAPI setSettings failed: ${error}`)
+        }
+
+        return await response.json()
+    }
+
     normalizeWebhook(payload) {
         // GreenAPI webhook format normalization
         const { typeWebhook, instanceData, messageData, senderData } = payload

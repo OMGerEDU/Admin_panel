@@ -21,32 +21,45 @@ export const supabaseAdmin = createClient(SUPABASE_URL || '', SUPABASE_SERVICE_R
 
 export async function authenticate(req, res) {
     const apiKey = req.headers['x-api-key']
-    if (!apiKey) {
-        res.status(401).json({ error: 'Missing x-api-key header' })
-        return null
+    const authHeader = req.headers['authorization']
+
+    // 1. Bearer Token Auth (for Frontend)
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1]
+        const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
+
+        if (error || !user) {
+            res.status(401).json({ error: 'Invalid Session Token' })
+            return null
+        }
+        return { userId: user.id }
     }
 
-    // 1. Hash the incoming key to compare with stored hash
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    // 2. API Key Auth (for External Tools)
+    if (apiKey) {
+        const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
 
-    // 2. Lookup in DB
-    const { data, error } = await supabaseAdmin
-        .from('api_keys')
-        .select('user_id, last_used_at')
-        .eq('key_hash', keyHash)
-        .single()
+        const { data, error } = await supabaseAdmin
+            .from('api_keys')
+            .select('user_id, last_used_at')
+            .eq('key_hash', keyHash)
+            .single()
 
-    if (error || !data) {
-        res.status(401).json({ error: 'Invalid API Key' })
-        return null
+        if (error || !data) {
+            res.status(401).json({ error: 'Invalid API Key' })
+            return null
+        }
+
+        // Update last_used_at (fire and forget)
+        supabaseAdmin
+            .from('api_keys')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('key_hash', keyHash)
+            .then()
+
+        return { userId: data.user_id }
     }
 
-    // 3. Update last_used_at (fire and forget, don't await/block)
-    supabaseAdmin
-        .from('api_keys')
-        .update({ last_used_at: new Date().toISOString() })
-        .eq('key_hash', keyHash)
-        .then()
-
-    return { userId: data.user_id }
+    res.status(401).json({ error: 'Missing x-api-key or Authorization header' })
+    return null
 }

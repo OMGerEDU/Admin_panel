@@ -1,5 +1,6 @@
 
 import { authenticate, supabaseAdmin } from './_utils/auth.js'
+import { getProviderByName } from './_utils/providers/index.js'
 
 const GREEN_API_BASE = 'https://api.green-api.com'
 
@@ -56,6 +57,55 @@ export default async function handler(req, res) {
                 last_seen: n.last_seen
             }))
             return res.status(200).json({ data: sanitized })
+        }
+
+        // POST /api/v1/numbers/configure
+        if (route === 'numbers/configure' && method === 'POST') {
+            const { number_id, use_platform_webhook } = req.body
+
+            if (!number_id) return res.status(400).json({ error: 'Missing number_id' })
+
+            // Get number details
+            const { data: numberData, error: dbError } = await supabaseAdmin
+                .from('numbers')
+                .select('id, instance_id, api_token, user_id')
+                .eq('id', number_id)
+                .eq('user_id', userId)
+                .single()
+
+            if (dbError || !numberData) {
+                return res.status(404).json({ error: 'Number not found or access denied' })
+            }
+
+            const provider = getProviderByName('green-api')
+
+            // Construct settings
+            const settings = {
+                delaySendMessagesMilliseconds: 5000,
+                markIncomingMessagesReaded: "no",
+                outgoingWebhook: "yes",
+                outgoingMessageWebhook: "yes",
+                outgoingAPIMessageWebhook: "yes",
+                stateWebhook: "yes",
+                incomingWebhook: "yes",
+                deviceWebhook: "yes",
+                pollMessageWebhook: "yes" // As requested for reliability
+            }
+
+            if (use_platform_webhook) {
+                const protocol = req.headers['x-forwarded-proto'] || 'http'
+                const host = req.headers['host']
+                const hookUrl = `${protocol}://${host}/api/webhooks/greenapi`
+                settings.webhookUrl = hookUrl
+            }
+
+            try {
+                await provider.setSettings(numberData.instance_id, numberData.api_token, settings)
+                return res.status(200).json({ success: true, settings_applied: true })
+            } catch (err) {
+                console.error('Settings config failed:', err)
+                return res.status(502).json({ error: 'Failed to configure Green API: ' + err.message })
+            }
         }
 
         // GET /api/v1/chats
