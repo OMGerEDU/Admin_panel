@@ -4,6 +4,7 @@ export default function handler(req, res) {
         status: 'ok',
         version: 'v1',
         endpoints: [
+            '/whoami',
             '/numbers',
             '/chats',
             '/chats/:id/messages',

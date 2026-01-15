@@ -681,7 +681,8 @@ async function processMessageBatch(numberId, chats, rawMessages, instanceId, tok
         content: content,
         is_from_me: msg.type === 'outgoing' || msg.fromMe === true,
         timestamp: ts,
-        media_meta: mediaMeta
+        media_meta: mediaMeta,
+        green_id: msg.idMessage || msg.id
       });
 
     if (!error) {

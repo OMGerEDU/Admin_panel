@@ -1593,7 +1593,7 @@ export default function Chats() {
                                                         {typeMessage === 'imageMessage' && (
                                                             <div className="space-y-2">
                                                                 {(() => {
-                                                                    const messageId = item.idMessage || item.id;
+                                                                    const messageId = item.green_id || item.idMessage || item.id;
                                                                     const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
                                                                     // Check for cached URL first, then inline URLs
                                                                     const cachedUrl = mediaUrls[messageId];
@@ -1709,7 +1709,7 @@ export default function Chats() {
                                                         {(typeMessage === 'audioMessage' || typeMessage === 'ptt') && (
                                                             <div className="space-y-2">
                                                                 {(() => {
-                                                                    const messageId = item.idMessage || item.id;
+                                                                    const messageId = item.green_id || item.idMessage || item.id;
                                                                     const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
                                                                     // Check for cached URL first, then inline URLs
                                                                     const cachedUrl = mediaUrls[messageId];
@@ -1776,7 +1776,7 @@ export default function Chats() {
                                                                     <div className="font-semibold text-sm">{item.fileName}</div>
                                                                 )}
                                                                 {(() => {
-                                                                    const messageId = item.idMessage || item.id;
+                                                                    const messageId = item.green_id || item.idMessage || item.id;
                                                                     const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
                                                                     const cachedUrl = mediaUrls[messageId];
                                                                     const docUrl = cachedUrl || item.downloadUrl || item.url || item.urlFile ||

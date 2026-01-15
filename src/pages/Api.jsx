@@ -231,6 +231,7 @@ export default function Api() {
         { id: 'overview', label: 'Overview' },
         { id: 'authentication', label: 'Authentication' },
         { id: 'management', label: 'API Keys' },
+        { id: 'whoami', label: 'Whoami / Verification' },
         { id: 'numbers-list', label: 'List Numbers' },
         { id: 'chats-list', label: 'List Chats' },
         { id: 'chat-history', label: 'Chat History' },
@@ -372,6 +373,26 @@ export default function Api() {
                             </CardContent>
                         </Card>
                     </div>
+                );
+            case 'whoami':
+                return (
+                    <EndpointDoc
+                        id="whoami"
+                        method="GET"
+                        path="/api/whoami"
+                        title="Whoami / Verification"
+                        description="Retrieve information about the authenticated user. This endpoint is commonly used by Make.com and other integration platforms to verify the API connection."
+                        examples={{
+                            cURL: `curl -X GET https://ferns.builders-tech.com/api/whoami \\
+  -H "x-api-key: YOUR_API_KEY"`,
+                            Node: `const response = await fetch('https://ferns.builders-tech.com/api/whoami', {
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  }
+});
+const data = await response.json();`,
+                        }}
+                    />
                 );
             case 'numbers-list':
                 return (

@@ -455,6 +455,7 @@ const resources = {
                     },
                     "sync": {
                         "syncing": "Syncing",
+                        "updating_chat": "Updating Chat Data...",
                         "phase_starting": "Starting",
                         "phase_chats": "Scanning Chats",
                         "phase_last_30_days": "Fetching Last 30 Days",
@@ -1508,6 +1509,7 @@ const resources = {
             },
             "sync": {
                 "syncing": "מסנכרן",
+                "updating_chat": "מעדכן נתוני צ'אט...",
                 "phase_starting": "מתחיל",
                 "phase_chats": "סורק צ'אטים",
                 "phase_last_30_days": "מושך 30 יום אחרונים",
