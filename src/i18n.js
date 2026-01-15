@@ -455,6 +455,7 @@ const resources = {
                     },
                     "sync": {
                         "syncing": "Syncing",
+                        "syncing...": "Syncing...",
                         "updating_chat": "Updating Chat Data...",
                         "phase_starting": "Starting",
                         "phase_chats": "Scanning Chats",
@@ -1593,6 +1594,7 @@ const resources = {
             },
             "sync": {
                 "syncing": "מסנכרן",
+                "syncing...": "מסנכרן...",
                 "updating_chat": "מעדכן נתוני צ'אט...",
                 "phase_starting": "מתחיל",
                 "phase_chats": "סורק צ'אטים",
