@@ -83,59 +83,50 @@ export function loadMessagesFromCache(instanceId, chatId) {
 export function mergeMessages(cachedMessages, newMessages) {
     const combined = [...(cachedMessages || []), ...(newMessages || [])];
 
-    // 1. Deduplication Map by ID
-    const messageMap = new Map();
-    // 2. Content Hash Set to catch duplicates that have no ID or mixed ID/No-ID state
-    // Hash format: `${timestamp}_${fromMe}_${text_preview}`
-    const contentHashSet = new Set();
+    // Deduplication Map: ContentHash -> Message
+    const uniqueMap = new Map();
 
-    // Sort combined list by timestamp to ensure we process in order
-    // This helps keep the "best" version if we encounter duplicates
+    // Sort to process in consistent order (though logic handles replacements)
     combined.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-    const result = [];
-
     combined.forEach(msg => {
-        // Normalize Text
+        // 1. Normalize Content for Hashing
         const text = msg.textMessage || msg.conversation || msg.content || '';
-        // Allow messages without text if they have other content (like media), but if truly empty ignore
+        // Skip ghosts (no text/type) unless strictly typed
         if (!text && !msg.typeMessage && !msg.imageMessage && !msg.videoMessage) return;
 
-        // Create Content Hash (Dedupe Key)
-        // usage of 'Math.floor' on timestamp helps if there are slight ms differences
+        // 2. Generate Strict Content Hash
+        // We assume "identical" matches mean identical timestamps too.
+        // Normalize 'fromMe' to handle diverse API responses (bool vs string)
+        const isFromMe = msg.fromMe === true || msg.fromMe === 'true' || msg.type === 'outgoing' || msg.is_from_me === true;
         const ts = msg.timestamp || 0;
-        const hash = `${ts}_${msg.fromMe}_${text ? text.substring(0, 50) : 'media'}`;
 
-        const id = msg.idMessage || msg.id;
+        // Hash: Time + Direction + Content Preview
+        const hash = `${ts}_${isFromMe}_${text ? text.substring(0, 50) : (msg.typeMessage || 'media')}`;
 
-        if (id) {
-            // If it has an ID, we prioritize ID uniqueness
-            if (!messageMap.has(id)) {
-                // If we also haven't seen this content hash, it's definitely new.
-                // If we HAVE seen the content hash, it usually means we have a temp (no-id) version of this message.
-                // In that case, we should strictly prefer this ID version.
-                // BUT, we might have already pushed the temp version to 'result'.
-                // To fix this perfectly, we would need two passes, but let's stick to the simple robust rule:
-                // Trust ID. Trust Hash if No ID.
+        // 3. Conflict Resolution
+        if (uniqueMap.has(hash)) {
+            const existing = uniqueMap.get(hash);
+            const existingId = existing.idMessage || existing.id;
+            const currentId = msg.idMessage || msg.id;
 
-                messageMap.set(id, msg);
-                contentHashSet.add(hash);
-                result.push(msg);
+            // Check if one is "Temp/Local" and other is "Real/Server"
+            const isExistingTemp = !existingId || String(existingId).startsWith('temp_');
+            const isCurrentTemp = !currentId || String(currentId).startsWith('temp_');
+
+            // If we have a stored temp message, but now found a REAL one, SWAP IT.
+            if (isExistingTemp && !isCurrentTemp) {
+                uniqueMap.set(hash, msg);
             }
+            // Else: Keep existing (it's either real, or they are both temp/real duplicates)
         } else {
-            // NO ID: Strictly check content hash
-            if (!contentHashSet.has(hash)) {
-                // New unique content
-                const tempId = `temp_${ts}_${Math.random().toString(36).substr(2, 9)}`;
-                const msgWithId = { ...msg, idMessage: tempId };
-
-                contentHashSet.add(hash);
-                result.push(msgWithId);
-            }
+            // New unique message
+            uniqueMap.set(hash, msg);
         }
     });
 
-    // Final sort
+    // Return values sorted by timestamp
+    const result = Array.from(uniqueMap.values());
     result.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     return result;
 }
