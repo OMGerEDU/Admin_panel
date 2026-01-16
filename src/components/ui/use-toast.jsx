@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+// Force git update
 
 // Simple event emitter for toasts
 const listeners = new Set()
