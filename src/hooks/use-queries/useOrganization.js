@@ -229,3 +229,28 @@ export function useLeaveOrganization() {
         }
     })
 }
+
+/**
+ * Hook to fetch the organization owned by a specific user.
+ * Useful for getting the context when we only have the userId.
+ */
+export function useUserOrganization(userId) {
+    return useQuery({
+        queryKey: ['user_organization', userId],
+        queryFn: async () => {
+            if (!userId) return null;
+            // Try to find org where user is owner
+            const { data, error } = await supabase
+                .from('organizations')
+                .select('*')
+                .eq('owner_id', userId)
+                .limit(1)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        },
+        enabled: !!userId,
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+}
