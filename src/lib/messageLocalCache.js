@@ -98,6 +98,21 @@ export function mergeMessages(cachedMessages, newMessages) {
     });
 
     // Add or update messages from newMessages
+    // Secondary deduplication set for messages without IDs
+    // Format: `${timestamp}_${fromMe}_${text_preview}`
+    const existingContentHashes = new Set();
+
+    cachedMessages.forEach(msg => {
+        const id = msg.idMessage || msg.id;
+        if (!id) {
+            // Generate hash for existing messages that might lack IDs
+            const text = msg.textMessage || msg.conversation || msg.content || '';
+            const hash = `${msg.timestamp}_${msg.fromMe}_${text.substring(0, 50)}`;
+            existingContentHashes.add(hash);
+        }
+    });
+
+    // Add or update messages from newMessages
     newMessages.forEach(msg => {
         const id = msg.idMessage || msg.id;
         if (id) {
@@ -107,8 +122,15 @@ export function mergeMessages(cachedMessages, newMessages) {
                 messageMap.set(id, msg);
             }
         } else {
-            // If no ID, add it anyway (might be a new message)
-            messageMap.set(`temp_${Date.now()}_${Math.random()}`, msg);
+            // Fallback: Check content hash
+            const text = msg.textMessage || msg.conversation || msg.content || '';
+            const hash = `${msg.timestamp}_${msg.fromMe}_${text.substring(0, 50)}`;
+
+            if (!existingContentHashes.has(hash)) {
+                // Only add if not identical to something we already have
+                messageMap.set(`temp_${Date.now()}_${Math.random()}`, msg);
+                existingContentHashes.add(hash);
+            }
         }
     });
 
