@@ -1447,40 +1447,44 @@ export default function Chats() {
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
 
-                            {/* Avatar or Phone Icon */}
-                            {chatAvatars.has(selectedChat.chatId || selectedChat.remote_jid) ? (
-                                <img
-                                    src={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
-                                    alt={selectedChat.name}
-                                    className="w-10 h-10 rounded-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-10 h-10 rounded-full bg-primary/20 dark:bg-[#00a884]/20 flex items-center justify-center">
-                                    <Phone className="h-5 w-5 text-primary dark:text-[#00a884]" />
-                                </div>
-                            )}
 
+                            {/* Combined Clickable Area for Contact Card */}
                             <div
-                                className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
+                                className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => setShowContactCard(true)}
                             >
-                                <span className="font-semibold">
-                                    {selectedChat.name || selectedChat.phone || selectedChat.chatId}
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
-                                    {isActiveChatSyncing && (
-                                        <span className="text-[10px] text-green-500 animate-pulse flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 font-bold">
-                                            <RefreshCw className="h-2.5 w-2.5 animate-spin" />
-                                            {t('sync.updating_chat') || 'מעדכן שיחה...'}
-                                        </span>
-                                    )}
-                                    {(syncStatus[selectedNumber?.id]?.inProgress || isWarmUpSyncing) && !isActiveChatSyncing && (
-                                        <span className="text-[9px] text-primary animate-pulse flex items-center gap-1 bg-primary/5 px-1.5 rounded">
-                                            <span className="w-1 h-1 bg-primary rounded-full"></span>
-                                            {isWarmUpSyncing ? "Synchronizing Global History..." : (t('sync.syncing') || 'מסנכרן') + "..."}
-                                        </span>
-                                    )}
+                                {/* Avatar or Phone Icon */}
+                                {chatAvatars.has(selectedChat.chatId || selectedChat.remote_jid) ? (
+                                    <img
+                                        src={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
+                                        alt={selectedChat.name}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-primary/20 dark:bg-[#00a884]/20 flex items-center justify-center">
+                                        <Phone className="h-5 w-5 text-primary dark:text-[#00a884]" />
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col">
+                                    <span className="font-semibold">
+                                        {selectedChat.name || selectedChat.phone || selectedChat.chatId}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-muted-foreground dark:text-[#8696a0]">{t('chats_page.online_status') || ''}</span>
+                                        {isActiveChatSyncing && (
+                                            <span className="text-[10px] text-green-500 animate-pulse flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 font-bold">
+                                                <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+                                                {t('sync.updating_chat') || 'מעדכן שיחה...'}
+                                            </span>
+                                        )}
+                                        {(syncStatus[selectedNumber?.id]?.inProgress || isWarmUpSyncing) && !isActiveChatSyncing && (
+                                            <span className="text-[9px] text-primary animate-pulse flex items-center gap-1 bg-primary/5 px-1.5 rounded">
+                                                <span className="w-1 h-1 bg-primary rounded-full"></span>
+                                                {isWarmUpSyncing ? "Synchronizing Global History..." : (t('sync.syncing') || 'מסנכרן') + "..."}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="ml-auto">
