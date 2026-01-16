@@ -231,6 +231,7 @@ export default function Api() {
         { id: 'overview', label: 'Overview' },
         { id: 'authentication', label: 'Authentication' },
         { id: 'management', label: 'API Keys' },
+        { id: 'whoami', label: 'Whoami / Verification' },
         { id: 'numbers-list', label: 'List Numbers' },
         { id: 'chats-list', label: 'List Chats' },
         { id: 'chat-history', label: 'Chat History' },
@@ -373,12 +374,32 @@ export default function Api() {
                         </Card>
                     </div>
                 );
+            case 'whoami':
+                return (
+                    <EndpointDoc
+                        id="whoami"
+                        method="GET"
+                        path="/api/whoami"
+                        title="Whoami / Verification"
+                        description="Retrieve information about the authenticated user. This endpoint is commonly used by Make.com and other integration platforms to verify the API connection."
+                        examples={{
+                            cURL: `curl -X GET https://ferns.builders-tech.com/api/whoami \\
+  -H "x-api-key: YOUR_API_KEY"`,
+                            Node: `const response = await fetch('https://ferns.builders-tech.com/api/whoami', {
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  }
+});
+const data = await response.json();`,
+                        }}
+                    />
+                );
             case 'numbers-list':
                 return (
                     <EndpointDoc
                         id="numbers-list"
                         method="GET"
-                        path="/v1/numbers"
+                        path="/api/v1/numbers"
                         title="List Numbers"
                         description="Retrieve a list of all WhatsApp numbers connected to your account."
                         examples={{
@@ -405,7 +426,7 @@ print(response.json())`
                     <EndpointDoc
                         id="chats-list"
                         method="GET"
-                        path="/v1/chats"
+                        path="/api/v1/chats"
                         title="List Chats"
                         description="Retrieve a list of active chats for your account. You can filter by number_id."
                         params={[
@@ -426,7 +447,7 @@ print(response.json())`
                     <EndpointDoc
                         id="chat-history"
                         method="GET"
-                        path="/v1/chats/:id/messages"
+                        path="/api/v1/chats/:id/messages"
                         title="Get Chat History"
                         description="Retrieve the message history for a specific chat."
                         params={[
@@ -449,7 +470,7 @@ const response = await fetch(\`https://ferns.builders-tech.com/api/v1/chats/\${c
                     <EndpointDoc
                         id="send-message"
                         method="POST"
-                        path="/v1/messages/send"
+                        path="/api/v1/messages/send"
                         title="Send Message"
                         description="Send a text or media message to a phone number."
                         params={[
@@ -476,7 +497,7 @@ const response = await fetch(\`https://ferns.builders-tech.com/api/v1/chats/\${c
                     <EndpointDoc
                         id="delete-message"
                         method="DELETE"
-                        path="/v1/messages/:id"
+                        path="/api/v1/messages/:id"
                         title="Delete Message"
                         description="Delete a specific message from a chat."
                         params={[
@@ -493,7 +514,7 @@ const response = await fetch(\`https://ferns.builders-tech.com/api/v1/chats/\${c
                     <EndpointDoc
                         id="scheduled"
                         method="POST"
-                        path="/v1/scheduled"
+                        path="/api/v1/scheduled"
                         title="Schedule Message"
                         description="Create a scheduled message to be sent at a future time."
                         params={[

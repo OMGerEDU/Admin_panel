@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -21,6 +21,15 @@ export default function Signup() {
     const [inviteLocked, setInviteLocked] = useState(!!initialInviteFromUrl);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.prefill) {
+            setFullName(location.state.prefill.firstName + ' ' + location.state.prefill.lastName);
+            setEmail(location.state.prefill.email);
+        }
+    }, [location.state]);
 
     const handleSignup = async (e) => {
         e.preventDefault();
@@ -95,8 +104,12 @@ export default function Signup() {
                 setSuccess(true);
                 setError('');
             } else if (data.session) {
-                // Auto-confirmed, redirect to dashboard
-                navigate('/app/dashboard', { replace: true });
+                // Auto-confirmed, redirect to dashboard or checkout
+                if (location.state?.plan) {
+                    navigate('/app/checkout', { state: location.state, replace: true });
+                } else {
+                    navigate('/app/dashboard', { replace: true });
+                }
             }
         } catch (err) {
             console.error('Signup error:', err);
@@ -131,12 +144,12 @@ export default function Signup() {
                             <label htmlFor="name" className="text-sm font-medium leading-none">
                                 {t('signup.full_name')}
                             </label>
-                            <Input 
-                                id="name" 
-                                placeholder="John Doe" 
+                            <Input
+                                id="name"
+                                placeholder="John Doe"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
-                                required 
+                                required
                             />
                         </div>
                         <div className="space-y-2">
@@ -172,26 +185,26 @@ export default function Signup() {
                             <label htmlFor="email" className="text-sm font-medium leading-none">
                                 {t('signup.email')}
                             </label>
-                            <Input 
-                                id="email" 
-                                type="email" 
-                                placeholder="m@example.com" 
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="m@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                required 
+                                required
                             />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="password" className="text-sm font-medium leading-none">
                                 {t('signup.password')}
                             </label>
-                            <Input 
-                                id="password" 
-                                type="password" 
+                            <Input
+                                id="password"
+                                type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 minLength={6}
-                                required 
+                                required
                             />
                             <p className="text-xs text-muted-foreground">{t('signup.password_hint')}</p>
                         </div>

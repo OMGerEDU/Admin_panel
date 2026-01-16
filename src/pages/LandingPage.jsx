@@ -864,7 +864,14 @@ const PricingCard = ({ tier, price, period, features, recommended, badge, ctaKey
             </ul>
         </div>
 
-        <Link to="/register" className="mt-auto">
+        <Link
+            to="/checkout"
+            state={{
+                plan: { id: tier, name: tier, price_monthly: price, price_yearly: price },
+                interval: 'month'
+            }}
+            className="mt-auto"
+        >
             <Button className={`w-full py-6 rounded-xl text-lg ${recommended
                 ? 'bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white shadow-lg shadow-green-500/20'
                 : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white'}`}>
