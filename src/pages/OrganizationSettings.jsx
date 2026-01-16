@@ -337,58 +337,60 @@ export default function OrganizationSettings() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t('common.name')}</TableHead>
-                                <TableHead>{t('login.email')}</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>{t('common.date')}</TableHead>
-                                {isAdmin && <TableHead className="text-right">{t('common.actions')}</TableHead>}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {members.map(member => (
-                                <TableRow key={member.id}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-2">
-                                            {member.role === 'admin' || org.owner_id === member.profiles?.id ? (
-                                                <Crown className="h-4 w-4 text-yellow-500" />
-                                            ) : (
-                                                <User className="h-4 w-4 text-muted-foreground" />
-                                            )}
-                                            {member.profiles?.full_name || member.profiles?.email || 'Unknown'}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{member.profiles?.email || '-'}</TableCell>
-                                    <TableCell>
-                                        <span className={`text-xs px-2 py-1 rounded ${member.role === 'admin' || org.owner_id === member.profiles?.id
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>{t('common.name')}</TableHead>
+                                    <TableHead>{t('login.email')}</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>{t('common.date')}</TableHead>
+                                    {isAdmin && <TableHead className="text-right">{t('common.actions')}</TableHead>}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {members.map(member => (
+                                    <TableRow key={member.id}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                {member.role === 'admin' || org.owner_id === member.profiles?.id ? (
+                                                    <Crown className="h-4 w-4 text-yellow-500" />
+                                                ) : (
+                                                    <User className="h-4 w-4 text-muted-foreground" />
+                                                )}
+                                                {member.profiles?.full_name || member.profiles?.email || 'Unknown'}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{member.profiles?.email || '-'}</TableCell>
+                                        <TableCell>
+                                            <span className={`text-xs px-2 py-1 rounded ${member.role === 'admin' || org.owner_id === member.profiles?.id
                                                 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                                                 : 'bg-muted'
-                                            }`}>
-                                            {org.owner_id === member.profiles?.id ? 'Owner' : member.role}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(member.joined_at).toLocaleDateString()}
-                                    </TableCell>
-                                    {isAdmin && (
-                                        <TableCell className="text-right">
-                                            {org.owner_id !== member.profiles?.id && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleRemoveMember(member.id, member.profiles?.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            )}
+                                                }`}>
+                                                {org.owner_id === member.profiles?.id ? 'Owner' : member.role}
+                                            </span>
                                         </TableCell>
-                                    )}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                        <TableCell>
+                                            {new Date(member.joined_at).toLocaleDateString()}
+                                        </TableCell>
+                                        {isAdmin && (
+                                            <TableCell className="text-right">
+                                                {org.owner_id !== member.profiles?.id && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleRemoveMember(member.id, member.profiles?.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
 

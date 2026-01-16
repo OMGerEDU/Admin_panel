@@ -18,7 +18,8 @@ import {
     Calendar,
     X,
     RefreshCw,
-    Mic
+    Mic,
+    ArrowLeft
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { TagsManager } from '../components/TagsManager';
@@ -1107,7 +1108,10 @@ export default function Chats() {
     return (
         <div className="flex h-[calc(100vh-8rem)] bg-background dark:bg-[#0a1014] text-sm">
             {/* Left Sidebar - Numbers & Chats (WhatsApp-style) */}
-            <div className="w-96 border-r border-border dark:border-[#202c33] flex flex-col bg-card dark:bg-[#111b21] text-foreground dark:text-white">
+            <div className={cn(
+                "w-full md:w-96 border-r border-border dark:border-[#202c33] flex-col bg-card dark:bg-[#111b21] text-foreground dark:text-white",
+                selectedChat ? "hidden md:flex" : "flex"
+            )}>
                 {/* Number Selector / Top bar */}
                 <div className="p-3 border-b border-border dark:border-[#202c33] bg-secondary dark:bg-[#202c33]">
                     <div className="flex items-center gap-2 mb-3">
@@ -1423,11 +1427,24 @@ export default function Chats() {
             </div>
 
             {/* Right Side - Chat Messages */}
-            <div className="flex-1 flex flex-col bg-background dark:bg-[#0a1014]">
+            <div className={cn(
+                "flex-1 flex-col bg-background dark:bg-[#0a1014]",
+                selectedChat ? "flex" : "hidden md:flex"
+            )}>
                 {selectedChat ? (
                     <>
                         {/* Chat Header */}
                         <div className="p-3 border-b border-border dark:border-[#202c33] bg-secondary dark:bg-[#202c33] flex items-center gap-3 text-foreground dark:text-[#e9edef]">
+                            {/* Back Button for mobile */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="md:hidden -ml-2 text-muted-foreground"
+                                onClick={() => setSelectedChat(null)}
+                            >
+                                <ArrowLeft className="h-5 w-5" />
+                            </Button>
+
                             {/* Avatar or Phone Icon */}
                             {chatAvatars.has(selectedChat.chatId || selectedChat.remote_jid) ? (
                                 <img
