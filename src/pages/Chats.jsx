@@ -22,6 +22,7 @@ import {
     ArrowLeft
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
+import { useOrganization } from '../hooks/use-queries/useOrganization';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
 import { ImageLightbox } from '../components/ImageLightbox';
@@ -60,6 +61,7 @@ export default function Chats() {
     const isRTL = i18n.dir() === 'rtl';
     const { user } = useAuth();
     const { theme } = useTheme();
+    const { organization } = useOrganization(user?.id);
     const navigate = useNavigate();
     const { numberId, remoteJid } = useParams();
     const [numbers, setNumbers] = useState([]);
@@ -2045,7 +2047,7 @@ export default function Chats() {
                         contactPhone={removeJidSuffix(selectedChat.chatId || selectedChat.remote_jid)}
                         contactName={selectedChat.name}
                         contactAvatar={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
-                        organizationId={selectedNumber.organization_id}
+                        organizationId={selectedNumber.organization_id || organization?.id}
                     />
                 )
             }
