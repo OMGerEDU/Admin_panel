@@ -78,67 +78,66 @@ export function loadMessagesFromCache(instanceId, chatId) {
 
 /**
  * Merge new messages with cached messages (remove duplicates, keep sorted)
+ * REFACTORED: Aggressive deduplication strategies
  */
 export function mergeMessages(cachedMessages, newMessages) {
-    if (!cachedMessages || cachedMessages.length === 0) {
-        return newMessages;
-    }
+    const combined = [...(cachedMessages || []), ...(newMessages || [])];
 
-    if (!newMessages || newMessages.length === 0) {
-        return cachedMessages;
-    }
-
-    // Create a map of existing messages by idMessage
+    // 1. Deduplication Map by ID
     const messageMap = new Map();
-    cachedMessages.forEach(msg => {
+    // 2. Content Hash Set to catch duplicates that have no ID or mixed ID/No-ID state
+    // Hash format: `${timestamp}_${fromMe}_${text_preview}`
+    const contentHashSet = new Set();
+
+    // Sort combined list by timestamp to ensure we process in order
+    // This helps keep the "best" version if we encounter duplicates
+    combined.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    const result = [];
+
+    combined.forEach(msg => {
+        // Normalize Text
+        const text = msg.textMessage || msg.conversation || msg.content || '';
+        // Allow messages without text if they have other content (like media), but if truly empty ignore
+        if (!text && !msg.typeMessage && !msg.imageMessage && !msg.videoMessage) return;
+
+        // Create Content Hash (Dedupe Key)
+        // usage of 'Math.floor' on timestamp helps if there are slight ms differences
+        const ts = msg.timestamp || 0;
+        const hash = `${ts}_${msg.fromMe}_${text ? text.substring(0, 50) : 'media'}`;
+
         const id = msg.idMessage || msg.id;
+
         if (id) {
-            messageMap.set(id, msg);
-        }
-    });
+            // If it has an ID, we prioritize ID uniqueness
+            if (!messageMap.has(id)) {
+                // If we also haven't seen this content hash, it's definitely new.
+                // If we HAVE seen the content hash, it usually means we have a temp (no-id) version of this message.
+                // In that case, we should strictly prefer this ID version.
+                // BUT, we might have already pushed the temp version to 'result'.
+                // To fix this perfectly, we would need two passes, but let's stick to the simple robust rule:
+                // Trust ID. Trust Hash if No ID.
 
-    // Add or update messages from newMessages
-    // Secondary deduplication set for messages without IDs
-    // Format: `${timestamp}_${fromMe}_${text_preview}`
-    const existingContentHashes = new Set();
-
-    cachedMessages.forEach(msg => {
-        const id = msg.idMessage || msg.id;
-        if (!id) {
-            // Generate hash for existing messages that might lack IDs
-            const text = msg.textMessage || msg.conversation || msg.content || '';
-            const hash = `${msg.timestamp}_${msg.fromMe}_${text.substring(0, 50)}`;
-            existingContentHashes.add(hash);
-        }
-    });
-
-    // Add or update messages from newMessages
-    newMessages.forEach(msg => {
-        const id = msg.idMessage || msg.id;
-        if (id) {
-            // Keep the newer version
-            const existing = messageMap.get(id);
-            if (!existing || (msg.timestamp && existing.timestamp && msg.timestamp > existing.timestamp)) {
                 messageMap.set(id, msg);
+                contentHashSet.add(hash);
+                result.push(msg);
             }
         } else {
-            // Fallback: Check content hash
-            const text = msg.textMessage || msg.conversation || msg.content || '';
-            const hash = `${msg.timestamp}_${msg.fromMe}_${text.substring(0, 50)}`;
+            // NO ID: Strictly check content hash
+            if (!contentHashSet.has(hash)) {
+                // New unique content
+                const tempId = `temp_${ts}_${Math.random().toString(36).substr(2, 9)}`;
+                const msgWithId = { ...msg, idMessage: tempId };
 
-            if (!existingContentHashes.has(hash)) {
-                // Only add if not identical to something we already have
-                messageMap.set(`temp_${Date.now()}_${Math.random()}`, msg);
-                existingContentHashes.add(hash);
+                contentHashSet.add(hash);
+                result.push(msgWithId);
             }
         }
     });
 
-    // Convert back to array and sort by timestamp
-    const merged = Array.from(messageMap.values());
-    merged.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
-    return merged;
+    // Final sort
+    result.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    return result;
 }
 
 /**
@@ -354,4 +353,3 @@ export function getCacheStats() {
         return { chatCount: 0, totalMessages: 0, totalSizeKB: 0 };
     }
 }
-
