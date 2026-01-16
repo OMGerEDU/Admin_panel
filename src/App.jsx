@@ -29,6 +29,7 @@ import Terms from './pages/Terms'
 import Support from './pages/Support'
 import Api from './pages/Api'
 import Updates from './pages/Updates'
+import { Toaster } from './components/ui/toaster'
 import './index.css'
 
 function App() {
@@ -79,6 +80,7 @@ function App() {
                 </Route>
               </Route>
             </Routes>
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
       </LanguageProvider>
