@@ -71,7 +71,6 @@ export default function Login() {
     }
 
     return (
-    return (
         <div
             className="flex min-h-screen items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
             style={{
