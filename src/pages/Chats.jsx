@@ -26,6 +26,7 @@ import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { ContactCard } from '../components/ContactCard';
 import { cn, removeJidSuffix } from '../lib/utils';
 import {
     sendMessage as sendGreenMessage,
@@ -102,6 +103,7 @@ export default function Chats() {
     const [loadingMedia, setLoadingMedia] = useState({});
     const [syncStatus, setSyncStatus] = useState({}); // numberId -> status object
     const [showPanelMaster, setShowPanelMaster] = useState(false);
+    const [showContactCard, setShowContactCard] = useState(false); // Controls the dynamic customer card
     const pendingChatIdFromUrlRef = useRef(null);
     const isGatheringAvatarsRef = useRef(false);
     const activeChatIdRef = useRef(null);
@@ -1457,7 +1459,11 @@ export default function Chats() {
                                     <Phone className="h-5 w-5 text-primary dark:text-[#00a884]" />
                                 </div>
                             )}
-                            <div className="flex flex-col">
+                            </div>
+                            <div 
+                                className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => setShowContactCard(true)}
+                            >
                                 <span className="font-semibold">
                                     {selectedChat.name || selectedChat.phone || selectedChat.chatId}
                                 </span>
@@ -2019,14 +2025,27 @@ export default function Chats() {
                 }}
             />
 
-            {/* Image Lightbox */}
-            <ImageLightbox
-                src={lightboxImage?.src}
-                caption={lightboxImage?.caption}
-                isOpen={!!lightboxImage}
-                onClose={() => setLightboxImage(null)}
+            {/* Image Lightbox */ }
+    <ImageLightbox
+        src={lightboxImage?.src}
+        caption={lightboxImage?.caption}
+        isOpen={!!lightboxImage}
+        onClose={() => setLightboxImage(null)}
+    />
+    {/* Dynamic Contact Card */ }
+    {
+        selectedChat && selectedNumber && (
+            <ContactCard
+                isOpen={showContactCard}
+                onClose={() => setShowContactCard(false)}
+                contactPhone={removeJidSuffix(selectedChat.chatId || selectedChat.remote_jid)}
+                contactName={selectedChat.name}
+                contactAvatar={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
+                organizationId={selectedNumber.organization_id}
             />
-        </div>
+        )
+    }
+        </div >
     );
 }
 
