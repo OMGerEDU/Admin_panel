@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function UpdatePassword() {
     const [loading, setLoading] = useState(false)
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
 
     const { updatePassword, session } = useAuth()
@@ -62,25 +63,55 @@ export default function UpdatePassword() {
                         )}
                         <div className="space-y-2">
                             <Input
-                                type="password"
+                                type="email"
+                                value={session?.user?.email || ''}
+                                disabled
+                                className="bg-muted opacity-50 cursor-not-allowed"
+                            />
+                        </div>
+                        <div className="space-y-2 relative">
+                            <Input
+                                type={showPassword ? "text" : "password"}
                                 placeholder={t('auth.new_password')}
                                 value={password}
                                 required
                                 minLength={6}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={loading}
+                                className="pr-10"
                             />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                                disabled={loading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                <span className="sr-only">
+                                    {showPassword ? t('auth.hide_password') : t('auth.show_password')}
+                                </span>
+                            </Button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <Input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 placeholder={t('auth.confirm_password')}
                                 value={confirmPassword}
                                 required
                                 minLength={6}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 disabled={loading}
+                                className="pr-10"
                             />
+                            {/* We share the visibility toggle state for both fields for better UX, 
+                                but if we wanted independent toggles we'd need separate state. 
+                                Usually one toggle controls both for password reset/creation. */}
                         </div>
                         <Button className="w-full" disabled={loading}>
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
