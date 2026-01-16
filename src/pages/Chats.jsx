@@ -1459,8 +1459,8 @@ export default function Chats() {
                                     <Phone className="h-5 w-5 text-primary dark:text-[#00a884]" />
                                 </div>
                             )}
-                            </div>
-                            <div 
+
+                            <div
                                 className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => setShowContactCard(true)}
                             >
@@ -2025,26 +2025,26 @@ export default function Chats() {
                 }}
             />
 
-            {/* Image Lightbox */ }
-    <ImageLightbox
-        src={lightboxImage?.src}
-        caption={lightboxImage?.caption}
-        isOpen={!!lightboxImage}
-        onClose={() => setLightboxImage(null)}
-    />
-    {/* Dynamic Contact Card */ }
-    {
-        selectedChat && selectedNumber && (
-            <ContactCard
-                isOpen={showContactCard}
-                onClose={() => setShowContactCard(false)}
-                contactPhone={removeJidSuffix(selectedChat.chatId || selectedChat.remote_jid)}
-                contactName={selectedChat.name}
-                contactAvatar={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
-                organizationId={selectedNumber.organization_id}
+            {/* Image Lightbox */}
+            <ImageLightbox
+                src={lightboxImage?.src}
+                caption={lightboxImage?.caption}
+                isOpen={!!lightboxImage}
+                onClose={() => setLightboxImage(null)}
             />
-        )
-    }
+            {/* Dynamic Contact Card */}
+            {
+                selectedChat && selectedNumber && (
+                    <ContactCard
+                        isOpen={showContactCard}
+                        onClose={() => setShowContactCard(false)}
+                        contactPhone={removeJidSuffix(selectedChat.chatId || selectedChat.remote_jid)}
+                        contactName={selectedChat.name}
+                        contactAvatar={chatAvatars.get(selectedChat.chatId || selectedChat.remote_jid)}
+                        organizationId={selectedNumber.organization_id}
+                    />
+                )
+            }
         </div >
     );
 }
