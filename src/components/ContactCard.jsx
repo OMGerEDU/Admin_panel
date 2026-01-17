@@ -49,9 +49,9 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                 custom_fields: formData.custom_fields,
                 crm_links: formData.crm_links
             });
-            toast({ title: t('common.success'), description: 'Contact details saved' });
+            toast({ title: t('common.success'), description: t('contact_card.contact_saved') });
         } catch (err) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to save contact' });
+            toast({ variant: 'destructive', title: 'Error', description: t('contact_card.save_error') });
         }
     };
 
@@ -112,17 +112,17 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                     {/* Primary Info */}
                     <div className="space-y-3">
                         <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                            <Briefcase className="w-4 h-4" /> Basic Details
+                            <Briefcase className="w-4 h-4" /> {t('contact_card.basic_details')}
                         </h4>
                         <div className="grid gap-2">
                             <Input
-                                placeholder="Full Name"
+                                placeholder={t('contact_card.full_name')}
                                 value={formData.name || ''}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 prefix={<User className="w-4 h-4 text-muted-foreground" />}
                             />
                             <Input
-                                placeholder="Email Address"
+                                placeholder={t('contact_card.email_address')}
                                 value={formData.email || ''}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
                                 type="email"
@@ -136,7 +136,7 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                                <Tag className="w-4 h-4" /> Dynamic Info
+                                <Tag className="w-4 h-4" /> {t('contact_card.dynamic_info')}
                             </h4>
                             <Button
                                 variant="ghost"
@@ -144,7 +144,7 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                                 className="h-8 text-xs"
                                 onClick={() => setIsAddingField(true)}
                             >
-                                <Plus className="w-3 h-3 mr-1" /> Add Field
+                                <Plus className="w-3 h-3 mr-1" /> {t('contact_card.add_field')}
                             </Button>
                         </div>
 
@@ -175,14 +175,14 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                             {isAddingField && (
                                 <div className="flex gap-2 items-center bg-muted/20 p-2 rounded-md border border-dashed border-primary/50 animate-in fade-in-50">
                                     <Input
-                                        placeholder="Label (e.g. City)"
+                                        placeholder={t('contact_card.label_placeholder')}
                                         className="w-1/3 h-8 text-xs"
                                         value={newFieldKey}
                                         onChange={e => setNewFieldKey(e.target.value)}
                                         autoFocus
                                     />
                                     <Input
-                                        placeholder="Value"
+                                        placeholder={t('contact_card.value_placeholder')}
                                         className="flex-1 h-8 text-xs"
                                         value={newFieldValue}
                                         onChange={e => setNewFieldValue(e.target.value)}
@@ -201,7 +201,7 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
 
                             {!isAddingField && Object.keys(formData.custom_fields || {}).length === 0 && (
                                 <div className="text-center py-4 text-xs text-muted-foreground border border-dashed rounded-md">
-                                    No dynamic fields yet. Add one to track custom customer data.
+                                    {t('contact_card.no_dynamic_fields')}
                                 </div>
                             )}
                         </div>
@@ -212,10 +212,10 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                     {/* Notes */}
                     <div className="space-y-3">
                         <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                            <StickyNote className="w-4 h-4" /> Notes
+                            <StickyNote className="w-4 h-4" /> {t('contact_card.notes')}
                         </h4>
                         <Textarea
-                            placeholder="Internal notes about this customer..."
+                            placeholder={t('contact_card.notes_placeholder')}
                             value={formData.notes || ''}
                             onChange={e => setFormData({ ...formData, notes: e.target.value })}
                             className="min-h-[100px]"
@@ -227,11 +227,11 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                 <div className="flex justify-end pt-4 mt-auto">
                     <Button onClick={handleSavePrimary} disabled={isSaving} className="w-full sm:w-auto">
                         {isSaving ? (
-                            <>Saving...</>
+                            <>{t('contact_card.saving')}</>
                         ) : (
                             <>
                                 <Save className="w-4 h-4 mr-2" />
-                                Save Changes
+                                {t('contact_card.save_changes')}
                             </>
                         )}
                     </Button>
