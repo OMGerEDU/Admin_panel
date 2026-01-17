@@ -1675,7 +1675,15 @@ const resources = {
                     "phone_label": "טלפון:"
                 },
                 "sync": {
-                    "syncing": "מסנכרן..."
+                    "syncing": "מסנכרן",
+                    "syncing...": "מסנכרן...",
+                    "updating_chat": "מעדכן נתוני צ'אט...",
+                    "phase_starting": "מתחיל",
+                    "phase_chats": "סורק צ'אטים",
+                    "phase_last_30_days": "מושך 30 יום אחרונים",
+                    "phase_chat_deep_dive": "סנכרון היסטוריה עמוק",
+                    "phase_completed": "הסתיים",
+                    "phase_error": "שגיאת סנכרון"
                 },
                 "contact_card": {
                     "basic_details": "פרטים בסיסיים",
