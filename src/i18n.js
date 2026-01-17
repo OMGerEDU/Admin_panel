@@ -845,7 +845,6 @@ const resources = {
                 "notes_placeholder": "Internal notes about this customer...",
                 "save_changes": "Save Changes",
                 "saving": "Saving...",
-                "contact_saved": "Contact details saved",
                 "save_error": "Failed to save contact"
             }
         }
@@ -1673,17 +1672,6 @@ const resources = {
                     "intro": "לשאלות או בירורים בנוגע לתקנון זה, ניתן לפנות אלינו:",
                     "email_label": "מייל:",
                     "phone_label": "טלפון:"
-                },
-                "sync": {
-                    "syncing": "מסנכרן",
-                    "syncing...": "מסנכרן...",
-                    "updating_chat": "מעדכן נתוני צ'אט...",
-                    "phase_starting": "מתחיל",
-                    "phase_chats": "סורק צ'אטים",
-                    "phase_last_30_days": "מושך 30 יום אחרונים",
-                    "phase_chat_deep_dive": "סנכרון היסטוריה עמוק",
-                    "phase_completed": "הסתיים",
-                    "phase_error": "שגיאת סנכרון"
                 },
                 "contact_card": {
                     "basic_details": "פרטים בסיסיים",
