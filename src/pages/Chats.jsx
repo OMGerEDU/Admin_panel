@@ -1483,7 +1483,7 @@ export default function Chats() {
                                         {(syncStatus[selectedNumber?.id]?.inProgress || isWarmUpSyncing) && !isActiveChatSyncing && (
                                             <span className="text-[9px] text-primary animate-pulse flex items-center gap-1 bg-primary/5 px-1.5 rounded">
                                                 <span className="w-1 h-1 bg-primary rounded-full"></span>
-                                                {isWarmUpSyncing ? "Synchronizing Global History..." : (t('sync.syncing') || 'מסנכרן') + "..."}
+                                                {isWarmUpSyncing ? "Synchronizing Global History..." : t('sync.syncing')}
                                             </span>
                                         )}
                                     </div>

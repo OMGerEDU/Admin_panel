@@ -830,6 +830,9 @@ const resources = {
                 "cat_feature_request": "Feature Request"
             }
         },
+        "sync": {
+            "syncing": "Syncing..."
+        },
         "contact_card": {
             "basic_details": "Basic Details",
             "full_name": "Full Name",
@@ -1672,25 +1675,26 @@ const resources = {
                         "email_label": "מייל:",
                             "phone_label": "טלפון:"
             }
+        },
+        "sync": {
+            "syncing": "מסנכרן..."
+        },
+        "contact_card": {
+            "basic_details": "פרטים בסיסיים",
+                "full_name": "שם מלא",
+                    "email_address": "כתובת אימייל",
+                        "dynamic_info": "מידע דינמי",
+                            "add_field": "הוסף שדה",
+                                "no_dynamic_fields": "עדיין אין שדות דינמיים. הוסף אחד כדי לעקוב אחרי מידע מותאם אישית.",
+                                    "label_placeholder": "תווית (לדוגמה: עיר)",
+                                        "value_placeholder": "ערך",
+                                            "notes": "הערות",
+                                                "notes_placeholder": "הערות פנימיות על הלקוח...",
+                                                    "save_changes": "שמור שינויים",
+                                                        "saving": "שומר...",
+                                                            "contact_saved": "פרטי איש הקשר נשמרו",
+                                                                "save_error": "שמירת איש הקשר נכשלה"
         }
-    },
-    "contact_card": {
-        "basic_details": "פרטים בסיסיים",
-            "full_name": "שם מלא",
-                "email_address": "כתובת אימייל",
-                    "dynamic_info": "מידע דינמי",
-                        "add_field": "הוסף שדה",
-                            "no_dynamic_fields": "עדיין אין שדות דינמיים. הוסף אחד כדי לעקוב אחרי מידע מותאם אישית.",
-                                "label_placeholder": "תווית (לדוגמה: עיר)",
-                                    "value_placeholder": "ערך",
-                                        "notes": "הערות",
-                                            "notes_placeholder": "הערות פנימיות על הלקוח...",
-                                                "save_changes": "שמור שינויים",
-                                                    "saving": "שומר...",
-                                                        "contact_saved": "פרטי איש הקשר נשמרו",
-                                                            "save_error": "שמירת איש הקשר נכשלה"
-    }
-}
     }
 };
 
