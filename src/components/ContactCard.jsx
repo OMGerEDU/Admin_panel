@@ -13,8 +13,13 @@ import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 
 export function ContactCard({ isOpen, onClose, contactPhone, contactName, contactAvatar, organizationId }) {
-    const { t } = useTranslation();
-    const { toast } = useToast();
+    const { t, i18n } = useTranslation();
+
+    console.log('ContactCard Debug:', {
+        lang: i18n.language,
+        translation: t('contact_card.basic_details'),
+        exists: i18n.exists('contact_card.basic_details')
+    });
 
     // Hooks
     const { contact, isLoading, saveContact, isSaving } = useContact(contactPhone, organizationId);
