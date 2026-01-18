@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { useContacts } from '../hooks/use-queries/useContacts';
 import { getContacts } from '../services/greenApi';
+import { loadChatsFromCache } from '../lib/messageLocalCache';
 import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw } from 'lucide-react';
+import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown } from 'lucide-react';
 import { toast } from '../components/ui/use-toast';
 
 export default function Contacts() {
     const { t } = useTranslation();
-    const { organization } = useAuth();
+    const { user, organization } = useAuth();
     const { contacts: dbContacts, isLoading: isLoadingDb } = useContacts(organization?.id);
+
+    // Numbers state (like Chats page)
+    const [numbers, setNumbers] = useState([]);
+    const [selectedNumber, setSelectedNumber] = useState(null);
+    const [showNumberDropdown, setShowNumberDropdown] = useState(false);
 
     // Local state for Green API contacts
     const [greenContacts, setGreenContacts] = useState([]);
@@ -20,16 +27,33 @@ export default function Contacts() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
 
-    // Instance ID for Green API calls
-    const instanceId = localStorage.getItem('last_active_instance');
-    const token = localStorage.getItem('last_active_token');
+    // Fetch numbers on mount (same pattern as Chats)
+    useEffect(() => {
+        const fetchNumbers = async () => {
+            if (!user) return;
 
+            const { data, error } = await supabase
+                .from('numbers')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                setNumbers(data);
+                if (data.length > 0 && !selectedNumber) {
+                    setSelectedNumber(data[0]);
+                }
+            }
+        };
+        fetchNumbers();
+    }, [user]);
+
+    // Fetch Green API contacts when number is selected
     const fetchGreenContacts = async () => {
-        if (!instanceId || !token) return;
+        if (!selectedNumber?.instance_id || !selectedNumber?.api_token) return;
 
         setIsLoadingGreen(true);
         try {
-            const result = await getContacts(instanceId, token);
+            const result = await getContacts(selectedNumber.instance_id, selectedNumber.api_token);
             if (result.success && Array.isArray(result.data)) {
                 setGreenContacts(result.data);
             } else {
@@ -43,14 +67,32 @@ export default function Contacts() {
         }
     };
 
+    // Also try to get contacts from cached chats
+    const getContactsFromChatsCache = () => {
+        if (!selectedNumber?.instance_id) return [];
+
+        const cachedChats = loadChatsFromCache(selectedNumber.instance_id);
+        if (!cachedChats || cachedChats.length === 0) return [];
+
+        return cachedChats.map(chat => ({
+            id: chat.chatId || chat.remote_jid,
+            name: chat.name || chat.chatName,
+            contactName: chat.name || chat.chatName,
+            source: 'cache'
+        })).filter(c => c.id && !c.id.includes('@g.us')); // Filter out groups
+    };
+
     useEffect(() => {
-        fetchGreenContacts();
-    }, [instanceId, token]);
+        if (selectedNumber) {
+            fetchGreenContacts();
+        }
+    }, [selectedNumber?.id]);
 
     // Combine and filter logic
     const filteredContacts = React.useMemo(() => {
         const term = searchTerm.toLowerCase();
 
+        // Supabase DB contacts
         const dbItems = (dbContacts || []).filter(c =>
             c.name?.toLowerCase().includes(term) ||
             c.phone_number?.includes(term) ||
@@ -63,22 +105,34 @@ export default function Contacts() {
             displayPhone: c.phone_number
         }));
 
-        const greenItems = greenContacts.filter(c => {
-            const name = c.name || c.contactName || c.id || '';
-            return name.toLowerCase().includes(term) || c.id?.includes(term);
-        }).map(c => ({
-            ...c,
-            source: 'whatsapp',
-            id: c.id,
-            displayName: c.name || c.contactName || c.id?.split('@')[0],
-            displayPhone: c.id?.split('@')[0]
-        }));
+        // Green API contacts + cached chats
+        const cacheItems = getContactsFromChatsCache();
+        const allGreenItems = [...greenContacts, ...cacheItems];
+
+        // Dedupe by ID
+        const seenIds = new Set();
+        const greenItems = allGreenItems.filter(c => {
+            const id = c.id || c.chatId;
+            if (!id || seenIds.has(id)) return false;
+            seenIds.add(id);
+            const name = c.name || c.contactName || id || '';
+            return name.toLowerCase().includes(term) || id.includes(term);
+        }).map(c => {
+            const id = c.id || c.chatId;
+            return {
+                ...c,
+                source: c.source || 'whatsapp',
+                id: id,
+                displayName: c.name || c.contactName || id?.split('@')[0],
+                displayPhone: id?.split('@')[0]
+            };
+        });
 
         if (activeTab === 'storage') return dbItems;
         if (activeTab === 'whatsapp') return greenItems;
 
         return [...dbItems, ...greenItems];
-    }, [dbContacts, greenContacts, searchTerm, activeTab]);
+    }, [dbContacts, greenContacts, searchTerm, activeTab, selectedNumber?.instance_id]);
 
     const tabButtonClass = (tab) =>
         `px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === tab
@@ -96,7 +150,41 @@ export default function Contacts() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={fetchGreenContacts} disabled={isLoadingGreen}>
+                    {/* Number Selector */}
+                    {numbers.length > 0 && (
+                        <div className="relative">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowNumberDropdown(!showNumberDropdown)}
+                                className="min-w-[140px] justify-between"
+                            >
+                                <span className="truncate">
+                                    {selectedNumber?.phone_number || selectedNumber?.name || t('chats_page.select_number')}
+                                </span>
+                                <ChevronDown className="h-4 w-4 ml-2 shrink-0" />
+                            </Button>
+                            {showNumberDropdown && (
+                                <div className="absolute right-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 py-1">
+                                    {numbers.map(num => (
+                                        <button
+                                            key={num.id}
+                                            className={`w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors ${selectedNumber?.id === num.id ? 'bg-primary/10 text-primary' : ''
+                                                }`}
+                                            onClick={() => {
+                                                setSelectedNumber(num);
+                                                setShowNumberDropdown(false);
+                                                setGreenContacts([]); // Reset
+                                            }}
+                                        >
+                                            {num.phone_number || num.name || num.instance_id}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <Button variant="outline" size="sm" onClick={fetchGreenContacts} disabled={isLoadingGreen || !selectedNumber}>
                         <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingGreen ? 'animate-spin' : ''}`} />
                         {t('common.refresh')}
                     </Button>
@@ -130,7 +218,17 @@ export default function Contacts() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {(isLoadingDb && activeTab !== 'whatsapp') ? (
+                    {!selectedNumber && numbers.length === 0 ? (
+                        <div className="text-center py-16 px-4">
+                            <div className="bg-muted/30 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+                                <Smartphone className="h-8 w-8 text-muted-foreground/50" />
+                            </div>
+                            <h3 className="text-lg font-medium text-foreground">{t('chats_page.no_number_selected', 'No number connected')}</h3>
+                            <p className="text-muted-foreground max-w-sm mx-auto mt-2">
+                                {t('contacts.no_number_hint', 'Connect a WhatsApp number first to see contacts.')}
+                            </p>
+                        </div>
+                    ) : (isLoadingDb && activeTab !== 'whatsapp') || isLoadingGreen ? (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
@@ -141,7 +239,7 @@ export default function Contacts() {
                             </div>
                             <h3 className="text-lg font-medium text-foreground">{t('common.no_data', 'No contacts found')}</h3>
                             <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-                                {t('contacts.empty_state', 'Try adjusting your search or sync to find contacts.')}
+                                {t('contacts.empty_state', 'Try adjusting your search or refresh to find contacts.')}
                             </p>
                         </div>
                     ) : (
@@ -162,7 +260,7 @@ export default function Contacts() {
                                             {contact.source === 'storage' ? (
                                                 <Database className="h-3.5 w-3.5 text-blue-400 opacity-70" title="Saved in Storage" />
                                             ) : (
-                                                <Smartphone className="h-3.5 w-3.5 text-green-500 opacity-70" title="From WhatsApp Cache" />
+                                                <Smartphone className="h-3.5 w-3.5 text-green-500 opacity-70" title="From WhatsApp" />
                                             )}
                                         </div>
                                         <div className="flex items-center text-xs text-muted-foreground">
