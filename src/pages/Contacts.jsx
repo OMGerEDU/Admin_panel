@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { useContacts } from '../hooks/use-queries/useContacts';
 import { getContacts } from '../services/greenApi';
-import { loadChatsFromCache } from '../lib/messageLocalCache';
+import { loadChatsFromCache, loadAvatarsFromCache } from '../lib/messageLocalCache';
 import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown } from 'lucide-react';
+import { ContactCard } from '../components/ContactCard';
+import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown, LayoutGrid, List, Mail } from 'lucide-react';
 import { toast } from '../components/ui/use-toast';
 
 export default function Contacts() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { user, organization } = useAuth();
     const { contacts: dbContacts, isLoading: isLoadingDb } = useContacts(organization?.id);
 
@@ -26,6 +29,13 @@ export default function Contacts() {
     const [isLoadingGreen, setIsLoadingGreen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
+
+    // View Type: 'grid' or 'list'
+    const [viewType, setViewType] = useState('grid');
+
+    // Contact Card Popup State
+    const [selectedContact, setSelectedContact] = useState(null);
+    const [contactAvatars, setContactAvatars] = useState(new Map());
 
     // Fetch numbers on mount (same pattern as Chats)
     useEffect(() => {
@@ -46,6 +56,16 @@ export default function Contacts() {
         };
         fetchNumbers();
     }, [user]);
+
+    // Load avatars from cache when number changes
+    useEffect(() => {
+        if (selectedNumber?.instance_id) {
+            const cachedAvatars = loadAvatarsFromCache(selectedNumber.instance_id);
+            if (cachedAvatars.size > 0) {
+                setContactAvatars(cachedAvatars);
+            }
+        }
+    }, [selectedNumber?.instance_id]);
 
     // Fetch Green API contacts when number is selected
     const fetchGreenContacts = async () => {
@@ -134,11 +154,130 @@ export default function Contacts() {
         return [...dbItems, ...greenItems];
     }, [dbContacts, greenContacts, searchTerm, activeTab, selectedNumber?.instance_id]);
 
+    const handleContactClick = (contact) => {
+        setSelectedContact(contact);
+    };
+
+    const handleGoToChat = () => {
+        if (!selectedContact || !selectedNumber) return;
+
+        // Navigate to chats page with this contact
+        const chatId = selectedContact.id || selectedContact.displayPhone;
+        const phoneNumber = chatId?.split('@')[0] || chatId;
+
+        // Close the contact card
+        setSelectedContact(null);
+
+        // Navigate to chats with this specific chat selected
+        navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(phoneNumber)}`);
+    };
+
     const tabButtonClass = (tab) =>
         `px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === tab
             ? 'bg-primary text-primary-foreground shadow-sm'
             : 'bg-muted/50 text-muted-foreground hover:bg-muted'
         }`;
+
+    const viewButtonClass = (view) =>
+        `p-2 rounded-lg transition-all ${viewType === view
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+        }`;
+
+    // Render contact item based on view type
+    const renderContactGrid = (contact, idx) => (
+        <div
+            key={contact.id || idx}
+            className="group relative overflow-hidden rounded-xl border border-border/40 bg-background/40 hover:bg-background/80 hover:border-primary/30 transition-all duration-300 p-4 flex items-center gap-4 shadow-sm hover:shadow-md cursor-pointer"
+            onClick={() => handleContactClick(contact)}
+        >
+            {/* Avatar */}
+            {contactAvatars.get(contact.id) ? (
+                <img
+                    src={contactAvatars.get(contact.id)}
+                    alt={contact.displayName}
+                    className="h-10 w-10 rounded-full object-cover shrink-0"
+                />
+            ) : (
+                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
+                    {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
+                </div>
+            )}
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between mb-0.5">
+                    <h4 className="font-medium truncate text-foreground text-sm group-hover:text-primary transition-colors">
+                        {contact.displayName}
+                    </h4>
+                    {contact.source === 'storage' ? (
+                        <Database className="h-3.5 w-3.5 text-blue-400 opacity-70" title="Saved in Storage" />
+                    ) : (
+                        <Smartphone className="h-3.5 w-3.5 text-green-500 opacity-70" title="From WhatsApp" />
+                    )}
+                </div>
+                <div className="flex items-center text-xs text-muted-foreground">
+                    <Phone className="h-3 w-3 mr-1" />
+                    <span className="truncate">{contact.displayPhone}</span>
+                </div>
+            </div>
+            <div className="absolute inset-0 border-2 border-primary/0 group-hover:border-primary/10 rounded-xl transition-all pointer-events-none" />
+        </div>
+    );
+
+    const renderContactList = (contact, idx) => (
+        <div
+            key={contact.id || idx}
+            className="group flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/30 last:border-b-0"
+            onClick={() => handleContactClick(contact)}
+        >
+            {/* Checkbox placeholder */}
+            <div className="w-5 h-5 rounded border border-border/50 bg-background/50 shrink-0" />
+
+            {/* Avatar */}
+            {contactAvatars.get(contact.id) ? (
+                <img
+                    src={contactAvatars.get(contact.id)}
+                    alt={contact.displayName}
+                    className="h-9 w-9 rounded-full object-cover shrink-0"
+                />
+            ) : (
+                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-xs">
+                    {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
+                </div>
+            )}
+
+            {/* Name */}
+            <div className="min-w-[180px] flex-1">
+                <h4 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                    {contact.displayName}
+                </h4>
+            </div>
+
+            {/* Phone */}
+            <div className="min-w-[140px] text-sm text-muted-foreground font-mono">
+                {contact.displayPhone}
+            </div>
+
+            {/* Email (if available) */}
+            <div className="min-w-[180px] text-sm text-muted-foreground hidden lg:block">
+                {contact.email || '-'}
+            </div>
+
+            {/* Source Badge */}
+            <div className="min-w-[80px] flex justify-end">
+                {contact.source === 'storage' ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-500/10 text-blue-500">
+                        <Database className="h-3 w-3" />
+                        {t('data_sources.storage', 'Storage')}
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/10 text-green-500">
+                        <Smartphone className="h-3 w-3" />
+                        WA
+                    </span>
+                )}
+            </div>
+        </div>
+    );
 
     return (
         <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -195,7 +334,26 @@ export default function Contacts() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
                 <CardHeader className="pb-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
+                            {/* View Toggle */}
+                            <div className="flex gap-1 mr-2">
+                                <button
+                                    className={viewButtonClass('grid')}
+                                    onClick={() => setViewType('grid')}
+                                    title={t('contacts.grid_view', 'Grid View')}
+                                >
+                                    <LayoutGrid className="h-4 w-4" />
+                                </button>
+                                <button
+                                    className={viewButtonClass('list')}
+                                    onClick={() => setViewType('list')}
+                                    title={t('contacts.list_view', 'List View')}
+                                >
+                                    <List className="h-4 w-4" />
+                                </button>
+                            </div>
+
+                            {/* Tab Filters */}
                             <button className={tabButtonClass('all')} onClick={() => setActiveTab('all')}>
                                 {t('common.all', 'All')}
                             </button>
@@ -242,39 +400,38 @@ export default function Contacts() {
                                 {t('contacts.empty_state', 'Try adjusting your search or refresh to find contacts.')}
                             </p>
                         </div>
-                    ) : (
+                    ) : viewType === 'grid' ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {filteredContacts.map((contact, idx) => (
-                                <div
-                                    key={contact.id || idx}
-                                    className="group relative overflow-hidden rounded-xl border border-border/40 bg-background/40 hover:bg-background/80 hover:border-primary/30 transition-all duration-300 p-4 flex items-center gap-4 shadow-sm hover:shadow-md cursor-pointer"
-                                >
-                                    <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-                                        {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-center justify-between mb-0.5">
-                                            <h4 className="font-medium truncate text-foreground text-sm group-hover:text-primary transition-colors">
-                                                {contact.displayName}
-                                            </h4>
-                                            {contact.source === 'storage' ? (
-                                                <Database className="h-3.5 w-3.5 text-blue-400 opacity-70" title="Saved in Storage" />
-                                            ) : (
-                                                <Smartphone className="h-3.5 w-3.5 text-green-500 opacity-70" title="From WhatsApp" />
-                                            )}
-                                        </div>
-                                        <div className="flex items-center text-xs text-muted-foreground">
-                                            <Phone className="h-3 w-3 mr-1" />
-                                            <span className="truncate">{contact.displayPhone}</span>
-                                        </div>
-                                    </div>
-                                    <div className="absolute inset-0 border-2 border-primary/0 group-hover:border-primary/10 rounded-xl transition-all pointer-events-none" />
-                                </div>
-                            ))}
+                            {filteredContacts.map((contact, idx) => renderContactGrid(contact, idx))}
+                        </div>
+                    ) : (
+                        <div className="border border-border/30 rounded-lg overflow-hidden">
+                            {/* List Header */}
+                            <div className="flex items-center gap-4 px-4 py-2 bg-muted/30 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                <div className="w-5" /> {/* Checkbox space */}
+                                <div className="w-9" /> {/* Avatar space */}
+                                <div className="min-w-[180px] flex-1">{t('common.name', 'Name')}</div>
+                                <div className="min-w-[140px]">{t('common.phone', 'Phone')}</div>
+                                <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address', 'Email')}</div>
+                                <div className="min-w-[80px] text-right">{t('common.source', 'Source')}</div>
+                            </div>
+                            {/* List Items */}
+                            {filteredContacts.map((contact, idx) => renderContactList(contact, idx))}
                         </div>
                     )}
                 </CardContent>
             </Card>
+
+            {/* Contact Card Popup */}
+            <ContactCard
+                isOpen={!!selectedContact}
+                onClose={() => setSelectedContact(null)}
+                contactPhone={selectedContact?.displayPhone}
+                contactName={selectedContact?.displayName}
+                contactAvatar={contactAvatars.get(selectedContact?.id)}
+                organizationId={organization?.id || selectedNumber?.organization_id}
+                onGoToChat={handleGoToChat}
+            />
         </div>
     );
 }

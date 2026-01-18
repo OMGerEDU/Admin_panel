@@ -31,6 +31,16 @@ const resources = {
                 "api": "API",
                 "logs": "Logs"
             },
+            "contacts": {
+                "subtitle": "Manage your saved contacts and WhatsApp interactions",
+                "go_to_chat": "Go to Chat",
+                "empty_state": "Try adjusting your search or refresh to find contacts.",
+                "no_number_hint": "Connect a WhatsApp number first to see contacts."
+            },
+            "data_sources": {
+                "storage": "Storage",
+                "whatsapp": "WhatsApp"
+            },
             "webhooks_page": {
                 "subtitle": "Manage webhook endpoints for your integrations",
                 "list_title": "Webhooks",
@@ -878,6 +888,16 @@ const resources = {
                 "organization": "ארגון",
                 "api": "API",
                 "logs": "לוגים"
+            },
+            "contacts": {
+                "subtitle": "נהל את אנשי הקשר השמורים ואינטראקציות ה-WhatsApp שלך",
+                "go_to_chat": "עבור לצ'אט",
+                "empty_state": "נסה להתאים את החיפוש או לרענן כדי למצוא אנשי קשר.",
+                "no_number_hint": "חבר מספר WhatsApp קודם כדי לראות אנשי קשר."
+            },
+            "data_sources": {
+                "storage": "אחסון",
+                "whatsapp": "WhatsApp"
             },
             "automation": "אוטומציה",
             "extension": "תוסף",

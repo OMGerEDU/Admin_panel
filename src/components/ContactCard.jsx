@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    X, User, Mail, Phone, Plus, Trash2, Save, ExternalLink, StickyNote, Briefcase, MapPin, Tag
+    X, User, Mail, Phone, Plus, Trash2, Save, ExternalLink, StickyNote, Briefcase, MapPin, Tag, MessageSquare
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -12,7 +12,7 @@ import { useToast } from './ui/use-toast';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 
-export function ContactCard({ isOpen, onClose, contactPhone, contactName, contactAvatar, organizationId }) {
+export function ContactCard({ isOpen, onClose, contactPhone, contactName, contactAvatar, organizationId, onGoToChat }) {
     const { t, i18n } = useTranslation();
 
     console.log('ContactCard Debug:', {
@@ -229,8 +229,14 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex justify-end pt-4 mt-auto">
-                    <Button onClick={handleSavePrimary} disabled={isSaving} className="w-full sm:w-auto">
+                <div className="flex justify-between pt-4 mt-auto gap-2">
+                    {onGoToChat && (
+                        <Button variant="outline" onClick={onGoToChat} className="flex-1 sm:flex-none">
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            {t('contacts.go_to_chat', 'Go to Chat')}
+                        </Button>
+                    )}
+                    <Button onClick={handleSavePrimary} disabled={isSaving} className="flex-1 sm:flex-none">
                         {isSaving ? (
                             <>{t('contact_card.saving')}</>
                         ) : (
