@@ -37,12 +37,12 @@ export default function OrganizationOverview() {
       if (error) throw error
 
       const seen = new Map()
-      ;(data || []).forEach((row) => {
-        const org = row.organizations
-        if (org && !seen.has(org.id)) {
-          seen.set(org.id, org)
-        }
-      })
+        ; (data || []).forEach((row) => {
+          const org = row.organizations
+          if (org && !seen.has(org.id)) {
+            seen.set(org.id, org)
+          }
+        })
 
       setOrgs(Array.from(seen.values()))
     } catch (err) {

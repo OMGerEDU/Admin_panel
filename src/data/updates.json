@@ -1,5 +1,29 @@
 [
     {
+        "version": "1.1.0",
+        "date": "2026-01-18",
+        "title": "Contacts System & Dashboard 2.0",
+        "type": "major",
+        "features": [
+            {
+                "title": "Contacts Management",
+                "description": "Full-featured contacts manager. Create, view, and organize your client base with ease."
+            },
+            {
+                "title": "Smart Import",
+                "description": "Bulk import contacts from CSV or JSON with a new robust Preview & Edit tool."
+            },
+            {
+                "title": "Dashboard Pivot",
+                "description": "Complete redesign of the dashboard into an Operational Hub with instant System Health, Quick Actions, and Active Chats feed."
+            },
+            {
+                "title": "Enhanced Navigation",
+                "description": "Improved sidebar layout; 'Numbers' is now neatly organized under Settings."
+            }
+        ]
+    },
+    {
         "version": "1.0.2",
         "date": "2026-01-14",
         "title": "Lightning-Fast Chat Loading & Cloud Backup",
