@@ -101,44 +101,46 @@ SECURITY DEFINER
 AS $$
 BEGIN
     RETURN QUERY
-    -- Pending messages
-    SELECT 
-        'pending'::TEXT as category,
-        sm.id,
-        sm.to_phone,
-        sm.message,
-        sm.template_name,
-        sm.scheduled_at,
-        sm.status,
-        sm.number_id,
-        n.phone_number as number_phone
-    FROM scheduled_messages sm
-    LEFT JOIN numbers n ON n.id = sm.number_id
-    WHERE sm.user_id = p_user_id
-        AND sm.status = 'pending'
-        AND sm.scheduled_at >= NOW()
-    ORDER BY sm.scheduled_at ASC
-    LIMIT p_pending_limit
-    
+    (
+        -- Pending messages
+        SELECT 
+            'pending'::TEXT as category,
+            sm.id,
+            sm.to_phone,
+            sm.message,
+            sm.template_name,
+            sm.scheduled_at,
+            sm.status,
+            sm.number_id,
+            n.phone_number as number_phone
+        FROM scheduled_messages sm
+        LEFT JOIN numbers n ON n.id = sm.number_id
+        WHERE sm.user_id = p_user_id
+            AND sm.status = 'pending'
+            AND sm.scheduled_at >= NOW()
+        ORDER BY sm.scheduled_at ASC
+        LIMIT p_pending_limit
+    )
     UNION ALL
-    
-    -- Recent completed/failed messages
-    SELECT 
-        'recent'::TEXT as category,
-        sm.id,
-        sm.to_phone,
-        sm.message,
-        sm.template_name,
-        sm.scheduled_at,
-        sm.status,
-        sm.number_id,
-        n.phone_number as number_phone
-    FROM scheduled_messages sm
-    LEFT JOIN numbers n ON n.id = sm.number_id
-    WHERE sm.user_id = p_user_id
-        AND sm.status IN ('completed', 'failed')
-    ORDER BY sm.scheduled_at DESC
-    LIMIT p_recent_limit;
+    (
+        -- Recent completed/failed messages
+        SELECT 
+            'recent'::TEXT as category,
+            sm.id,
+            sm.to_phone,
+            sm.message,
+            sm.template_name,
+            sm.scheduled_at,
+            sm.status,
+            sm.number_id,
+            n.phone_number as number_phone
+        FROM scheduled_messages sm
+        LEFT JOIN numbers n ON n.id = sm.number_id
+        WHERE sm.user_id = p_user_id
+            AND sm.status IN ('completed', 'failed')
+        ORDER BY sm.scheduled_at DESC
+        LIMIT p_recent_limit
+    );
 END;
 $$;
 
