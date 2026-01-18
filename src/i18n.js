@@ -1704,17 +1704,18 @@ const resources = {
                 }
             }
         }
-    };
+    }
+};
 
-    i18n
+i18n
     .use(initReactI18next)
-        .init({
-            resources,
-            lng: localStorage.getItem('lang') || "en",
-            fallbackLng: "en",
-            interpolation: {
-                escapeValue: false
-            }
-        });
+    .init({
+        resources,
+        lng: localStorage.getItem('lang') || "en",
+        fallbackLng: "en",
+        interpolation: {
+            escapeValue: false
+        }
+    });
 
-    export default i18n;
+export default i18n;

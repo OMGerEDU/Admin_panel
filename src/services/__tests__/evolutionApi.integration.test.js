@@ -55,10 +55,45 @@ describe.runIf(runIntegration)('Evolution API Integration (Real System)', () => 
         }
     });
 
-    // Send Message Test - BLOCKED: Endpoint returning 404 on all known variations.
-    // Needs user input on correct API path.
-    it.skip('should send a real WhatsApp text message', async () => {
-        console.warn('Skipping Send Message test: API Endpoint unknown (404).');
+    // Connect Probe Test: Check if we can get a QR code or connection status
+    it('should fetch connection QR code/status for an instance', async () => {
+        // ... (previous logic to get instances)
+        const instancesResult = await instanceController.fetchInstances(API_TOKEN);
+        if (!instancesResult.success || !instancesResult.data.data) {
+            console.warn('Skipping Connect Probe: No instances found.');
+            return;
+        }
+        const instances = instancesResult.data.data;
+        const targetInstance = instances.find(i => i.instance.instanceName === INSTANCE_NAME) || instances[0];
+        const name = targetInstance.instance.instanceName;
+
+        console.log(`\n--- Probing Connection for: ${name} ---`);
+
+        // 1. Try standard connect endpoint
+        const connectUrl = `${API_URL}/instance/connect/${name}`;
+        console.log(`[Probe Connect] Fetching: ${connectUrl}`);
+
+        try {
+            const response = await fetch(connectUrl, {
+                method: 'GET',
+                headers: { 'apikey': API_TOKEN }
+            });
+            console.log(`[Probe Connect] Status: ${response.status}`);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[Probe Connect] Success! Data keys:', Object.keys(data));
+                if (data.base64 || data.code) {
+                    console.log('[Probe Connect] QR Code received (truncated):', (data.base64 || data.code).substring(0, 50));
+                }
+            } else {
+                console.warn('[Probe Connect] Failed:', await response.text());
+                // Try v2 style if v1 fails?
+                // const v2Url = `${API_URL}/instance-controller/instance-connect/${name}`; ...
+            }
+        } catch (e) {
+            console.error('[Probe Connect] Error:', e.message);
+        }
     });
 
 });
