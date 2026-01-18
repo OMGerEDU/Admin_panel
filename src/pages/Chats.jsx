@@ -71,6 +71,7 @@ export default function Chats() {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [isChatsLoaded, setIsChatsLoaded] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [isPolling, setIsPolling] = useState(false);
     const [messagesLoading, setMessagesLoading] = useState(false);
@@ -139,6 +140,7 @@ export default function Chats() {
                 setSelectedNumber(num);
                 // Reset state for new number
                 setChats([]);
+                setIsChatsLoaded(false);
                 setSelectedChat(null);
                 setMessages([]);
                 chatsCacheRef.current = { data: null, timestamp: 0, ttl: 30000, instanceId: num.instance_id };
@@ -214,29 +216,58 @@ export default function Chats() {
 
     // Load chat from URL params
     useEffect(() => {
-        if (remoteJid) {
+        if (remoteJid && selectedNumber) {
             const decodedRemoteJid = decodeURIComponent(remoteJid);
             pendingChatIdFromUrlRef.current = decodedRemoteJid;
 
-            if (chats.length > 0) {
-                const chat = chats.find(c => {
-                    const chatNumberOnly = removeJidSuffix(c.chatId || c.remote_jid || '');
-                    return chatNumberOnly === decodedRemoteJid || c.chatId === decodedRemoteJid || c.phone === decodedRemoteJid;
-                });
+            // Wait for chats to load if they are loading
+            if (!isChatsLoaded) return;
 
-                if (chat) {
-                    if (chat.chatId !== selectedChat?.chatId) {
-                        console.log('[CHATS] Setting selected chat from URL:', chat.chatId);
-                        setSelectedChat(chat);
-                    }
-                    pendingChatIdFromUrlRef.current = null;
+            // Try to find in existing chats
+            const chat = chats.find(c => {
+                const chatNumberOnly = removeJidSuffix(c.chatId || c.remote_jid || '');
+                return chatNumberOnly === decodedRemoteJid || c.chatId === decodedRemoteJid || c.phone === decodedRemoteJid;
+            });
+
+            if (chat) {
+                if (chat.chatId !== selectedChat?.chatId) {
+                    console.log('[CHATS] Setting selected chat from URL:', chat.chatId);
+                    setSelectedChat(chat);
                 }
+                pendingChatIdFromUrlRef.current = null;
+            } else {
+                // Chat not found in list (New chat or not synced yet)
+                console.log('[CHATS] Chat from URL not found in list, creating temporary:', decodedRemoteJid);
+
+                const cleanId = removeJidSuffix(decodedRemoteJid);
+                const fullId = decodedRemoteJid.includes('@') ? decodedRemoteJid : `${cleanId}@c.us`;
+
+                const newChat = {
+                    id: null,
+                    chatId: fullId,
+                    remote_jid: fullId,
+                    phone: cleanId,
+                    name: cleanId,
+                    avatar: '',
+                    lastMessage: '',
+                    lastMessageId: '',
+                    lastMessageTime: Date.now(),
+                    timestamp: Date.now(),
+                    unreadCount: 0,
+                    isNew: true // Flag to indicate it's a temporary chat
+                };
+                setSelectedChat(newChat);
+                // Optionally add to list so it's visible in sidebar
+                setChats(prev => [newChat, ...prev]);
             }
         } else {
-            setSelectedChat(null);
+            if (!remoteJid) {
+                // Only clear if URL param is gone, don't clear if just waiting for chats
+                setSelectedChat(null);
+            }
             pendingChatIdFromUrlRef.current = null;
         }
-    }, [remoteJid, chats]);
+    }, [remoteJid, chats, isChatsLoaded, selectedNumber]);
 
     useEffect(() => {
         if (selectedChat && selectedNumber) {
@@ -538,6 +569,7 @@ export default function Chats() {
         if (!forceRefresh && isSameInstance && chatsCacheRef.current.data && (Date.now() - chatsCacheRef.current.timestamp < chatsCacheRef.current.ttl)) {
             console.log('[CHATS] Using memory cached chats list');
             setChats(chatsCacheRef.current.data);
+            setIsChatsLoaded(true);
             return chatsCacheRef.current.data;
         }
 
@@ -547,6 +579,7 @@ export default function Chats() {
             if (localCachedChats && localCachedChats.length > 0) {
                 console.log('[CHATS] Using localStorage cached chats list');
                 setChats(localCachedChats);
+                setIsChatsLoaded(true);
             }
         }
 
@@ -660,9 +693,11 @@ export default function Chats() {
             saveChatsToCache(acc.instance_id, freshChats);
 
             setChats(freshChats);
+            setIsChatsLoaded(true);
             return freshChats;
         } catch (error) {
             console.error('[CHATS] Fetch chats error:', error);
+            setIsChatsLoaded(true); // Even on error, we attempted
             return [];
         }
     };
@@ -712,10 +747,37 @@ export default function Chats() {
         }
 
         try {
+            // Ensure DB chat exists (for new chats from URL)
+            let dbChatId = selectedChat.id;
+            if (!dbChatId) {
+                console.log('[CHATS] Ensuring chat exists in DB:', chatId);
+                const { data: upserted } = await supabase
+                    .from('chats')
+                    .upsert({
+                        number_id: selectedNumber.id,
+                        remote_jid: chatId,
+                        name: selectedChat.name || chatId
+                    }, { onConflict: 'number_id,remote_jid' })
+                    .select('id')
+                    .single();
+
+                if (upserted?.id) {
+                    dbChatId = upserted.id;
+                    // Update the local chat object reference so subsequent calls work
+                    selectedChat.id = upserted.id;
+                }
+            }
+
+            if (!dbChatId) {
+                console.warn('[CHATS] Failed to resolve DB ID for chat, skipping sync');
+                setMessagesLoading(false);
+                return;
+            }
+
             // 2. BACKGROUND/DELTA SYNC: Fetch latest from API/Supabase
             // PRIORITY: This is the user's focus, fetch more messages than prefetch
             const result = await syncMessagesToSupabase(
-                selectedChat.id,
+                dbChatId,
                 selectedNumber.instance_id,
                 selectedNumber.api_token,
                 chatId,
