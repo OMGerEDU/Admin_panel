@@ -3,17 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useContacts } from '../hooks/use-queries/useContacts';
 import { getContacts } from '../services/greenApi';
-import { loadChatsFromCache } from '../lib/messageLocalCache';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw } from 'lucide-react';
 import { toast } from '../components/ui/use-toast';
 
 export default function Contacts() {
     const { t } = useTranslation();
-    const { user, organization } = useAuth();
+    const { organization } = useAuth();
     const { contacts: dbContacts, isLoading: isLoadingDb } = useContacts(organization?.id);
 
     // Local state for Green API contacts
@@ -22,8 +20,7 @@ export default function Contacts() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
 
-    // Instance ID for Green API calls (grabbing from first connected number or user defaults)
-    // In a real multi-instance scenario, we might need a selector. For now, we take from local cache of chats or first available.
+    // Instance ID for Green API calls
     const instanceId = localStorage.getItem('last_active_instance');
     const token = localStorage.getItem('last_active_token');
 
@@ -36,7 +33,7 @@ export default function Contacts() {
             if (result.success && Array.isArray(result.data)) {
                 setGreenContacts(result.data);
             } else {
-                console.warn('Failed to fetch interactions/contacts from Green API');
+                console.warn('Failed to fetch contacts from Green API');
             }
         } catch (error) {
             console.error('Error fetching green contacts:', error);
@@ -47,7 +44,6 @@ export default function Contacts() {
     };
 
     useEffect(() => {
-        // Initial fetch if we have credentials
         fetchGreenContacts();
     }, [instanceId, token]);
 
@@ -73,17 +69,22 @@ export default function Contacts() {
         }).map(c => ({
             ...c,
             source: 'whatsapp',
-            id: c.id, // usually JID
-            displayName: c.name || c.contactName || c.id.split('@')[0],
-            displayPhone: c.id.split('@')[0]
+            id: c.id,
+            displayName: c.name || c.contactName || c.id?.split('@')[0],
+            displayPhone: c.id?.split('@')[0]
         }));
 
         if (activeTab === 'storage') return dbItems;
         if (activeTab === 'whatsapp') return greenItems;
 
-        // For 'all', we might want to dedupe, but simplicity first
         return [...dbItems, ...greenItems];
     }, [dbContacts, greenContacts, searchTerm, activeTab]);
+
+    const tabButtonClass = (tab) =>
+        `px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === tab
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+        }`;
 
     return (
         <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -106,13 +107,17 @@ export default function Contacts() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
                 <CardHeader className="pb-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-                            <TabsList className="grid w-full grid-cols-3 sm:w-[300px]">
-                                <TabsTrigger value="all">{t('common.all', 'All')}</TabsTrigger>
-                                <TabsTrigger value="storage">{t('data_sources.storage', 'Storage')}</TabsTrigger>
-                                <TabsTrigger value="whatsapp">{t('data_sources.whatsapp', 'WhatsApp')}</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+                        <div className="flex gap-2">
+                            <button className={tabButtonClass('all')} onClick={() => setActiveTab('all')}>
+                                {t('common.all', 'All')}
+                            </button>
+                            <button className={tabButtonClass('storage')} onClick={() => setActiveTab('storage')}>
+                                {t('data_sources.storage', 'Storage')}
+                            </button>
+                            <button className={tabButtonClass('whatsapp')} onClick={() => setActiveTab('whatsapp')}>
+                                {t('data_sources.whatsapp', 'WhatsApp')}
+                            </button>
+                        </div>
                         <div className="relative w-full sm:w-72">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
