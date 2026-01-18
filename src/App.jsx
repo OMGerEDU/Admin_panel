@@ -12,6 +12,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import UpdatePassword from './pages/UpdatePassword'
 import Dashboard from './pages/Dashboard'
 import Chats from './pages/Chats'
+import Contacts from './pages/Contacts'
 import Numbers from './pages/Numbers'
 import Webhooks from './pages/Webhooks'
 import Logs from './pages/Logs'
@@ -62,6 +63,7 @@ function App() {
                   <Route path="chats/:numberId/:remoteJid" element={<Chats />} />
                   <Route path="chats/:numberId" element={<Chats />} />
                   <Route path="chats" element={<Chats />} />
+                  <Route path="contacts" element={<Contacts />} />
                   <Route path="numbers" element={<Numbers />} />
                   <Route path="scheduled" element={<ScheduledMessages />} />
                   <Route path="scheduled/new" element={<ScheduledMessageEdit />} />

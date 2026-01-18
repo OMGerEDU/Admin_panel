@@ -110,7 +110,12 @@ Use the browser_subagent tool for end-to-end UI testing.
 // turbo
 2. Run tests once (CI mode): `npm run test:run`
 // turbo
+// turbo
 3. Run with coverage: `npm run test:coverage`
+// turbo
+4. Run with detailed logging (Standard for AI debugging): `npm run test:log`
+   - Always use this when debugging or stepping through issues.
+   - Outputs to `tests.log` in the root.
 
 ## Coverage Requirements
 | Type | Minimum Coverage |

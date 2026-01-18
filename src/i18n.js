@@ -22,6 +22,7 @@ const resources = {
             "sidebar": {
                 "dashboard": "Dashboard",
                 "chats": "Chats",
+                "contacts": "Contacts",
                 "numbers": "Numbers",
                 "scheduled": "Scheduled Messages",
                 "extension": "Extension",
@@ -869,6 +870,7 @@ const resources = {
             "sidebar": {
                 "dashboard": "לוח בקרה",
                 "chats": "צ'אטים",
+                "contacts": "אנשי קשר",
                 "numbers": "מספרים",
                 "scheduled": "הודעות מתוזמנות",
                 "extension": "תוסף",

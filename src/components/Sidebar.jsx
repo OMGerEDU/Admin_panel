@@ -18,6 +18,7 @@ import {
     Code,
     Sparkles,
     BarChart3,
+    Users,
 } from 'lucide-react';
 
 export function Sidebar({ className, isMobile, onClose }) {
@@ -28,7 +29,7 @@ export function Sidebar({ className, isMobile, onClose }) {
     const primaryLinks = [
         { href: '/app/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
         { href: '/app/chats', label: t('sidebar.chats'), icon: MessageSquare },
-        { href: '/app/numbers', label: t('sidebar.numbers'), icon: Smartphone },
+        { href: '/app/contacts', label: t('sidebar.contacts'), icon: Users },
         { href: '/app/scheduled', label: t('sidebar.scheduled'), icon: CalendarClock },
         { href: '/app/extension', label: t('sidebar.extension'), icon: Chrome },
         // { href: '/app/api', label: t('sidebar.api') || 'API', icon: Code },
@@ -37,6 +38,7 @@ export function Sidebar({ className, isMobile, onClose }) {
     const settingsChildren = [
         { href: '/app/settings', label: t('sidebar.settings'), icon: Settings },
         { href: '/app/organization', label: t('sidebar.organization'), icon: Building2 },
+        { href: '/app/numbers', label: t('sidebar.numbers'), icon: Smartphone },
         { href: '/app/plans', label: t('landing.pricing.plans.select'), icon: LayoutDashboard },
 
         { href: '/app/logs', label: t('sidebar.logs'), icon: FileText },
