@@ -52,116 +52,64 @@ export default function Dashboard() {
         if (!user) return;
         setLoading(true);
         try {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            console.log('[DASHBOARD] Fetching data via RPC functions for user:', user.id);
 
-            // 1. Fetch Numbers (exactly like ScheduledMessages.jsx)
-            const { data: numbers, error: numbersError } = await supabase
-                .from('numbers')
-                .select('*')
-                .eq('user_id', user.id);
+            // Call all database functions in parallel
+            const [chatsResult, scheduledResult, dormantResult, healthResult] = await Promise.all([
+                supabase.rpc('get_dashboard_active_chats', {
+                    p_user_id: user.id,
+                    p_limit: 10
+                }),
+                supabase.rpc('get_dashboard_scheduled_messages', {
+                    p_user_id: user.id,
+                    p_pending_limit: 10,
+                    p_recent_limit: 10
+                }),
+                supabase.rpc('get_dashboard_dormant_clients', {
+                    p_user_id: user.id,
+                    p_days_threshold: 7,
+                    p_limit: 5
+                }),
+                supabase.rpc('get_dashboard_system_health', {
+                    p_user_id: user.id
+                })
+            ]);
 
-            if (numbersError) {
-                console.error('[DASHBOARD] Numbers fetch error:', numbersError);
-            }
-            console.log('[DASHBOARD] Fetched numbers:', numbers?.length || 0);
+            // Log any errors
+            if (chatsResult.error) console.error('[DASHBOARD] Chats RPC error:', chatsResult.error);
+            if (scheduledResult.error) console.error('[DASHBOARD] Scheduled RPC error:', scheduledResult.error);
+            if (dormantResult.error) console.error('[DASHBOARD] Dormant RPC error:', dormantResult.error);
+            if (healthResult.error) console.error('[DASHBOARD] Health RPC error:', healthResult.error);
 
-            // 2. Fetch Chats (exactly like Chats.jsx pattern)
-            let chats = [];
-            if (numbers && numbers.length > 0) {
-                const numberIds = numbers.map(n => n.id);
-                const { data: dbChats, error: chatsError } = await supabase
-                    .from('chats')
-                    .select('*')
-                    .in('number_id', numberIds)
-                    .order('last_message_at', { ascending: false })
-                    .limit(10);
+            // Process results
+            const chats = chatsResult.data || [];
+            const scheduled = scheduledResult.data || [];
+            const dormant = dormantResult.data || [];
+            const health = healthResult.data?.[0] || {};
 
-                if (chatsError) {
-                    console.error('[DASHBOARD] Chats fetch error:', chatsError);
-                } else {
-                    chats = dbChats || [];
-                    console.log('[DASHBOARD] Fetched chats:', chats.length);
-                }
+            console.log('[DASHBOARD] RPC Results:', {
+                chats: chats.length,
+                scheduled: scheduled.length,
+                dormant: dormant.length,
+                health
+            });
 
-                // 2b. Fetch messages for chats
-                if (chats.length > 0) {
-                    const messagesPromises = chats.map(c =>
-                        supabase
-                            .from('messages')
-                            .select('*')
-                            .eq('chat_id', c.id)
-                            .order('timestamp', { ascending: false })
-                            .limit(2)
-                    );
-
-                    const results = await Promise.all(messagesPromises);
-                    chats = chats.map((c, i) => ({
-                        ...c,
-                        messages: results[i].data || []
-                    }));
-                }
-            }
-
-            // 3. Scheduled Messages (exactly like ScheduledMessages.jsx)
-            const { data: scheduledPending, error: pendingError } = await supabase
-                .from('scheduled_messages')
-                .select('*, numbers(phone_number, instance_id, api_token)')
-                .eq('user_id', user.id)
-                .eq('status', 'pending')
-                .gte('scheduled_at', new Date().toISOString())
-                .order('scheduled_at', { ascending: true })
-                .limit(10);
-
-            if (pendingError) {
-                console.error('[DASHBOARD] Pending messages error:', pendingError);
-            }
-            console.log('[DASHBOARD] Fetched pending messages:', scheduledPending?.length || 0);
-
-            const { data: scheduledRecent, error: recentError } = await supabase
-                .from('scheduled_messages')
-                .select('*, numbers(phone_number, instance_id, api_token)')
-                .eq('user_id', user.id)
-                .in('status', ['completed', 'failed'])
-                .order('scheduled_at', { ascending: false })
-                .limit(10);
-
-            if (recentError) {
-                console.error('[DASHBOARD] Recent messages error:', recentError);
-            }
-            console.log('[DASHBOARD] Fetched recent messages:', scheduledRecent?.length || 0);
-
-            // 4. Dormant Clients
-            let dormant = [];
-            if (numbers && numbers.length > 0) {
-                const numberIds = numbers.map(n => n.id);
-                const { data: dormantData, error: dormantError } = await supabase
-                    .from('chats')
-                    .select('name, remote_jid, last_message_at')
-                    .in('number_id', numberIds)
-                    .lt('last_message_at', sevenDaysAgo.toISOString())
-                    .order('last_message_at', { ascending: true })
-                    .limit(5);
-
-                if (dormantError) {
-                    console.error('[DASHBOARD] Dormant fetch error:', dormantError);
-                } else {
-                    dormant = dormantData || [];
-                }
-            }
+            // Parse messages JSONB for each chat (already parsed by Supabase)
+            chats.forEach(chat => {
+                chat.messages = chat.messages || [];
+            });
 
             setData({
-                numbers: numbers || [],
+                numbers: [], // Will be populated from health stats if needed
                 activeChats: chats,
-                scheduledMessages: [...(scheduledPending || []), ...(scheduledRecent || [])],
+                scheduledMessages: scheduled,
                 dormantClients: dormant,
+                systemHealth: health,
                 allChats: chats
             });
 
         } catch (error) {
-            console.error('[DASHBOARD] Fetch failed:', error);
+            console.error('[DASHBOARD] RPC fetch failed:', error);
         } finally {
             setLoading(false);
         }
