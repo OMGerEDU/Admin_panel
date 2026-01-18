@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs'; // Import Tabs
-import { Calendar, Clock, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { Calendar, Clock, Contact, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function ScheduleWidget({ messages = [], loading = false }) {
@@ -20,6 +20,9 @@ export function ScheduleWidget({ messages = [], loading = false }) {
         .sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at))
         .slice(0, 5);
 
+    // Combine for 'All' tab - Future first, then Recent
+    const all = [...upcoming, ...recent].slice(0, 7);
+
     const renderList = (items, isHistory = false) => {
         if (items.length === 0) {
             return (
@@ -31,24 +34,36 @@ export function ScheduleWidget({ messages = [], loading = false }) {
         }
         return (
             <div className="space-y-3 mt-2">
-                {items.map((msg, i) => (
-                    <div key={msg.id || i} className={`flex items-start gap-3 border-l-2 pl-3 py-1 transition-colors ${isHistory ? 'border-muted' : 'border-primary/40'}`}>
-                        <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium leading-none truncate mb-1 ${isHistory ? 'text-muted-foreground' : 'text-foreground'}`}>
-                                {msg.template_name || msg.message?.substring(0, 25) || 'No content'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                {new Date(msg.scheduled_at).toLocaleString()}
-                            </p>
-                        </div>
-                        <div className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-semibold tracking-wider ${msg.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
-                                msg.status === 'failed' ? 'bg-red-500/10 text-red-500' :
-                                    'bg-blue-500/10 text-blue-500'
+                {items.map((msg, i) => {
+                    const isPending = msg.status === 'pending';
+                    const isBulk = !msg.to_phone && !msg.recipient_count; // Rough guess or if count > 1
+
+                    return (
+                        <div key={msg.id || i} className={`flex items-start gap-3 border-l-2 pl-3 py-1 transition-colors ${isPending ? 'border-primary/60 bg-primary/5 rounded-r-md' : 'border-muted'
                             }`}>
-                            {msg.status}
+                            <div className="mt-0.5">
+                                {isBulk ? <Users className="h-4 w-4 text-muted-foreground" /> : <Contact className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold leading-none truncate mb-1 ${isPending ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                    {msg.to_phone || t('scheduled.multiple_recipients') || 'Recipients'}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate mb-1" title={msg.message}>
+                                    "{msg.template_name || msg.message}"
+                                </p>
+                                <p className="text-[10px] text-muted-foreground/70">
+                                    {new Date(msg.scheduled_at).toLocaleString()}
+                                </p>
+                            </div>
+                            <div className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-semibold tracking-wider self-center ${msg.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
+                                    msg.status === 'failed' ? 'bg-red-500/10 text-red-500' :
+                                        'bg-blue-500/10 text-blue-500'
+                                }`}>
+                                {msg.status}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         );
     };
@@ -72,9 +87,10 @@ export function ScheduleWidget({ messages = [], loading = false }) {
             </CardHeader>
             <CardContent className="flex-1">
                 <Tabs defaultValue="next" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-2">
+                    <TabsList className="grid w-full grid-cols-3 mb-2">
                         <TabsTrigger value="next">{t('dashboard.tab_next', 'Next')}</TabsTrigger>
                         <TabsTrigger value="recent">{t('dashboard.tab_recent', 'Recent')}</TabsTrigger>
+                        <TabsTrigger value="all">{t('dashboard.tab_all', 'All')}</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="next" className="outline-none">
@@ -83,6 +99,10 @@ export function ScheduleWidget({ messages = [], loading = false }) {
 
                     <TabsContent value="recent" className="outline-none">
                         {renderList(recent, true)}
+                    </TabsContent>
+
+                    <TabsContent value="all" className="outline-none">
+                        {renderList(all, false)}
                     </TabsContent>
                 </Tabs>
             </CardContent>

@@ -123,7 +123,7 @@ export default function Dashboard() {
 
             setData({
                 numbers: numbers || [],
-                activeChats: chats.filter(c => new Date(c.last_message_at) > sevenDaysAgo),
+                activeChats: chats, // Show recent chats regardless of time window
                 scheduledMessages: [...(scheduledPending || []), ...(scheduledRecent || [])],
                 dormantClients: dormant || [],
                 allChats: chats
