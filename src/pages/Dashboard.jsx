@@ -57,88 +57,106 @@ export default function Dashboard() {
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-            // 1. Fetch Numbers
-            const { data: numbers } = await supabase.from('numbers').select('*').eq('user_id', user.id);
+            // 1. Fetch Numbers (exactly like ScheduledMessages.jsx)
+            const { data: numbers, error: numbersError } = await supabase
+                .from('numbers')
+                .select('*')
+                .eq('user_id', user.id);
 
-            // 2. Fetch recent chats for user's numbers
+            if (numbersError) {
+                console.error('[DASHBOARD] Numbers fetch error:', numbersError);
+            }
+            console.log('[DASHBOARD] Fetched numbers:', numbers?.length || 0);
+
+            // 2. Fetch Chats (exactly like Chats.jsx pattern)
             let chats = [];
             if (numbers && numbers.length > 0) {
                 const numberIds = numbers.map(n => n.id);
-                try {
-                    const { data: c } = await supabase
-                        .from('chats')
-                        .select('*, tags(*)')
-                        .in('number_id', numberIds)
-                        .order('last_message_at', { ascending: false })
-                        .limit(10);
-                    chats = c || [];
-                } catch (err) {
-                    console.warn('[DASHBOARD] Tag fetch failed, falling back', err);
-                    const { data: c } = await supabase
-                        .from('chats')
-                        .select('*')
-                        .in('number_id', numberIds)
-                        .order('last_message_at', { ascending: false })
-                        .limit(10);
-                    chats = c || [];
+                const { data: dbChats, error: chatsError } = await supabase
+                    .from('chats')
+                    .select('*')
+                    .in('number_id', numberIds)
+                    .order('last_message_at', { ascending: false })
+                    .limit(10);
+
+                if (chatsError) {
+                    console.error('[DASHBOARD] Chats fetch error:', chatsError);
+                } else {
+                    chats = dbChats || [];
+                    console.log('[DASHBOARD] Fetched chats:', chats.length);
+                }
+
+                // 2b. Fetch messages for chats
+                if (chats.length > 0) {
+                    const messagesPromises = chats.map(c =>
+                        supabase
+                            .from('messages')
+                            .select('*')
+                            .eq('chat_id', c.id)
+                            .order('timestamp', { ascending: false })
+                            .limit(2)
+                    );
+
+                    const results = await Promise.all(messagesPromises);
+                    chats = chats.map((c, i) => ({
+                        ...c,
+                        messages: results[i].data || []
+                    }));
                 }
             }
 
-            // 2b. Fetch last 2 messages for these chats (Optimization: single query)
-            if (chats.length > 0) {
-                const chatIds = chats.map(c => c.chatId || c.remote_jid);
-                // Can't easily use 'in' for distinct limit without complex query or stored proc.
-                // For 10 chats, we can do parallel queries or one big query and filtering in JS.
-                // Given low volume, fetching last 5 messages for all these IDs in one go is fine if indexed?
-                // Or just loop parellel.
-                const messagesPromises = chats.map(c =>
-                    supabase
-                        .from('messages')
-                        .select('*')
-                        .eq('chat_id', c.id) // Assuming internal ID
-                        .order('timestamp', { ascending: false })
-                        .limit(2)
-                );
-
-                const results = await Promise.all(messagesPromises);
-                chats = chats.map((c, i) => ({
-                    ...c,
-                    messages: results[i].data || []
-                }));
-            }
-
-            // 3. Scheduled Messages (Pending AND Recent)
-            const { data: scheduledPending } = await supabase
+            // 3. Scheduled Messages (exactly like ScheduledMessages.jsx)
+            const { data: scheduledPending, error: pendingError } = await supabase
                 .from('scheduled_messages')
-                .select('*')
+                .select('*, numbers(phone_number, instance_id, api_token)')
                 .eq('user_id', user.id)
                 .eq('status', 'pending')
                 .gte('scheduled_at', new Date().toISOString())
                 .order('scheduled_at', { ascending: true })
                 .limit(10);
 
-            const { data: scheduledRecent } = await supabase
+            if (pendingError) {
+                console.error('[DASHBOARD] Pending messages error:', pendingError);
+            }
+            console.log('[DASHBOARD] Fetched pending messages:', scheduledPending?.length || 0);
+
+            const { data: scheduledRecent, error: recentError } = await supabase
                 .from('scheduled_messages')
-                .select('*')
+                .select('*, numbers(phone_number, instance_id, api_token)')
                 .eq('user_id', user.id)
                 .in('status', ['completed', 'failed'])
                 .order('scheduled_at', { ascending: false })
                 .limit(10);
 
+            if (recentError) {
+                console.error('[DASHBOARD] Recent messages error:', recentError);
+            }
+            console.log('[DASHBOARD] Fetched recent messages:', scheduledRecent?.length || 0);
+
             // 4. Dormant Clients
-            const { data: dormant } = numbers && numbers.length > 0 ? await supabase
-                .from('chats')
-                .select('name, remote_jid, last_message_at')
-                .in('number_id', numberIds)
-                .lt('last_message_at', sevenDaysAgo.toISOString())
-                .order('last_message_at', { ascending: true })
-                .limit(5) : { data: [] };
+            let dormant = [];
+            if (numbers && numbers.length > 0) {
+                const numberIds = numbers.map(n => n.id);
+                const { data: dormantData, error: dormantError } = await supabase
+                    .from('chats')
+                    .select('name, remote_jid, last_message_at')
+                    .in('number_id', numberIds)
+                    .lt('last_message_at', sevenDaysAgo.toISOString())
+                    .order('last_message_at', { ascending: true })
+                    .limit(5);
+
+                if (dormantError) {
+                    console.error('[DASHBOARD] Dormant fetch error:', dormantError);
+                } else {
+                    dormant = dormantData || [];
+                }
+            }
 
             setData({
                 numbers: numbers || [],
-                activeChats: chats, // Show recent chats regardless of time window
+                activeChats: chats,
                 scheduledMessages: [...(scheduledPending || []), ...(scheduledRecent || [])],
-                dormantClients: dormant || [],
+                dormantClients: dormant,
                 allChats: chats
             });
 
