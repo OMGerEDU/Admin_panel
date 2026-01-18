@@ -60,18 +60,28 @@ export default function Dashboard() {
             // 1. Fetch Numbers
             const { data: numbers } = await supabase.from('numbers').select('*').eq('user_id', user.id);
 
-            // 2. Fetch recent chats
+            // 2. Fetch recent chats for user's numbers
             let chats = [];
-            try {
-                const { data: c } = await supabase
-                    .from('chats')
-                    .select('*, tags(*)')
-                    .order('last_message_at', { ascending: false })
-                    .limit(10); // Limit 10 to fetch messages for
-                chats = c || [];
-            } catch (err) {
-                const { data: c } = await supabase.from('chats').select('*').order('last_message_at', { ascending: false }).limit(10);
-                chats = c || [];
+            if (numbers && numbers.length > 0) {
+                const numberIds = numbers.map(n => n.id);
+                try {
+                    const { data: c } = await supabase
+                        .from('chats')
+                        .select('*, tags(*)')
+                        .in('number_id', numberIds)
+                        .order('last_message_at', { ascending: false })
+                        .limit(10);
+                    chats = c || [];
+                } catch (err) {
+                    console.warn('[DASHBOARD] Tag fetch failed, falling back', err);
+                    const { data: c } = await supabase
+                        .from('chats')
+                        .select('*')
+                        .in('number_id', numberIds)
+                        .order('last_message_at', { ascending: false })
+                        .limit(10);
+                    chats = c || [];
+                }
             }
 
             // 2b. Fetch last 2 messages for these chats (Optimization: single query)
@@ -114,12 +124,13 @@ export default function Dashboard() {
                 .limit(10);
 
             // 4. Dormant Clients
-            const { data: dormant } = await supabase
+            const { data: dormant } = numbers && numbers.length > 0 ? await supabase
                 .from('chats')
                 .select('name, remote_jid, last_message_at')
+                .in('number_id', numberIds)
                 .lt('last_message_at', sevenDaysAgo.toISOString())
                 .order('last_message_at', { ascending: true })
-                .limit(5);
+                .limit(5) : { data: [] };
 
             setData({
                 numbers: numbers || [],
