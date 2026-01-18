@@ -253,37 +253,37 @@ export default function Contacts() {
                 <img
                     src={contactAvatars.get(contact.id)}
                     alt={contact.displayName}
-                    className="h-9 w-9 rounded-full object-cover shrink-0"
+                    className="h-10 w-10 rounded-full object-cover shrink-0"
                 />
             ) : (
-                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-xs">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
                     {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
                 </div>
             )}
 
             <div className="min-w-[180px] flex-1">
-                <h4 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                <h4 className="font-medium text-base text-foreground group-hover:text-primary transition-colors truncate">
                     {contact.displayName}
                 </h4>
             </div>
 
-            <div className="min-w-[140px] text-sm text-muted-foreground font-mono">
+            <div className="min-w-[140px] text-base text-muted-foreground font-mono">
                 {contact.displayPhone}
             </div>
 
-            <div className="min-w-[180px] text-sm text-muted-foreground hidden lg:block">
+            <div className="min-w-[180px] text-base text-muted-foreground hidden lg:block">
                 {contact.email || '-'}
             </div>
 
             <div className="min-w-[80px] flex justify-end">
                 {contact.source === 'storage' ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-500/10 text-blue-500">
-                        <Database className="h-3 w-3" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm bg-blue-500/10 text-blue-500">
+                        <Database className="h-3.5 w-3.5" />
                         {t('data_sources.storage', 'Storage')}
                     </span>
                 ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/10 text-green-500">
-                        <Smartphone className="h-3 w-3" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm bg-green-500/10 text-green-500">
+                        <Smartphone className="h-3.5 w-3.5" />
                         WA
                     </span>
                 )}
@@ -415,9 +415,9 @@ export default function Contacts() {
                     ) : (
                         <div className="border border-border/30 rounded-lg overflow-hidden">
                             {/* List Header */}
-                            <div className="flex items-center gap-4 px-4 py-2 bg-muted/30 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            <div className="flex items-center gap-4 px-4 py-3 bg-muted/30 border-b border-border/30 text-sm font-medium text-muted-foreground uppercase tracking-wide">
                                 <div className="w-5" />
-                                <div className="w-9" />
+                                <div className="w-10" />
                                 <div className="min-w-[180px] flex-1">{t('common.name', 'Name')}</div>
                                 <div className="min-w-[140px]">{t('common.phone', 'Phone')}</div>
                                 <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address', 'Email')}</div>
