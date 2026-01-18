@@ -3,14 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs'; // Assuming tabs exist or we use simple toggle
-import { FileUp, Download, FileJson, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'; // Icons
+import { FileUp, FileJson, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'; // Icons
 import { toast } from './ui/use-toast';
 import { supabase } from '../lib/supabaseClient';
 
 export function ImportContactsDialog({ isOpen, onClose, organizationId, onImportSuccess }) {
     const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState('csv');
     const [file, setFile] = useState(null);
     const [isImporting, setIsImporting] = useState(false);
     const [importStats, setImportStats] = useState(null); // { total, success, failed }
