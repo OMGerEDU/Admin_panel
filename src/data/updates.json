@@ -1,5 +1,21 @@
 [
     {
+        "version": "1.1.1",
+        "date": "2026-01-18",
+        "title": "Dashboard Refinements",
+        "type": "improvement",
+        "features": [
+            {
+                "title": "Enhanced Schedules Helper",
+                "description": "Added tabs to easily view Past and Upcoming scheduled messages."
+            },
+            {
+                "title": "Chat Context",
+                "description": "Active Chats widget now shows the last 2 messages for better context."
+            }
+        ]
+    },
+    {
         "version": "1.1.0",
         "date": "2026-01-18",
         "title": "Contacts System & Dashboard 2.0",

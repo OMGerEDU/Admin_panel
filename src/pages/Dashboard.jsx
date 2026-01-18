@@ -60,26 +60,45 @@ export default function Dashboard() {
             // 1. Fetch Numbers
             const { data: numbers } = await supabase.from('numbers').select('*').eq('user_id', user.id);
 
-            // 2. Fetch recent chats (for Active & Untagged widgets)
-            // Trying to fetch tags. If fails, we fallback gracefully in widget logic?
-            // Actually, if query fails, the whole block throws.
-            // We'll try to select tags.
+            // 2. Fetch recent chats
             let chats = [];
             try {
                 const { data: c } = await supabase
                     .from('chats')
-                    .select('*, tags(*)') // Expecting tags relation
+                    .select('*, tags(*)')
                     .order('last_message_at', { ascending: false })
-                    .limit(50);
+                    .limit(10); // Limit 10 to fetch messages for
                 chats = c || [];
             } catch (err) {
-                console.warn('[DASHBOARD] Tag fetch failed, falling back to simple chat fetch', err);
-                const { data: c } = await supabase.from('chats').select('*').order('last_message_at', { ascending: false }).limit(50);
+                const { data: c } = await supabase.from('chats').select('*').order('last_message_at', { ascending: false }).limit(10);
                 chats = c || [];
             }
 
-            // 3. Scheduled Messages (Pending)
-            const { data: scheduled } = await supabase
+            // 2b. Fetch last 2 messages for these chats (Optimization: single query)
+            if (chats.length > 0) {
+                const chatIds = chats.map(c => c.chatId || c.remote_jid);
+                // Can't easily use 'in' for distinct limit without complex query or stored proc.
+                // For 10 chats, we can do parallel queries or one big query and filtering in JS.
+                // Given low volume, fetching last 5 messages for all these IDs in one go is fine if indexed?
+                // Or just loop parellel.
+                const messagesPromises = chats.map(c =>
+                    supabase
+                        .from('messages')
+                        .select('*')
+                        .eq('chat_id', c.id) // Assuming internal ID
+                        .order('timestamp', { ascending: false })
+                        .limit(2)
+                );
+
+                const results = await Promise.all(messagesPromises);
+                chats = chats.map((c, i) => ({
+                    ...c,
+                    messages: results[i].data || []
+                }));
+            }
+
+            // 3. Scheduled Messages (Pending AND Recent)
+            const { data: scheduledPending } = await supabase
                 .from('scheduled_messages')
                 .select('*')
                 .eq('status', 'pending')
@@ -87,9 +106,14 @@ export default function Dashboard() {
                 .order('scheduled_at', { ascending: true })
                 .limit(10);
 
-            // 4. Dormant Clients (Manual Calculation from chats list or separate query if list too small)
-            // If we only fetched 50 chats, we might miss dormant ones if there are many active ones.
-            // Let's fetch dormant specifically.
+            const { data: scheduledRecent } = await supabase
+                .from('scheduled_messages')
+                .select('*')
+                .in('status', ['completed', 'failed'])
+                .order('scheduled_at', { ascending: false })
+                .limit(10);
+
+            // 4. Dormant Clients
             const { data: dormant } = await supabase
                 .from('chats')
                 .select('name, remote_jid, last_message_at')
@@ -100,7 +124,7 @@ export default function Dashboard() {
             setData({
                 numbers: numbers || [],
                 activeChats: chats.filter(c => new Date(c.last_message_at) > sevenDaysAgo),
-                scheduledMessages: scheduled || [],
+                scheduledMessages: [...(scheduledPending || []), ...(scheduledRecent || [])],
                 dormantClients: dormant || [],
                 allChats: chats
             });
