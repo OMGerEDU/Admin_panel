@@ -101,8 +101,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
     RETURN QUERY
-    (
-        -- Pending messages
+    WITH pending_msgs AS (
         SELECT 
             'pending'::TEXT as category,
             sm.id,
@@ -112,7 +111,8 @@ BEGIN
             sm.scheduled_at,
             sm.status,
             sm.number_id,
-            n.phone_number as number_phone
+            n.phone_number as number_phone,
+            1 as sort_group
         FROM scheduled_messages sm
         LEFT JOIN numbers n ON n.id = sm.number_id
         WHERE sm.user_id = p_user_id
@@ -120,10 +120,8 @@ BEGIN
             AND sm.scheduled_at >= NOW()
         ORDER BY sm.scheduled_at ASC
         LIMIT p_pending_limit
-    )
-    UNION ALL
-    (
-        -- Recent completed/failed messages
+    ),
+    recent_msgs AS (
         SELECT 
             'recent'::TEXT as category,
             sm.id,
@@ -133,14 +131,24 @@ BEGIN
             sm.scheduled_at,
             sm.status,
             sm.number_id,
-            n.phone_number as number_phone
+            n.phone_number as number_phone,
+            2 as sort_group
         FROM scheduled_messages sm
         LEFT JOIN numbers n ON n.id = sm.number_id
         WHERE sm.user_id = p_user_id
             AND sm.status IN ('completed', 'failed')
         ORDER BY sm.scheduled_at DESC
         LIMIT p_recent_limit
-    );
+    )
+    SELECT 
+        category, id, to_phone, message, template_name, 
+        scheduled_at, status, number_id, number_phone
+    FROM (
+        SELECT * FROM pending_msgs
+        UNION ALL
+        SELECT * FROM recent_msgs
+    ) combined
+    ORDER BY sort_group, scheduled_at;
 END;
 $$;
 
