@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '../components/ui/use-toast';
 
 export default function Contacts() {
     const { t } = useTranslation();
@@ -40,7 +40,7 @@ export default function Contacts() {
             }
         } catch (error) {
             console.error('Error fetching green contacts:', error);
-            toast.error(t('common.error'));
+            toast({ variant: 'destructive', title: t('common.error') });
         } finally {
             setIsLoadingGreen(false);
         }
