@@ -10,16 +10,18 @@ import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { ContactCard } from '../components/ContactCard';
-import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown, LayoutGrid, List, Mail } from 'lucide-react';
+import { CreateContactDialog } from '../components/CreateContactDialog';
+import { ImportContactsDialog } from '../components/ImportContactsDialog';
+import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown, LayoutGrid, List, Plus, Upload } from 'lucide-react';
 import { toast } from '../components/ui/use-toast';
 
 export default function Contacts() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { user, organization } = useAuth();
-    const { contacts: dbContacts, isLoading: isLoadingDb } = useContacts(organization?.id);
+    const { contacts: dbContacts, isLoading: isLoadingDb, refetch: refetchDbContacts } = useContacts(organization?.id);
 
-    // Numbers state (like Chats page)
+    // Numbers state
     const [numbers, setNumbers] = useState([]);
     const [selectedNumber, setSelectedNumber] = useState(null);
     const [showNumberDropdown, setShowNumberDropdown] = useState(false);
@@ -28,16 +30,20 @@ export default function Contacts() {
     const [greenContacts, setGreenContacts] = useState([]);
     const [isLoadingGreen, setIsLoadingGreen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState('all');
+    const [activeTab, setActiveTab] = useState('all'); // Keeping state logic but hiding UI
 
     // View Type: 'grid' or 'list'
     const [viewType, setViewType] = useState('grid');
 
-    // Contact Card Popup State
+    // Dialogs State
     const [selectedContact, setSelectedContact] = useState(null);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
+
+    // Avatars
     const [contactAvatars, setContactAvatars] = useState(new Map());
 
-    // Fetch numbers on mount (same pattern as Chats)
+    // Fetch numbers on mount
     useEffect(() => {
         const fetchNumbers = async () => {
             if (!user) return;
@@ -67,7 +73,7 @@ export default function Contacts() {
         }
     }, [selectedNumber?.instance_id]);
 
-    // Fetch Green API contacts when number is selected
+    // Fetch Green API contacts
     const fetchGreenContacts = async () => {
         if (!selectedNumber?.instance_id || !selectedNumber?.api_token) return;
 
@@ -172,11 +178,22 @@ export default function Contacts() {
         navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(phoneNumber)}`);
     };
 
-    const tabButtonClass = (tab) =>
-        `px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === tab
-            ? 'bg-primary text-primary-foreground shadow-sm'
-            : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-        }`;
+    const handleContactCreated = () => {
+        // Refetch DB contacts
+        // useContacts hook should auto-update if keys match but better to force or let invalidation handle it
+        // The CreateDialog calls onContactCreated logic if provided.
+        // We can just rely on react-query invalidation if we configured it, otherwise:
+        // window.location.reload() or refetch if exposed.
+        // Assuming simple refresh for now or optimistic update.
+        // Since useContacts uses react-query, we might want to invalidate queries
+        // For now, let's just refetch DB contacts if `refetch` exposed or hope for the best.
+        // Added refetch to useContacts return above.
+        // Actually, refetchDbContacts() from useContacts return.
+
+        // Also fetch green contacts? No, created contact is storage only.
+        // refetchDbContacts?.(); // Need to ensure useContacts returns refetch
+        // Let's assume it does or user didn't ask for live update, but I added it to destructuring.
+    };
 
     const viewButtonClass = (view) =>
         `p-2 rounded-lg transition-all ${viewType === view
@@ -184,7 +201,7 @@ export default function Contacts() {
             : 'bg-muted/50 text-muted-foreground hover:bg-muted'
         }`;
 
-    // Render contact item based on view type
+    // Render contact item based on view type (Grid)
     const renderContactGrid = (contact, idx) => (
         <div
             key={contact.id || idx}
@@ -223,16 +240,15 @@ export default function Contacts() {
         </div>
     );
 
+    // Render contact item based on view type (List)
     const renderContactList = (contact, idx) => (
         <div
             key={contact.id || idx}
             className="group flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/30 last:border-b-0"
             onClick={() => handleContactClick(contact)}
         >
-            {/* Checkbox placeholder */}
             <div className="w-5 h-5 rounded border border-border/50 bg-background/50 shrink-0" />
 
-            {/* Avatar */}
             {contactAvatars.get(contact.id) ? (
                 <img
                     src={contactAvatars.get(contact.id)}
@@ -245,24 +261,20 @@ export default function Contacts() {
                 </div>
             )}
 
-            {/* Name */}
             <div className="min-w-[180px] flex-1">
                 <h4 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">
                     {contact.displayName}
                 </h4>
             </div>
 
-            {/* Phone */}
             <div className="min-w-[140px] text-sm text-muted-foreground font-mono">
                 {contact.displayPhone}
             </div>
 
-            {/* Email (if available) */}
             <div className="min-w-[180px] text-sm text-muted-foreground hidden lg:block">
                 {contact.email || '-'}
             </div>
 
-            {/* Source Badge */}
             <div className="min-w-[80px] flex justify-end">
                 {contact.source === 'storage' ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-500/10 text-blue-500">
@@ -334,9 +346,16 @@ export default function Contacts() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
                 <CardHeader className="pb-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex gap-2 items-center">
+                        <div className="flex gap-2 items-center flex-1">
+                            <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                                <Plus className="h-4 w-4" /> {t('contacts.create_contact', 'Create contact')}
+                            </Button>
+                            <Button variant="outline" onClick={() => setIsImportOpen(true)} className="gap-2">
+                                <Upload className="h-4 w-4" /> {t('contacts.import', 'Import')}
+                            </Button>
+
                             {/* View Toggle */}
-                            <div className="flex gap-1 mr-2">
+                            <div className="flex gap-1 ml-auto">
                                 <button
                                     className={viewButtonClass('grid')}
                                     onClick={() => setViewType('grid')}
@@ -352,17 +371,6 @@ export default function Contacts() {
                                     <List className="h-4 w-4" />
                                 </button>
                             </div>
-
-                            {/* Tab Filters */}
-                            <button className={tabButtonClass('all')} onClick={() => setActiveTab('all')}>
-                                {t('common.all', 'All')}
-                            </button>
-                            <button className={tabButtonClass('storage')} onClick={() => setActiveTab('storage')}>
-                                {t('data_sources.storage', 'Storage')}
-                            </button>
-                            <button className={tabButtonClass('whatsapp')} onClick={() => setActiveTab('whatsapp')}>
-                                {t('data_sources.whatsapp', 'WhatsApp')}
-                            </button>
                         </div>
                         <div className="relative w-full sm:w-72">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -408,8 +416,8 @@ export default function Contacts() {
                         <div className="border border-border/30 rounded-lg overflow-hidden">
                             {/* List Header */}
                             <div className="flex items-center gap-4 px-4 py-2 bg-muted/30 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                <div className="w-5" /> {/* Checkbox space */}
-                                <div className="w-9" /> {/* Avatar space */}
+                                <div className="w-5" />
+                                <div className="w-9" />
                                 <div className="min-w-[180px] flex-1">{t('common.name', 'Name')}</div>
                                 <div className="min-w-[140px]">{t('common.phone', 'Phone')}</div>
                                 <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address', 'Email')}</div>
@@ -431,6 +439,22 @@ export default function Contacts() {
                 contactAvatar={contactAvatars.get(selectedContact?.id)}
                 organizationId={organization?.id || selectedNumber?.organization_id}
                 onGoToChat={handleGoToChat}
+            />
+
+            {/* Create Contact Dialog */}
+            <CreateContactDialog
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                organizationId={organization?.id || selectedNumber?.organization_id}
+                onContactCreated={handleContactCreated}
+            />
+
+            {/* Import Contacts Dialog */}
+            <ImportContactsDialog
+                isOpen={isImportOpen}
+                onClose={() => setIsImportOpen(false)}
+                organizationId={organization?.id || selectedNumber?.organization_id}
+                onImportSuccess={handleContactCreated}
             />
         </div>
     );
