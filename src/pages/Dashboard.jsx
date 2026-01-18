@@ -111,6 +111,7 @@ export default function Dashboard() {
             const { data: scheduledPending } = await supabase
                 .from('scheduled_messages')
                 .select('*')
+                .eq('user_id', user.id)
                 .eq('status', 'pending')
                 .gte('scheduled_at', new Date().toISOString())
                 .order('scheduled_at', { ascending: true })
@@ -119,6 +120,7 @@ export default function Dashboard() {
             const { data: scheduledRecent } = await supabase
                 .from('scheduled_messages')
                 .select('*')
+                .eq('user_id', user.id)
                 .in('status', ['completed', 'failed'])
                 .order('scheduled_at', { ascending: false })
                 .limit(10);
