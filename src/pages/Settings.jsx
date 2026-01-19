@@ -202,73 +202,72 @@ export default function Settings() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <CardContent>
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <p className="font-medium">Enable Beta Mode</p>
-                                <p className="text-sm text-muted-foreground">
-                                    You will see a 'BETA' badge and experimental features.
-                                </p>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={profile?.is_beta_tester || false}
-                                    onChange={async (e) => {
-                                        const newValue = e.target.checked;
-                                        // Optimistic update
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <p className="font-medium">Enable Beta Mode</p>
+                            <p className="text-sm text-muted-foreground">
+                                You will see a 'BETA' badge and experimental features.
+                            </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={profile?.is_beta_tester || false}
+                                onChange={async (e) => {
+                                    const newValue = e.target.checked;
+                                    // Optimistic update
+                                    if (profile) {
+                                        setProfile({ ...profile, is_beta_tester: newValue });
+                                    }
+
+                                    try {
+                                        const { error } = await supabase
+                                            .from('profiles')
+                                            .update({ is_beta_tester: newValue })
+                                            .eq('id', user.id);
+
+                                        if (error) throw error;
+
+                                        // Update local state
                                         if (profile) {
                                             setProfile({ ...profile, is_beta_tester: newValue });
                                         }
-
-                                        try {
-                                            const { error } = await supabase
-                                                .from('profiles')
-                                                .update({ is_beta_tester: newValue })
-                                                .eq('id', user.id);
-
-                                            if (error) throw error;
-
-                                            // Update local state
-                                            if (profile) {
-                                                setProfile({ ...profile, is_beta_tester: newValue });
-                                            }
-                                            // Update global context so Header badge updates immediately
-                                            if (updateGlobalProfile) {
-                                                updateGlobalProfile({ is_beta_tester: newValue });
-                                            }
-                                        } catch (err) {
-                                            console.error('Error updating beta status:', err);
-                                            // Revert
-                                            fetchProfile();
+                                        // Update global context so Header badge updates immediately
+                                        if (updateGlobalProfile) {
+                                            updateGlobalProfile({ is_beta_tester: newValue });
                                         }
-                                    }}
-                                />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                            </label>
-                        </div>
+                                    } catch (err) {
+                                        console.error('Error updating beta status:', err);
+                                        // Revert
+                                        fetchProfile();
+                                    }
+                                }}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
 
-                        {profile?.is_beta_tester && (
-                            <div className="pt-4 border-t border-primary/10">
-                                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                                    <BookOpen className="h-4 w-4" />
-                                    Documentation
-                                </h4>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                    Access exclusive documentation and guides for beta features.
-                                </p>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full sm:w-auto"
-                                    onClick={() => window.location.href = '/app/settings/documentation'}
-                                >
-                                    View Beta Documentation
-                                </Button>
-                            </div>
-                        )}
-                    </CardContent>
+                    {profile?.is_beta_tester && (
+                        <div className="pt-4 border-t border-primary/10">
+                            <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                                <BookOpen className="h-4 w-4" />
+                                Documentation
+                            </h4>
+                            <p className="text-sm text-muted-foreground mb-3">
+                                Access exclusive documentation and guides for beta features.
+                            </p>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto"
+                                onClick={() => window.location.href = '/app/settings/documentation'}
+                            >
+                                View Beta Documentation
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
             </Card>
         </div>
     );
