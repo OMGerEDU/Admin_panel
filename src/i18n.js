@@ -677,26 +677,18 @@ const resources = {
                 "no_org_owned": "No organization owned yet."
             },
             "extension_page": {
-                "subtitle": "Install and manage browser extension",
+                "subtitle": "Maximize your CRM potential with our official Chrome Extension",
                 "installation": "Installation",
-                "get_extension": "Get the extension for your browser",
+                "get_extension": "Get the extension from standard sources",
                 "chrome_extension": "Chrome Extension",
                 "version": "Version",
-                "install": "Install",
-                "preview": "Preview",
-                "how_it_looks": "How it looks in the browser",
-                "download": "Download",
+                "download": "Open Web Store",
+                "preview": "Live Preview",
+                "how_it_looks": "This is how it looks in your browser",
                 "instructions": "Installation Instructions",
-                "step1": "Download the extension file",
-                "step2": "Open Chrome and go to chrome://extensions/",
-                "step3": "Enable Developer mode",
-                "step4": "Click 'Load unpacked' and select the extension folder",
-                "features_title": "Extension Features",
-                "features_list": {
-                    "quick_send": "Quick send messages from any webpage",
-                    "view_history": "View chat history",
-                    "manage_numbers": "Manage numbers on the go"
-                }
+                "step1": "Click the button above to open the Chrome Web Store.",
+                "step2": "Click 'Add to Chrome' and confirm the installation.",
+                "step3": "Open the extension, log in with your credentials, and enjoy!"
             },
             "accounts_management": {
                 "title": "Connected Accounts",
@@ -1475,20 +1467,18 @@ const resources = {
                 "no_org_owned": "אין ארגון בבעלות."
             },
             "extension_page": {
-                "subtitle": "התקן ונהל תוסף דפדפן",
+                "subtitle": "מקסם את הפוטנציאל של ה-CRM שלך עם התוסף הרשמי שלנו לכרום",
                 "installation": "התקנה",
-                "get_extension": "קבל את התוסף לדפדפן שלך",
-                "chrome_extension": "תוסף Chrome",
+                "get_extension": "הורד את התוסף מהחנות הרשמית",
+                "chrome_extension": "תוסף כרום",
                 "version": "גרסה",
-                "install": "התקן",
+                "download": "פתח בחנות",
                 "preview": "תצוגה מקדימה",
                 "how_it_looks": "איך זה נראה בדפדפן",
-                "download": "הורד",
                 "instructions": "הוראות התקנה",
-                "step1": "הורד את קובץ התוסף",
-                "step2": "פתח Chrome ועבור ל-chrome://extensions/",
-                "step3": "הפעל מצב מפתח",
-                "step4": "לחץ על 'טען לא ארוז' ובחר את תיקיית התוסף"
+                "step1": "לחץ על הכפתור למעלה לפתיחת חנות התוספים של כרום.",
+                "step2": "לחץ על 'הוסף לכרום' (Add to Chrome) ואשר את ההתקנה.",
+                "step3": "פתח את התוסף, התחבר עם הפרטים שלך ותהנה!"
             },
             "accounts_management": {
                 "title": "חשבונות מחוברים",

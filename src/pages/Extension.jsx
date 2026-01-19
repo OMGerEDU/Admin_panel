@@ -28,7 +28,7 @@ export default function Extension() {
                                 <p className="text-sm text-muted-foreground">{t('extension_page.version')} 2.4.0</p>
                             </div>
                             <Button onClick={() => window.open('https://chromewebstore.google.com/detail/ferns-%E2%80%A2-green-api-crm-hel/hlabljhdgmjdknnmdhlepecmkbicdnmi', '_blank')}>
-                                <Download className="mr-2 h-4 w-4" />
+                                <ExternalLink className="mr-2 h-4 w-4" />
                                 {t('extension_page.download')}
                             </Button>
                         </div>
@@ -69,7 +69,6 @@ export default function Extension() {
                         <li className="text-sm">{t('extension_page.step1')}</li>
                         <li className="text-sm">{t('extension_page.step2')}</li>
                         <li className="text-sm">{t('extension_page.step3')}</li>
-                        <li className="text-sm">{t('extension_page.step4')}</li>
                     </ol>
                     <div className="mt-4 p-4 bg-muted rounded-lg">
                         <div className="flex items-start gap-2">
