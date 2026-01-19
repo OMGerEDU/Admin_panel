@@ -788,17 +788,7 @@ export default function ScheduledMessages() {
                                                         })}
                                                     </span>
                                                 )}
-                                                <span className="text-[10px] bg-muted px-1 rounded font-mono" title="Stored UTC Time">
-                                                    UTC: {new Date(msg.scheduled_at).toLocaleString('en-GB', {
-                                                        day: '2-digit',
-                                                        month: '2-digit',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                        hour12: false,
-                                                        timeZone: 'UTC'
-                                                    })}
-                                                </span>
+
                                             </div>
 
                                             {/* Error message if failed */}
