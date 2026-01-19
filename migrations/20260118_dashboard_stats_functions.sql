@@ -123,7 +123,6 @@ BEGIN
         LEFT JOIN numbers n ON n.id = sm.number_id
         WHERE sm.user_id = p_user_id
             AND sm.status = 'pending'
-            AND sm.scheduled_at >= NOW()
         ORDER BY sm.scheduled_at ASC
         LIMIT p_pending_limit
     ),
