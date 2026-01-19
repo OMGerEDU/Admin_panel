@@ -14,7 +14,6 @@ RETURNS TABLE (
     id BIGINT,
     remote_jid TEXT,
     name TEXT,
-    profile_pic_url TEXT,
     last_message TEXT,
     last_message_at TIMESTAMPTZ,
     number_id BIGINT,
@@ -35,7 +34,6 @@ BEGIN
             c.id,
             c.remote_jid,
             c.name,
-            c.profile_pic_url,
             c.last_message,
             c.last_message_at,
             c.number_id
@@ -48,7 +46,6 @@ BEGIN
         rc.id,
         rc.remote_jid,
         rc.name,
-        rc.profile_pic_url,
         rc.last_message,
         rc.last_message_at,
         rc.number_id,
@@ -103,7 +100,7 @@ BEGIN
     RETURN QUERY
     WITH pending_msgs AS (
         SELECT 
-            'pending'::TEXT as category,
+            'pending'::TEXT as msg_category,
             sm.id,
             sm.to_phone,
             sm.message,
@@ -123,7 +120,7 @@ BEGIN
     ),
     recent_msgs AS (
         SELECT 
-            'recent'::TEXT as category,
+            'recent'::TEXT as msg_category,
             sm.id,
             sm.to_phone,
             sm.message,
@@ -141,7 +138,7 @@ BEGIN
         LIMIT p_recent_limit
     )
     SELECT 
-        category, id, to_phone, message, template_name, 
+        msg_category as category, id, to_phone, message, template_name, 
         scheduled_at, status, number_id, number_phone
     FROM (
         SELECT * FROM pending_msgs
