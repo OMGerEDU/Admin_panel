@@ -6,11 +6,15 @@
 -- Rollback: DROP FUNCTION statements at end of file
 
 -- ============================================================================
--- Function 1: Get Active Chats with Messages
+-- ============================================================================
+-- Function 1: Get Active Chats with Messages (v2)
 -- Returns recent chats for user's numbers with last 2 messages
 -- ============================================================================
 DROP FUNCTION IF EXISTS get_dashboard_active_chats(UUID, INT);
-CREATE OR REPLACE FUNCTION get_dashboard_active_chats(p_user_id UUID, p_limit INT DEFAULT 10)
+DROP FUNCTION IF EXISTS get_dashboard_active_chats(BIGINT, INT); -- Handle potential bad type creation
+DROP FUNCTION IF EXISTS get_dashboard_active_chats_v2(UUID, INT);
+
+CREATE OR REPLACE FUNCTION get_dashboard_active_chats_v2(p_user_id UUID, p_limit INT DEFAULT 10)
 RETURNS TABLE (
     id UUID,
     remote_jid TEXT,
@@ -76,11 +80,13 @@ END;
 $$;
 
 -- ============================================================================
--- Function 2: Get Scheduled Messages Stats
+-- Function 2: Get Scheduled Messages Stats (v2)
 -- Returns pending and recent scheduled messages
 -- ============================================================================
 DROP FUNCTION IF EXISTS get_dashboard_scheduled_messages(UUID, INT, INT);
-CREATE OR REPLACE FUNCTION get_dashboard_scheduled_messages(
+DROP FUNCTION IF EXISTS get_dashboard_scheduled_messages_v2(UUID, INT, INT);
+
+CREATE OR REPLACE FUNCTION get_dashboard_scheduled_messages_v2(
     p_user_id UUID,
     p_pending_limit INT DEFAULT 10,
     p_recent_limit INT DEFAULT 10
@@ -160,11 +166,13 @@ END;
 $$;
 
 -- ============================================================================
--- Function 3: Get Dormant Clients
+-- Function 3: Get Dormant Clients (v2)
 -- Returns chats with no activity in the last N days
 -- ============================================================================
 DROP FUNCTION IF EXISTS get_dashboard_dormant_clients(UUID, INT, INT);
-CREATE OR REPLACE FUNCTION get_dashboard_dormant_clients(
+DROP FUNCTION IF EXISTS get_dashboard_dormant_clients_v2(UUID, INT, INT);
+
+CREATE OR REPLACE FUNCTION get_dashboard_dormant_clients_v2(
     p_user_id UUID,
     p_days_threshold INT DEFAULT 7,
     p_limit INT DEFAULT 5
@@ -199,11 +207,13 @@ END;
 $$;
 
 -- ============================================================================
--- Function 4: Get System Health Stats
+-- Function 4: Get System Health Stats (v2)
 -- Returns counts and status for dashboard overview
 -- ============================================================================
 DROP FUNCTION IF EXISTS get_dashboard_system_health(UUID);
-CREATE OR REPLACE FUNCTION get_dashboard_system_health(p_user_id UUID)
+DROP FUNCTION IF EXISTS get_dashboard_system_health_v2(UUID);
+
+CREATE OR REPLACE FUNCTION get_dashboard_system_health_v2(p_user_id UUID)
 RETURNS TABLE (
     total_numbers INT,
     connected_numbers INT,
@@ -250,10 +260,10 @@ $$;
 -- ============================================================================
 -- Grant Execute Permissions
 -- ============================================================================
-GRANT EXECUTE ON FUNCTION get_dashboard_active_chats(UUID, INT) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_dashboard_scheduled_messages(UUID, INT, INT) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_dashboard_dormant_clients(UUID, INT, INT) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_dashboard_system_health(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_dashboard_active_chats_v2(UUID, INT) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_dashboard_scheduled_messages_v2(UUID, INT, INT) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_dashboard_dormant_clients_v2(UUID, INT, INT) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_dashboard_system_health_v2(UUID) TO authenticated;
 
 -- ============================================================================
 -- ROLLBACK SCRIPT (run these to undo this migration)

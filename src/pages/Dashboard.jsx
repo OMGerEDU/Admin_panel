@@ -56,21 +56,21 @@ export default function Dashboard() {
 
             // Call all database functions in parallel
             const [chatsResult, scheduledResult, dormantResult, healthResult] = await Promise.all([
-                supabase.rpc('get_dashboard_active_chats', {
+                supabase.rpc('get_dashboard_active_chats_v2', {
                     p_user_id: user.id,
                     p_limit: 10
                 }),
-                supabase.rpc('get_dashboard_scheduled_messages', {
+                supabase.rpc('get_dashboard_scheduled_messages_v2', {
                     p_user_id: user.id,
                     p_pending_limit: 10,
                     p_recent_limit: 10
                 }),
-                supabase.rpc('get_dashboard_dormant_clients', {
+                supabase.rpc('get_dashboard_dormant_clients_v2', {
                     p_user_id: user.id,
                     p_days_threshold: 7,
                     p_limit: 5
                 }),
-                supabase.rpc('get_dashboard_system_health', {
+                supabase.rpc('get_dashboard_system_health_v2', {
                     p_user_id: user.id
                 })
             ]);
