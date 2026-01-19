@@ -358,7 +358,7 @@ export default function ScheduledMessages() {
         if (!cleaned.startsWith('972')) {
             cleaned = '972' + cleaned;
         }
-        return `${cleaned} @c.us`;
+        return `${cleaned}@c.us`;
     };
 
     // Send message immediately via Green API
