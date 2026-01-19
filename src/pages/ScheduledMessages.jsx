@@ -778,11 +778,26 @@ export default function ScheduledMessages() {
                                                 {msg.is_recurring && (
                                                     <span className="flex items-center gap-1 text-primary/80 font-medium">
                                                         <Clock className="h-3 w-3" />
-                                                        {t('scheduled.next_run') || 'Next:'} {new Date(msg.scheduled_at).toLocaleString()}
+                                                        {t('scheduled.next_run')} {new Date(msg.scheduled_at).toLocaleString('en-GB', {
+                                                            day: '2-digit',
+                                                            month: '2-digit',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            hour12: false
+                                                        })}
                                                     </span>
                                                 )}
                                                 <span className="text-[10px] bg-muted px-1 rounded font-mono" title="Stored UTC Time">
-                                                    UTC: {msg.scheduled_at}
+                                                    UTC: {new Date(msg.scheduled_at).toLocaleString('en-GB', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        hour12: false,
+                                                        timeZone: 'UTC'
+                                                    })}
                                                 </span>
                                             </div>
 

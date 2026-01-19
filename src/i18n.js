@@ -835,7 +835,8 @@ const resources = {
                 "duplicate": "Duplicate",
                 "duplicate_error": "Failed to duplicate message",
                 "stop": "Stop",
-                "activate": "Activate"
+                "activate": "Activate",
+                "next_run": "Next Run:"
             },
             "tags": {
                 "assign_tags": "Assign Tags",
@@ -1635,7 +1636,8 @@ const resources = {
                 "duplicate": "שכפל",
                 "duplicate_error": "שכפול ההודעה נכשל",
                 "stop": "עצור",
-                "activate": "הפעל"
+                "activate": "הפעל",
+                "next_run": "ריצה הבאה:"
             },
             "tags": {
                 "assign_tags": "שייך תגיות",
