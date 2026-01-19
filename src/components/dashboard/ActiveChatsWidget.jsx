@@ -74,7 +74,7 @@ export function ActiveChatsWidget({ chats = [], loading = false }) {
                                                         ) : (
                                                             <span className="text-[10px] text-muted-foreground shrink-0 opacity-70">User:</span>
                                                         )}
-                                                        <span className="truncate">{msg.message?.conversation || msg.message?.extendedTextMessage?.text || (msg.message ? 'Media' : '...')}</span>
+                                                        <span className="truncate">{msg.content || msg.message?.conversation || msg.message?.extendedTextMessage?.text || (msg.message ? 'Media' : '...')}</span>
                                                         <span className="ml-auto text-[10px] text-muted-foreground/60 whitespace-nowrap">
                                                             {new Date(msg.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>

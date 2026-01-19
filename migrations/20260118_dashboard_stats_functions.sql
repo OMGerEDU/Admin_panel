@@ -55,9 +55,10 @@ BEGIN
                 SELECT jsonb_agg(
                     jsonb_build_object(
                         'id', m.id,
-                        'message', m.message,
-                        'timestamp', m.timestamp,
-                        'key', m.key
+                        'content', m.content,
+                        'process_timestamp', EXTRACT(EPOCH FROM m.timestamp),
+                        'timestamp', EXTRACT(EPOCH FROM m.timestamp),
+                        'key', jsonb_build_object('fromMe', m.is_from_me)
                     )
                     ORDER BY m.timestamp DESC
                 )
