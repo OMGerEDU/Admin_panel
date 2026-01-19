@@ -13,7 +13,7 @@ import { UpdatesDropdown } from './UpdatesDropdown';
 export function Header({ onMobileMenuToggle }) {
     const { theme, toggleTheme } = useTheme();
     const { toggleLang, lang } = useLanguage();
-    const { user, signOut } = useAuth();
+    const { user, signOut, isBetaTester } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
@@ -77,13 +77,29 @@ export function Header({ onMobileMenuToggle }) {
             'settings': t('settings'),
             'extension': t('extension'),
             'plans': t('landing.plans.select'),
+            'documentation': 'Documentation', // Add translation if needed, hardcode for now or use key
         };
 
-        if (parts[0] === 'app' && parts[1]) {
-            const page = parts[1];
-            // Avoid adding a duplicate "dashboard" crumb when already at /app/dashboard
-            if (page !== 'dashboard' && routeMap[page]) {
-                breadcrumbs.push({ label: routeMap[page], path: `/app/${page}` });
+        // Handle nested routes better
+        if (parts[0] === 'app') {
+            let currentPath = '/app';
+            for (let i = 1; i < parts.length; i++) {
+                const part = parts[i];
+                currentPath += `/${part}`;
+
+                // Skip if it's an ID (simple heuristic: long, alphanumeric, or specifically "new")
+                // Adjust logic as needed for specific routes like chats/:id
+
+                if (part === 'new' && parts[i - 1] === 'scheduled') {
+                    breadcrumbs.push({ label: 'New Message', path: currentPath });
+                    continue;
+                }
+
+                if (routeMap[part]) {
+                    breadcrumbs.push({ label: routeMap[part], path: currentPath });
+                } else if (i === parts.length - 1 && parts[i - 1] === 'organization') {
+                    // Maybe handle org ID?
+                }
             }
         }
 
@@ -122,6 +138,11 @@ export function Header({ onMobileMenuToggle }) {
             </div>
 
             <div className="flex items-center gap-2 md:gap-4">
+                {isBetaTester && (
+                    <div className="hidden md:flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-sm" title="Beta Mode Active">
+                        BETA
+                    </div>
+                )}
                 <Button variant="ghost" size="icon" onClick={toggleTheme}>
                     {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </Button>

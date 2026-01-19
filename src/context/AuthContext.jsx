@@ -7,6 +7,7 @@ const REMEMBER_ME_KEY = 'rememberMe';
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -34,10 +35,17 @@ export function AuthProvider({ children }) {
             if (rememberMe) {
                 setSession(session);
                 setUser(session?.user ?? null);
+                if (session?.user) {
+                    fetchProfile(session.user.id);
+                }
             } else {
                 setSession(null);
                 setUser(null);
+                setProfile(null);
             }
+            // Only set loading to false if we didn't start a profile fetch (which handles its own loading state if needed, but here we want to unblock app fast)
+            // Actually, let's keep loading true until profile is fetched if we have a user? 
+            // For now, let's just allow app to load and profile triggers update.
             setLoading(false);
         }).catch((error) => {
             clearTimeout(timeout);
@@ -55,7 +63,15 @@ export function AuthProvider({ children }) {
                 }
 
                 setSession(session);
-                setUser(session?.user ?? null);
+                const newUser = session?.user ?? null;
+                setUser(newUser);
+
+                if (newUser) {
+                    fetchProfile(newUser.id);
+                } else {
+                    setProfile(null);
+                }
+
                 setLoading(false);
             });
             subscription = data?.subscription;
@@ -95,6 +111,28 @@ export function AuthProvider({ children }) {
         });
     };
 
+    const fetchProfile = async (userId) => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (error) {
+                console.error('Error fetching profile context:', error);
+                return;
+            }
+            setProfile(data);
+        } catch (err) {
+            console.error('Error in fetchProfile context:', err);
+        }
+    };
+
+    const updateProfile = (updates) => {
+        setProfile(prev => ({ ...prev, ...updates }));
+    };
+
     const updatePassword = async (newPassword) => {
         return await supabase.auth.updateUser({ password: newPassword });
     };
@@ -102,6 +140,9 @@ export function AuthProvider({ children }) {
     const value = {
         session,
         user,
+        profile,
+        isBetaTester: profile?.is_beta_tester || false,
+        updateProfile,
         signIn,
         signUp,
         signOut,

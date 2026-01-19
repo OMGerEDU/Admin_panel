@@ -18,6 +18,7 @@ import Webhooks from './pages/Webhooks'
 import Logs from './pages/Logs'
 import Automation from './pages/Automation'
 import Settings from './pages/Settings'
+import Documentation from './pages/Documentation'
 import Extension from './pages/Extension'
 import OrganizationSettings from './pages/OrganizationSettings'
 import OrganizationOverview from './pages/OrganizationOverview'
@@ -75,6 +76,7 @@ function App() {
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="api" element={<Api />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="settings/documentation" element={<Documentation />} />
                   <Route path="organization" element={<OrganizationOverview />} />
                   <Route path="organization/:orgId" element={<OrganizationSettings />} />
                   <Route path="extension" element={<Extension />} />
