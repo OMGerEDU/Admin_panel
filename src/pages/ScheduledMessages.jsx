@@ -775,6 +775,12 @@ export default function ScheduledMessages() {
                                                     <Calendar className="h-3 w-3" />
                                                     {formatSchedule(msg)}
                                                 </span>
+                                                {msg.is_recurring && (
+                                                    <span className="flex items-center gap-1 text-primary/80 font-medium">
+                                                        <Clock className="h-3 w-3" />
+                                                        {t('scheduled.next_run') || 'Next:'} {new Date(msg.scheduled_at).toLocaleString()}
+                                                    </span>
+                                                )}
                                                 <span className="text-[10px] bg-muted px-1 rounded font-mono" title="Stored UTC Time">
                                                     UTC: {msg.scheduled_at}
                                                 </span>
