@@ -9,6 +9,7 @@
 -- Function 1: Get Active Chats with Messages
 -- Returns recent chats for user's numbers with last 2 messages
 -- ============================================================================
+DROP FUNCTION IF EXISTS get_dashboard_active_chats(UUID, INT);
 CREATE OR REPLACE FUNCTION get_dashboard_active_chats(p_user_id UUID, p_limit INT DEFAULT 10)
 RETURNS TABLE (
     id BIGINT,
@@ -77,6 +78,7 @@ $$;
 -- Function 2: Get Scheduled Messages Stats
 -- Returns pending and recent scheduled messages
 -- ============================================================================
+DROP FUNCTION IF EXISTS get_dashboard_scheduled_messages(UUID, INT, INT);
 CREATE OR REPLACE FUNCTION get_dashboard_scheduled_messages(
     p_user_id UUID,
     p_pending_limit INT DEFAULT 10,
@@ -153,6 +155,7 @@ $$;
 -- Function 3: Get Dormant Clients
 -- Returns chats with no activity in the last N days
 -- ============================================================================
+DROP FUNCTION IF EXISTS get_dashboard_dormant_clients(UUID, INT, INT);
 CREATE OR REPLACE FUNCTION get_dashboard_dormant_clients(
     p_user_id UUID,
     p_days_threshold INT DEFAULT 7,
@@ -191,6 +194,7 @@ $$;
 -- Function 4: Get System Health Stats
 -- Returns counts and status for dashboard overview
 -- ============================================================================
+DROP FUNCTION IF EXISTS get_dashboard_system_health(UUID);
 CREATE OR REPLACE FUNCTION get_dashboard_system_health(p_user_id UUID)
 RETURNS TABLE (
     total_numbers INT,

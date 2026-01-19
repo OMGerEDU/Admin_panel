@@ -89,7 +89,7 @@ function TimePicker24h({ value, onChange, className }) {
     };
 
     return (
-        <div className={`flex items-center gap-1 ${className}`}>
+        <div className={`flex items-center gap-1 ${className}`} dir="ltr">
             <select
                 value={hour}
                 onChange={(e) => handleChange(e.target.value, minute)}
@@ -1196,7 +1196,7 @@ export default function ScheduledMessageEdit() {
                                                         title={t(`common.days.${day.toLowerCase()}`) || day}
                                                     >
                                                         {/* Show first letter (or 2 for Hebrew maybe?) - Let's use the translated short name if possible, or just first letter of English */}
-                                                        {(t(`common.days.${day.toLowerCase()}`) || day).substring(0, 1)}
+                                                        {(t(`common.days.${day.toLowerCase()}`) || day).substring(0, 2)}
                                                     </button>
                                                 );
                                             })}
