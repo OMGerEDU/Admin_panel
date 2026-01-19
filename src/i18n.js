@@ -229,6 +229,11 @@ const resources = {
             "chart_placeholder": "Chart Placeholder",
             "common": {
                 "name": "Name",
+                "phone": "Phone",
+                "email": "Email",
+                "source": "Source",
+                "success": "Success",
+                "error": "Error",
                 "actions": "Actions",
                 "filter": "Filter",
                 "instance_id": "Instance ID",
@@ -334,6 +339,7 @@ const resources = {
             },
             "auth": {
                 "back_to_login": "Back to Login",
+                "browser_warning": "Please note: for security reasons, you must complete the password reset process in this same browser.",
                 "passwords_do_not_match": "Passwords do not match",
                 "new_password": "New Password",
                 "confirm_password": "Confirm New Password",
@@ -917,17 +923,7 @@ const resources = {
                 "saving": "Saving...",
                 "save_error": "Failed to save contact"
             },
-            "common": {
-                "name": "Name",
-                "phone": "Phone",
-                "email": "Email",
-                "source": "Source",
-                "cancel": "Cancel",
-                "success": "Success",
-                "error": "Error",
-                "search": "Search...",
-                "refresh": "Refresh"
-            }
+
         }
     },
     "he": {
@@ -1152,6 +1148,7 @@ const resources = {
             },
             "auth": {
                 "back_to_login": "חזרה להתחברות",
+                "browser_warning": "שימו לב: מטעמי אבטחה, יש להשלים את תהליך איפוס הסיסמה באותו דפדפן ממנו נשלחה הבקשה.",
                 "passwords_do_not_match": "הסיסמאות אינן תואמות",
                 "new_password": "סיסמה חדשה",
                 "confirm_password": "אימות סיסמה חדשה",
