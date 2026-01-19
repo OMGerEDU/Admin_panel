@@ -241,9 +241,8 @@ export default function ScheduledMessageEdit() {
                     });
                 } else {
                     // Set defaults for new message in Israel/Jerusalem timezone
+                    // Default to TODAY so that if the user sets a time later today, it runs today.
                     const now = new Date();
-                    const tomorrow = new Date(now);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
 
                     // Format in Israel timezone
                     const israelDate = new Intl.DateTimeFormat('en-CA', {
@@ -251,7 +250,7 @@ export default function ScheduledMessageEdit() {
                         year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
-                    }).format(tomorrow);
+                    }).format(now);
 
                     setFormData(prev => ({
                         ...prev,

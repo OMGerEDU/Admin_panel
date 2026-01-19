@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { normalizePhoneToChatId } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -350,16 +351,8 @@ export default function ScheduledMessages() {
     };
 
     // Normalize phone number to chatId format (like dispatch.ts)
-    const normalizePhoneToChatId = (phone) => {
-        let cleaned = phone.replace(/\D/g, '');
-        if (cleaned.startsWith('0')) {
-            cleaned = '972' + cleaned.substring(1);
-        }
-        if (!cleaned.startsWith('972')) {
-            cleaned = '972' + cleaned;
-        }
-        return `${cleaned}@c.us`;
-    };
+    // Using imported utility function
+
 
     // Send message immediately via Green API
     const sendMessageNow = async (msg) => {
