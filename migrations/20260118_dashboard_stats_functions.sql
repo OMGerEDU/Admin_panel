@@ -12,12 +12,12 @@
 DROP FUNCTION IF EXISTS get_dashboard_active_chats(UUID, INT);
 CREATE OR REPLACE FUNCTION get_dashboard_active_chats(p_user_id UUID, p_limit INT DEFAULT 10)
 RETURNS TABLE (
-    id BIGINT,
+    id UUID,
     remote_jid TEXT,
     name TEXT,
     last_message TEXT,
     last_message_at TIMESTAMPTZ,
-    number_id BIGINT,
+    number_id UUID,
     messages JSONB
 ) 
 LANGUAGE plpgsql
@@ -87,13 +87,13 @@ CREATE OR REPLACE FUNCTION get_dashboard_scheduled_messages(
 )
 RETURNS TABLE (
     category TEXT,
-    id BIGINT,
+    id UUID,
     to_phone TEXT,
     message TEXT,
     template_name TEXT,
     scheduled_at TIMESTAMPTZ,
     status TEXT,
-    number_id BIGINT,
+    number_id UUID,
     number_phone TEXT
 )
 LANGUAGE plpgsql
