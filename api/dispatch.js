@@ -4,8 +4,8 @@ const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const CRON_SECRET = process.env.CRON_SECRET
 
-const BATCH_SIZE = 50
-const MAX_ATTEMPTS = 5
+const BATCH_SIZE = 5;
+const MAX_ATTEMPTS = 5;
 const GREEN_API_BASE = 'https://api.green-api.com'
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
