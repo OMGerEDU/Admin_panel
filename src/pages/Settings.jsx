@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { User, Mail, Image, Bell, Lock, Sparkles, BookOpen } from 'lucide-react';
+import { User, Mail, Image, Bell, Lock, Sparkles } from 'lucide-react';
 
 export default function Settings() {
     const { t } = useTranslation();
@@ -248,25 +248,6 @@ export default function Settings() {
                         </label>
                     </div>
 
-                    {profile?.is_beta_tester && (
-                        <div className="pt-4 border-t border-primary/10">
-                            <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                                <BookOpen className="h-4 w-4" />
-                                Documentation
-                            </h4>
-                            <p className="text-sm text-muted-foreground mb-3">
-                                Access exclusive documentation and guides for beta features.
-                            </p>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full sm:w-auto"
-                                onClick={() => window.location.href = '/app/settings/documentation'}
-                            >
-                                View Beta Documentation
-                            </Button>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         </div>

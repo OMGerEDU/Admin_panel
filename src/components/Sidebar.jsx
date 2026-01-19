@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
 import {
@@ -23,6 +24,7 @@ import {
 
 export function Sidebar({ className, isMobile, onClose }) {
     const { t } = useTranslation();
+    const { isBetaTester } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -40,10 +42,12 @@ export function Sidebar({ className, isMobile, onClose }) {
         { href: '/app/organization', label: t('sidebar.organization'), icon: Building2 },
         { href: '/app/numbers', label: t('sidebar.numbers'), icon: Smartphone },
         { href: '/app/plans', label: t('landing.pricing.plans.select'), icon: LayoutDashboard },
-
         { href: '/app/logs', label: t('sidebar.logs'), icon: FileText },
-
     ];
+
+    if (isBetaTester) {
+        settingsChildren.push({ href: '/app/api', label: 'API', icon: Code });
+    }
 
     const isSettingsRoute = settingsChildren.some((link) =>
         location.pathname.startsWith(link.href),
