@@ -39,7 +39,7 @@ BEGIN
             c.last_message_at,
             c.number_id
         FROM chats c
-        WHERE c.number_id IN (SELECT id FROM user_numbers)
+        WHERE c.number_id IN (SELECT un.id FROM user_numbers un)
         ORDER BY c.last_message_at DESC NULLS LAST
         LIMIT p_limit
     )
@@ -140,14 +140,21 @@ BEGIN
         LIMIT p_recent_limit
     )
     SELECT 
-        msg_category as category, id, to_phone, message, template_name, 
-        scheduled_at, status, number_id, number_phone
+        combined.msg_category as category, 
+        combined.id, 
+        combined.to_phone, 
+        combined.message, 
+        combined.template_name, 
+        combined.scheduled_at, 
+        combined.status, 
+        combined.number_id, 
+        combined.number_phone
     FROM (
         SELECT * FROM pending_msgs
         UNION ALL
         SELECT * FROM recent_msgs
     ) combined
-    ORDER BY sort_group, scheduled_at;
+    ORDER BY combined.sort_group, combined.scheduled_at;
 END;
 $$;
 
