@@ -155,6 +155,7 @@ export const EvolutionApiService = {
             console.error('EvolutionAPI Send Media Error:', error);
             return { success: false, error: error.message };
         }
+    },
 
     /**
      * Fetch all chats
@@ -162,26 +163,26 @@ export const EvolutionApiService = {
      * @returns {Promise<object>}
      */
     async fetchChats(instanceName) {
-            try {
-                const response = await fetch(`${BASE_URL}/api/chat/findChats/${instanceName}`, {
-                    method: 'GET',
-                    headers
-                });
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat/findChats/${instanceName}`, {
+                method: 'GET',
+                headers
+            });
 
-                if (!response.ok) {
-                    // Fallback: Return empty if method not found, or throw
-                    const errorData = await response.json().catch(() => ({}));
-                    console.warn('EvolutionAPI Fetch Chats Failed:', errorData);
-                    return { success: false, data: [] };
-                }
-
-                const data = await response.json();
-                return { success: true, data: Array.isArray(data) ? data : (data.data || []) };
-            } catch (error) {
-                console.error('EvolutionAPI Fetch Chats Error:', error);
-                return { success: false, error: error.message };
+            if (!response.ok) {
+                // Fallback: Return empty if method not found, or throw
+                const errorData = await response.json().catch(() => ({}));
+                console.warn('EvolutionAPI Fetch Chats Failed:', errorData);
+                return { success: false, data: [] };
             }
-        },
+
+            const data = await response.json();
+            return { success: true, data: Array.isArray(data) ? data : (data.data || []) };
+        } catch (error) {
+            console.error('EvolutionAPI Fetch Chats Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
 
     /**
      * Fetch messages for a chat
@@ -191,55 +192,55 @@ export const EvolutionApiService = {
      * @returns {Promise<object>}
      */
     async fetchMessages(instanceName, remoteJid, limit = 50) {
-            try {
-                const response = await fetch(`${BASE_URL}/api/chat/findMessages/${instanceName}`, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify({
-                        where: {
-                            key: { remoteJid }
-                        },
-                        options: {
-                            limit,
-                            sort: { "messageTimestamp": "DESC" }
-                        }
-                    })
-                });
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat/findMessages/${instanceName}`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    where: {
+                        key: { remoteJid }
+                    },
+                    options: {
+                        limit,
+                        sort: { "messageTimestamp": "DESC" }
+                    }
+                })
+            });
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    console.warn('EvolutionAPI Fetch Messages Failed:', errorData);
-                    return { success: false, data: [] };
-                }
-
-                const data = await response.json();
-                return { success: true, data: Array.isArray(data) ? data : (data.data || data.messages || []) };
-            } catch (error) {
-                console.error('EvolutionAPI Fetch Messages Error:', error);
-                return { success: false, error: error.message };
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.warn('EvolutionAPI Fetch Messages Failed:', errorData);
+                return { success: false, data: [] };
             }
-        },
+
+            const data = await response.json();
+            return { success: true, data: Array.isArray(data) ? data : (data.data || data.messages || []) };
+        } catch (error) {
+            console.error('EvolutionAPI Fetch Messages Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
 
     /**
      * Delete an instance
      * @param {string} instanceName 
      */
     async deleteInstance(instanceName) {
-            try {
-                const response = await fetch(`${BASE_URL}/api/instances/${instanceName}`, {
-                    method: 'DELETE',
-                    headers
-                });
+        try {
+            const response = await fetch(`${BASE_URL}/api/instances/${instanceName}`, {
+                method: 'DELETE',
+                headers
+            });
 
-                if (!response.ok && response.status !== 404) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'Failed to delete instance');
-                }
-
-                return true;
-            } catch (error) {
-                console.error('EvolutionAPI Delete Instance Error:', error);
-                throw error;
+            if (!response.ok && response.status !== 404) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to delete instance');
             }
+
+            return true;
+        } catch (error) {
+            console.error('EvolutionAPI Delete Instance Error:', error);
+            throw error;
         }
-    };
+    }
+};
