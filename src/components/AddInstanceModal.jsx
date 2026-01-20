@@ -163,16 +163,14 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
     };
 
     const handleEvoCreate = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setLoading(true);
         setError(null);
 
-        const name = evoFormData.instanceName.trim();
-        if (!name) {
-            setError('Instance Name is required.');
-            setLoading(false);
-            return;
-        }
+        // Auto-generate unique name
+        const name = `inst_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        // Save to state so we know it for verification step
+        setEvoFormData({ ...evoFormData, instanceName: name });
 
         try {
             if (!editingNumber) {
@@ -272,7 +270,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
                         api_token: 'evolution-managed',
                         status: 'active',
                         provider: 'evolution-api',
-                        name: name
+                        name: 'WhatsApp Instance' // Default friendly name
                     })
                     .select('id')
                     .single();
@@ -282,7 +280,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
             }
 
             setCreatedInstanceId(instanceId);
-            setFriendlyName(editingNumber?.name || name);
+            setFriendlyName(editingNumber?.name || 'WhatsApp Instance');
             setCurrentStep('success'); // Move to rename
         } catch (err) {
             setError('Failed to confirm connection. ' + err.message);
@@ -400,22 +398,22 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
             // Evolution
             if (evoStep === 'create') {
                 return (
-                    <form onSubmit={handleEvoCreate} className="space-y-4 py-2">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none">Instance Name</label>
-                            <Input
-                                value={evoFormData.instanceName}
-                                onChange={(e) => setEvoFormData({ ...evoFormData, instanceName: e.target.value })}
-                                placeholder="MyBusinessWA"
-                                required
-                            />
-                            <p className="text-xs text-muted-foreground">Unique name for this connection.</p>
+                    <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                            <QrCode className="h-12 w-12 text-blue-600" />
+                        </div>
+                        <div className="space-y-2 max-w-sm">
+                            <h3 className="font-medium">Ready to connect</h3>
+                            <p className="text-sm text-muted-foreground">
+                                We will create a secure session for your WhatsApp connection.
+                                Click below to generate a QR code.
+                            </p>
                         </div>
                         {error && <div className="text-sm text-red-500">{error}</div>}
-                        <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : 'Create & Get QR'}
+                        <Button onClick={handleEvoCreate} className="w-full max-w-sm" disabled={loading}>
+                            {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : 'Generate QR Code'}
                         </Button>
-                    </form>
+                    </div>
                 );
             } else {
                 // QR Scan
