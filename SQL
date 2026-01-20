@@ -1,1 +1,0 @@
-Done. Scroll up, copy the SQL block, and paste it into Supabase Dashboard - Editor.

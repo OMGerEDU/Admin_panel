@@ -33,3 +33,10 @@ dist-ssr
 ../*.md
 ../landing-page/
 ../DEPLOYMENT_GUIDE.md
+/migrations/
+/evolutionPrepare/
+/deploy_schema.bat
+DEPLOY.md
+*.bat
+*.sh
+*.log

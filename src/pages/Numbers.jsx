@@ -11,6 +11,7 @@ import { Search, Plus, MoreHorizontal, RefreshCw, X, Edit, Trash2, HelpCircle } 
 import { logger } from '../lib/logger';
 import GreenApiHelpModal from '../components/GreenApiHelpModal';
 import { getStatusInstance } from '../services/greenApi';
+import { AddInstanceModal } from '../components/AddInstanceModal';
 
 // Simple Badge component since we don't have it in UI lib yet
 function StatusBadge({ status, healthStatus, t }) {
@@ -49,7 +50,7 @@ function StatusBadge({ status, healthStatus, t }) {
 
 export default function Numbers() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user, isBetaTester } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [numbers, setNumbers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -411,7 +412,7 @@ export default function Numbers() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>{t('common.name')}</TableHead>
-                                    <TableHead>{t('common.instance_id')}</TableHead>
+                                    <TableHead>{t('numbers_page.phone_number')}</TableHead>
                                     <TableHead>{t('status')}</TableHead>
                                     <TableHead>{t('common.last_seen')}</TableHead>
                                     <TableHead className="text-right">{t('common.actions')}</TableHead>
@@ -434,9 +435,9 @@ export default function Numbers() {
                                     filteredNumbers.map((number) => (
                                         <TableRow key={number.id}>
                                             <TableCell className="font-medium">
-                                                {number.phone_number || number.instance_id || number.id.slice(0, 8)}
+                                                {number.name || number.phone_number || number.instance_id || number.id.slice(0, 8)}
                                             </TableCell>
-                                            <TableCell>{number.instance_id || '-'}</TableCell>
+                                            <TableCell>{number.phone_number || '-'}</TableCell>
                                             <TableCell>
                                                 <StatusBadge
                                                     status={number.status || 'pending'}
@@ -484,153 +485,23 @@ export default function Numbers() {
             </Card>
 
             {/* Add/Edit Number Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <Card className="w-full max-w-md">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>{editingNumber ? t('common.edit') : t('add_number')}</CardTitle>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                        setShowModal(false);
-                                        setEditingNumber(null);
-                                        setEditingNumber(null);
-                                        setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active', configureSettings: true, usePlatformWebhook: false });
-                                    }}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleAddNumber} className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium">{t('numbers_page.phone_number')}</label>
-                                    <Input
-                                        value={formData.phone_number}
-                                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                                        placeholder="+1234567890"
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-medium">{t('common.instance_id')}</label>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-auto p-0 text-xs text-primary hover:bg-transparent"
-                                            onClick={() => setShowHelpModal(true)}
-                                        >
-                                            <HelpCircle className="mr-1 h-3 w-3" />
-                                            {t('common.where_to_find') || 'Where to find?'}
-                                        </Button>
-                                    </div>
-                                    <Input
-                                        value={formData.instance_id}
-                                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
-                                        placeholder="10 digits (e.g. 7107372601)"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium">API Token</label>
-                                    <Input
-                                        type="password"
-                                        value={formData.api_token}
-                                        onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
-                                        placeholder="API token"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium">{t('status')}</label>
-                                    <select
-                                        value={formData.status}
-                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                                    >
-                                        <option value="active">{t('connected')}</option>
-                                        <option value="inactive">{t('disconnected')}</option>
-                                    </select>
-                                </div>
-
-                                {!editingNumber && (
-                                    <div className="space-y-3 pt-2 border-t">
-                                        <div className="flex items-start space-x-2">
-                                            <input
-                                                type="checkbox"
-                                                id="configureSettings"
-                                                checked={formData.configureSettings}
-                                                onChange={(e) => setFormData({ ...formData, configureSettings: e.target.checked })}
-                                                className="mt-1"
-                                            />
-                                            <div className="grid gap-1.5 leading-none">
-                                                <label
-                                                    htmlFor="configureSettings"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    {t('onboarding.auto_configure') || 'Auto-configure recommended settings'}
-                                                </label>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Automatically sets mostly used reliable settings for Green API (delays, webhooks).
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {formData.configureSettings && (
-                                            <div className="flex items-start space-x-2 pl-6 animate-in slide-in-from-top-2">
-                                                <input
-                                                    type="checkbox"
-                                                    id="usePlatformWebhook"
-                                                    checked={formData.usePlatformWebhook}
-                                                    onChange={(e) => setFormData({ ...formData, usePlatformWebhook: e.target.checked })}
-                                                    className="mt-1"
-                                                />
-                                                <div className="grid gap-1.5 leading-none">
-                                                    <label
-                                                        htmlFor="usePlatformWebhook"
-                                                        className="text-sm font-medium leading-none flex items-center gap-2"
-                                                    >
-                                                        {t('onboarding.use_platform_webhook') || 'Use Platform Webhook'}
-                                                        <div className="group relative">
-                                                            <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
-                                                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md border z-50">
-                                                                Redirects Green API webhooks to this platform to enable features like chat history and improved syncing.
-                                                            </div>
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                <div className="flex gap-2">
-                                    <Button type="submit" className="flex-1" disabled={saving}>
-                                        {saving ? t('common.loading') : t('common.add')}
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => {
-                                            setShowModal(false);
-                                            setEditingNumber(null);
-                                            setEditingNumber(null);
-                                            setFormData({ phone_number: '', instance_id: '', api_token: '', status: 'active', configureSettings: true, usePlatformWebhook: false });
-                                        }}
-                                    >
-                                        {t('common.cancel')}
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+            <AddInstanceModal
+                isOpen={showModal}
+                onClose={() => {
+                    setShowModal(false);
+                    setEditingNumber(null);
+                }}
+                isBetaTester={isBetaTester}
+                user={user}
+                userPlan={numbersUsage.planName}
+                editingNumber={editingNumber}
+                onSuccess={() => {
+                    setShowModal(false);
+                    setEditingNumber(null);
+                    fetchNumbers();
+                    fetchNumbersUsage();
+                }}
+            />
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (

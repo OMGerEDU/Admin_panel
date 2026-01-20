@@ -1,0 +1,102 @@
+# Evolution Backend API Documentation
+
+This document explains how to integrate with the Evolution Backend API.
+
+## 🔗 Base Configuration
+
+- **Base URL**: `https://evolution.omger.cloud` (Public) or `http://localhost:3000` (Local)
+- **API Key**: `54yWPufPt9y2Wp9QUap` 
+  - *Note: Pass this key in the header to authenticate requests.*
+
+## 🔐 Authentication
+
+All API requests (except health checks) require authentication via headers.
+
+**Header:**
+```http
+apikey: 54yWPufPt9y2Wp9QUap
+```
+*Alternative headers supported: `x-api-key` or `Authorization: Bearer <KEY>`*
+
+---
+
+## 📡 API Endpoints
+
+### 1. Instances (`/api/instances`)
+
+Manage WhatsApp instances (connections).
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/api/instances` | Create a new instance & get QR code |
+| **GET** | `/api/instances` | List all instances |
+| **GET** | `/api/instances/:name` | Get details & connection state of an instance |
+| **GET** | `/api/instances/:name/qr` | Get a fresh QR code for an instance |
+| **DELETE** | `/api/instances/:name` | Delete an instance |
+| **POST** | `/api/instances/:name/logout` | Logout an instance (disconnect) |
+| **POST** | `/api/instances/:name/restart` | Restart an instance |
+
+#### **Create Instance Example**
+**POST** `/api/instances`
+```json
+{
+  "instanceName": "MyInstance",
+  "qrcode": true,
+  "integration": "WHATSAPP-BAILEYS"
+}
+```
+
+---
+
+### 2. Messages (`/api/messages`)
+
+Send various types of messages.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/api/messages/text` | Send a text message |
+| **POST** | `/api/messages/media` | Send a media message (image/video/doc) |
+| **POST** | `/api/messages/audio` | Send an audio message |
+| **POST** | `/api/messages/location` | Send a location |
+| **POST** | `/api/messages/contact` | Send a contact card |
+| **POST** | `/api/messages/reaction` | React to a message |
+| **POST** | `/api/messages/poll` | Send a poll |
+
+#### **Send Text Example**
+**POST** `/api/messages/text`
+```json
+{
+  "instanceName": "MyInstance",
+  "number": "1234567890",
+  "text": "Hello form the API!"
+}
+```
+
+#### **Send Media Example**
+**POST** `/api/messages/media`
+```json
+{
+  "instanceName": "MyInstance",
+  "number": "1234567890",
+  "media": "https://example.com/image.png",
+  "mediatype": "image",
+  "caption": "Check this out!"
+}
+```
+
+---
+
+## 🛠️ Health & Utilities
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/health` | Check API status (No Auth required) |
+| **GET** | `/admin` | Admin Playground Interface |
+
+---
+
+## 📚 Notes
+
+- **Numbers**: Should be in international format without `+` or dashes (e.g., `972501234567`).
+- **Webhooks**: The backend is configured to receive events at `/api/webhooks`.
+- **Swagger/Docs**: Auto-generated docs are available at `/docs` (if enabled).
