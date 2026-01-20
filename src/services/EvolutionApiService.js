@@ -87,25 +87,159 @@ export const EvolutionApiService = {
     },
 
     /**
+     * Send a text message
+     * @param {string} instanceName
+     * @param {string} number - Phone number match (normalized)
+     * @param {string} text - Message content
+     * @returns {Promise<object>}
+     */
+    async sendText(instanceName, number, text) {
+        try {
+            const body = {
+                number,
+                text,
+                delay: 1200,
+                linkPreview: true
+            };
+
+            const response = await fetch(`${BASE_URL}/api/message/sendText/${instanceName}`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message?.[0] || errorData.message || 'Failed to send message' };
+            }
+
+            const data = await response.json();
+            return { success: true, data };
+        } catch (error) {
+            console.error('EvolutionAPI Send Text Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Send media message
+     * @param {string} instanceName
+     * @param {string} number
+     * @param {object} options - { mediatype, mimetype, caption, media, fileName }
+     */
+    async sendMedia(instanceName, number, options) {
+        try {
+            const body = {
+                number,
+                mediatype: options.mediatype || 'image',
+                mimetype: options.mimetype,
+                caption: options.caption,
+                media: options.media, // Base64
+                fileName: options.fileName
+            };
+
+            const response = await fetch(`${BASE_URL}/api/message/sendMedia/${instanceName}`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to send media' };
+            }
+
+            const data = await response.json();
+            return { success: true, data };
+        } catch (error) {
+            console.error('EvolutionAPI Send Media Error:', error);
+            return { success: false, error: error.message };
+        }
+
+    /**
+     * Fetch all chats
+     * @param {string} instanceName
+     * @returns {Promise<object>}
+     */
+    async fetchChats(instanceName) {
+            try {
+                const response = await fetch(`${BASE_URL}/api/chat/findChats/${instanceName}`, {
+                    method: 'GET',
+                    headers
+                });
+
+                if (!response.ok) {
+                    // Fallback: Return empty if method not found, or throw
+                    const errorData = await response.json().catch(() => ({}));
+                    console.warn('EvolutionAPI Fetch Chats Failed:', errorData);
+                    return { success: false, data: [] };
+                }
+
+                const data = await response.json();
+                return { success: true, data: Array.isArray(data) ? data : (data.data || []) };
+            } catch (error) {
+                console.error('EvolutionAPI Fetch Chats Error:', error);
+                return { success: false, error: error.message };
+            }
+        },
+
+    /**
+     * Fetch messages for a chat
+     * @param {string} instanceName
+     * @param {string} remoteJid
+     * @param {number} limit
+     * @returns {Promise<object>}
+     */
+    async fetchMessages(instanceName, remoteJid, limit = 50) {
+            try {
+                const response = await fetch(`${BASE_URL}/api/chat/findMessages/${instanceName}`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        where: {
+                            key: { remoteJid }
+                        },
+                        options: {
+                            limit,
+                            sort: { "messageTimestamp": "DESC" }
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.warn('EvolutionAPI Fetch Messages Failed:', errorData);
+                    return { success: false, data: [] };
+                }
+
+                const data = await response.json();
+                return { success: true, data: Array.isArray(data) ? data : (data.data || data.messages || []) };
+            } catch (error) {
+                console.error('EvolutionAPI Fetch Messages Error:', error);
+                return { success: false, error: error.message };
+            }
+        },
+
+    /**
      * Delete an instance
      * @param {string} instanceName 
      */
     async deleteInstance(instanceName) {
-        try {
-            const response = await fetch(`${BASE_URL}/api/instances/${instanceName}`, {
-                method: 'DELETE',
-                headers
-            });
+            try {
+                const response = await fetch(`${BASE_URL}/api/instances/${instanceName}`, {
+                    method: 'DELETE',
+                    headers
+                });
 
-            if (!response.ok && response.status !== 404) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to delete instance');
+                if (!response.ok && response.status !== 404) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Failed to delete instance');
+                }
+
+                return true;
+            } catch (error) {
+                console.error('EvolutionAPI Delete Instance Error:', error);
+                throw error;
             }
-
-            return true;
-        } catch (error) {
-            console.error('EvolutionAPI Delete Instance Error:', error);
-            throw error;
         }
-    }
-};
+    };

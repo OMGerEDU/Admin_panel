@@ -39,6 +39,7 @@ import {
     getAvatar,
     downloadFile,
 } from '../services/greenApi';
+import { EvolutionApiService } from '../services/EvolutionApiService';
 import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncMessagesToSupabase, syncFullChatHistory, resetChatNames, warmUpSync, triggerStateSnapshot } from '../services/messageSync';
 import { bootstrapFromSnapshot } from '../services/snapshotService';
 import { logger } from '../lib/logger';
@@ -292,7 +293,8 @@ export default function Chats() {
                         selectedNumber.instance_id,
                         selectedNumber.api_token,
                         chatId,
-                        50
+                        50,
+                        selectedNumber.provider || 'green-api'
                     ).then(() => {
                         console.log(`[ACTIVE SYNC] Completed for ${chatId}`);
                         fetchMessages(true); // Soft refresh UI
@@ -361,7 +363,8 @@ export default function Chats() {
                             selectedNumber.instance_id,
                             selectedNumber.api_token,
                             chatId,
-                            50
+                            50,
+                            selectedNumber.provider || 'green-api'
                         );
                         saveSyncMeta(selectedNumber.instance_id, chatId, { updatedAt: Date.now() });
                     } catch (err) { }
@@ -590,7 +593,7 @@ export default function Chats() {
 
             if (refreshNames || isOverdue) {
                 console.log('[CHATS] Synchronizing names/discovery in background...');
-                syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token, refreshNames)
+                syncChatsToSupabase(acc.id, acc.instance_id, acc.api_token, refreshNames, acc.provider || 'green-api')
                     .then(() => {
                         saveSyncMeta(acc.instance_id, 'global_chats_sync', { updatedAt: Date.now() });
                         fetchChats(false);
@@ -781,7 +784,8 @@ export default function Chats() {
                 selectedNumber.instance_id,
                 selectedNumber.api_token,
                 chatId,
-                50 // Request 50 fresh messages for the active chat
+                50, // Request 50 fresh messages for the active chat
+                selectedNumber.provider || 'green-api'
             );
 
             // Double check we are still on the same chat!
@@ -923,13 +927,22 @@ export default function Chats() {
                 return;
             }
 
-            // Send via Green API
-            const result = await sendGreenMessage(
-                selectedNumber.instance_id,
-                selectedNumber.api_token,
-                chatId,
-                newMessage,
-            );
+            // Send Message
+            let result;
+            if (selectedNumber.provider === 'evolution-api') {
+                result = await EvolutionApiService.sendText(
+                    selectedNumber.instance_id, // Name for Evolution
+                    chatId,
+                    newMessage
+                );
+            } else {
+                result = await sendGreenMessage(
+                    selectedNumber.instance_id,
+                    selectedNumber.api_token,
+                    chatId,
+                    newMessage,
+                );
+            }
 
             if (!result.success) {
                 console.error('[SEND] Failed sending via Green API:', result.error);
@@ -990,7 +1003,7 @@ export default function Chats() {
             if (res.success) {
                 // 2. Trigger optimized parallel sync with enrichNames = true
                 console.log('[SYNC] Starting optimized name enrichment...');
-                await syncChatsToSupabase(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token, true);
+                await syncChatsToSupabase(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token, true, selectedNumber.provider || 'green-api');
 
                 // 3. Clear local caches to reflect changes
                 chatsCacheRef.current.data = null;

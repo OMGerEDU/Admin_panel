@@ -11,6 +11,7 @@ import {
 import { supabase } from '../lib/supabaseClient';
 import { loadChatsFromCache, loadMessagesFromCache, loadAvatarsFromCache } from '../lib/messageLocalCache';
 import { uploadStateSnapshot } from './snapshotService';
+import { EvolutionApiService } from './EvolutionApiService';
 
 // Global state for background sync status
 const activeSyncTasks = new Map(); // numberId -> status object
@@ -63,10 +64,34 @@ const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') 
  *
  * This avoids hundreds of per-chat SELECTs and drastically reduces network traffic.
  */
-export async function syncChatsToSupabase(numberId, instanceId, token, enrichNames = false) {
+// Helper to normalize chats from Evolution
+const normalizeEvoChats = (evoChats) => {
+  return (evoChats || []).map(c => ({
+    id: c.id,
+    chatId: c.id,
+    remoteJid: c.id,
+    name: c.name || c.pushName || c.id.split('@')[0],
+    unreadCount: c.unreadCount || 0,
+    lastMessage: c.lastMessage || {}, // Structure might differ, will need parsing adjustment later if critical
+    timestamp: c.messageTimestamp || Date.now() / 1000
+  }));
+};
+
+export async function syncChatsToSupabase(numberId, instanceId, token, enrichNames = false, provider = 'green-api') {
   try {
-    // 1) Fetch chats list from Green API (one request)
-    const result = await getChats(instanceId, token);
+    let result = { success: false, data: [] };
+
+    // 1) Fetch chats list from Provider
+    if (provider === 'evolution-api') {
+      const evoRes = await EvolutionApiService.fetchChats(instanceId); // instanceId is the name here
+      if (evoRes.success) {
+        result = { success: true, data: normalizeEvoChats(evoRes.data) };
+      } else {
+        result = { success: false, error: evoRes.error || 'Failed to fetch Evolution chats' };
+      }
+    } else {
+      result = await getChats(instanceId, token);
+    }
 
     if (!result.success) {
       return result;
@@ -226,6 +251,7 @@ export async function syncMessagesToSupabase(
   token,
   remoteJid,
   limit = 100,
+  provider = 'green-api'
 ) {
   try {
     // 1. SMART SKIP: If we have synced this chat in the last 10 seconds, skip API call
@@ -233,7 +259,19 @@ export async function syncMessagesToSupabase(
     // (Actually using a dedicated sync meta is better, but let's just use the throttler for now)
 
     await throttleHistoryCall();
-    const result = await getChatHistory(instanceId, token, remoteJid, limit);
+
+    let result = { success: false, data: [] };
+
+    if (provider === 'evolution-api') {
+      const evoRes = await EvolutionApiService.fetchMessages(instanceId, remoteJid, limit);
+      if (evoRes.success) {
+        result = { success: true, data: evoRes.data };
+      } else {
+        result = { success: false, error: evoRes.error };
+      }
+    } else {
+      result = await getChatHistory(instanceId, token, remoteJid, limit);
+    }
 
     if (result.success && result.data) {
       const messages = result.data || [];
