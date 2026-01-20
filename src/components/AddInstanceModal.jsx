@@ -200,23 +200,28 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
                 }
             }
 
-            if (result.qrcode && result.qrcode.base64) {
-                setEvoQrCode(result.qrcode.base64);
+            // Helper to extract base64 QR
+            const getQr = (res) => {
+                return res?.qrcode?.base64 || res?.data?.base64 || res?.base64 || res?.data?.qrcode?.base64;
+            };
+
+            if (getQr(result)) {
+                setEvoQrCode(getQr(result));
                 setEvoStep('qr');
-            } else if (result.instance) {
+            } else if (result.instance || result?.data?.instance) {
                 // Already connected?
                 setEvoStep('qr'); // Still go to QR step but maybe show info
                 // Check status
                 const status = await EvolutionApiService.getInstance(name);
-                if (status?.instance?.state === 'open') {
+                if (status?.instance?.state === 'open' || status?.data?.instance?.state === 'open') {
                     // Already connected, auto-verify
                     await handleEvoConfirm(name);
                     return;
                 } else {
                     // Try fetch QR specifically if no base64 in create response
                     const qrRes = await EvolutionApiService.fetchQrCode(name);
-                    if (qrRes.qrcode && qrRes.qrcode.base64) {
-                        setEvoQrCode(qrRes.qrcode.base64);
+                    if (getQr(qrRes)) {
+                        setEvoQrCode(getQr(qrRes));
                         setEvoStep('qr');
                     } else {
                         throw new Error('Could not retrieve QR code.');
@@ -225,8 +230,8 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
             } else {
                 // Fallback try fetch QR
                 const qrRes = await EvolutionApiService.fetchQrCode(name);
-                if (qrRes.qrcode && qrRes.qrcode.base64) {
-                    setEvoQrCode(qrRes.qrcode.base64);
+                if (getQr(qrRes)) {
+                    setEvoQrCode(getQr(qrRes));
                     setEvoStep('qr');
                 } else {
                     throw new Error('Instance created but QR code missing.');
