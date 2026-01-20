@@ -180,7 +180,7 @@ export default function Chats() {
 
             // 3. Perform a "Warm-up" sync to populate latest history immediately (Global History)
             setIsWarmUpSyncing(true);
-            warmUpSync(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token)
+            warmUpSync(selectedNumber.id, selectedNumber.instance_id, selectedNumber.api_token, selectedNumber.provider || 'green-api')
                 .then((result) => {
                     console.log('[SYNC] Warm-up complete, refreshing list');
 
@@ -1046,7 +1046,7 @@ export default function Chats() {
             await logger.info('Starting full sync', { instance_id: selectedNumber.instance_id }, selectedNumber.id);
 
             // Force refresh chats
-            await fetchChats(true);
+            await fetchChats(true, true);
 
             // Force refresh messages if chat is selected
             if (selectedChat) {
