@@ -105,6 +105,137 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
   }
 }
 
+// Helper to normalize message from Evolution (Baileys) to Green API structure
+const normalizeEvoMessage = (msg) => {
+  if (!msg || !msg.key) return null;
+
+  const m = msg.message || {};
+  const key = msg.key || {};
+
+  // Determine type
+  let typeMessage = 'textMessage';
+  if (m.imageMessage) typeMessage = 'imageMessage';
+  else if (m.videoMessage) typeMessage = 'videoMessage';
+  else if (m.audioMessage) typeMessage = 'audioMessage';
+  else if (m.documentMessage) typeMessage = 'documentMessage';
+  else if (m.stickerMessage) typeMessage = 'stickerMessage';
+  else if (m.contactMessage) typeMessage = 'contactMessage';
+  else if (m.locationMessage) typeMessage = 'locationMessage';
+  else if (m.extendedTextMessage) typeMessage = 'textMessage';
+  else if (m.conversation) typeMessage = 'textMessage';
+
+  return {
+    idMessage: key.id,
+    chatId: key.remoteJid,
+    timestamp: msg.messageTimestamp, // Usually seconds in Baileys
+    type: key.fromMe ? 'outgoing' : 'incoming',
+    fromMe: key.fromMe,
+    typeMessage,
+    textMessage: m.conversation || m.extendedTextMessage?.text || "",
+    extendedTextMessage: m.extendedTextMessage,
+    imageMessage: m.imageMessage,
+    videoMessage: m.videoMessage,
+    audioMessage: m.audioMessage,
+    documentMessage: m.documentMessage,
+    contactMessage: m.contactMessage,
+    stickerMessage: m.stickerMessage,
+    locationMessage: m.locationMessage,
+    // Pass raw just in case
+    _raw: msg
+  };
+};
+
+export async function syncMessagesToSupabase(
+  chatId,
+  instanceId,
+  token,
+  remoteJid,
+  limit = 100,
+  provider = 'green-api'
+) {
+  try {
+    // 1. SMART SKIP: If we have synced this chat in the last 10 seconds, skip API call
+    const meta = loadMessagesFromCache(instanceId, remoteJid); // misuse of cache to check history
+    // (Actually using a dedicated sync meta is better, but let's just use the throttler for now)
+
+    await throttleHistoryCall();
+
+    let result = { success: false, data: [] };
+
+    if (provider === 'evolution-api') {
+      const evoRes = await EvolutionApiService.fetchMessages(instanceId, remoteJid, limit);
+      if (evoRes.success) {
+        // Normalize messages
+        const normalized = (evoRes.data || []).map(normalizeEvoMessage).filter(Boolean);
+        result = { success: true, data: normalized };
+      } else {
+        result = { success: false, error: evoRes.error };
+      }
+    } else {
+      result = await getChatHistory(instanceId, token, remoteJid, limit);
+    }
+
+    if (result.success && result.data) {
+      const messages = result.data || [];
+      if (messages.length === 0) return { success: true, data: [] };
+
+      // 2. BATCH DB CHECK: Get all existing green_ids for these messages
+      const idsToCheck = messages.map(m => m.idMessage || m.id).filter(Boolean);
+      const { data: existingMsgs } = await supabase
+        .from('messages')
+        .select('green_id')
+        .eq('chat_id', chatId)
+        .in('green_id', idsToCheck);
+
+      const existingIds = new Set(existingMsgs?.map(m => m.green_id) || []);
+
+      const toInsert = [];
+      for (const msg of messages) {
+        const greenId = msg.idMessage || msg.id;
+        if (existingIds.has(greenId)) continue;
+
+        const ts = msg.timestamp != null
+          ? new Date(msg.timestamp * 1000).toISOString()
+          : new Date().toISOString();
+
+        const { content, mediaMeta } = extractMessageContentAndMeta(msg);
+        toInsert.push({
+          chat_id: chatId,
+          content,
+          is_from_me: msg.type === 'outgoing' || msg.type === 'outgoingMessage' || msg.fromMe === true,
+          timestamp: ts,
+          media_meta: mediaMeta,
+          green_id: greenId
+        });
+      }
+
+      if (toInsert.length > 0) {
+        console.log(`[SYNC] Inserting ${toInsert.length} new messages for ${remoteJid}`);
+        await supabase.from('messages').insert(toInsert);
+      }
+    }
+
+    // Now fetch the authoritative list from Supabase to return to the UI
+    const { data: finalMessages, error: finalError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+
+    if (finalError) throw finalError;
+
+    // Return in chronological order (oldest first)
+    return { success: true, data: (finalMessages || []).reverse() };
+  } catch (error) {
+    console.error('syncMessagesToSupabase error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to sync messages',
+    };
+  }
+}
+
 /**
  * Full sync: chats + messages for a given number.
  * SMART: Only sync messages for chats that don't have many messages yet.
