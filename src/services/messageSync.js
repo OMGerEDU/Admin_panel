@@ -245,6 +245,46 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
  * @param {string} remoteJid - Chat JID in Green API format
  * @param {number} limit - How many messages to load
  */
+// Helper to normalize message from Evolution (Baileys) to Green API structure
+const normalizeEvoMessage = (msg) => {
+  if (!msg || !msg.key) return null;
+
+  const m = msg.message || {};
+  const key = msg.key || {};
+
+  // Determine type
+  let typeMessage = 'textMessage';
+  if (m.imageMessage) typeMessage = 'imageMessage';
+  else if (m.videoMessage) typeMessage = 'videoMessage';
+  else if (m.audioMessage) typeMessage = 'audioMessage';
+  else if (m.documentMessage) typeMessage = 'documentMessage';
+  else if (m.stickerMessage) typeMessage = 'stickerMessage';
+  else if (m.contactMessage) typeMessage = 'contactMessage';
+  else if (m.locationMessage) typeMessage = 'locationMessage';
+  else if (m.extendedTextMessage) typeMessage = 'textMessage';
+  else if (m.conversation) typeMessage = 'textMessage';
+
+  return {
+    idMessage: key.id,
+    chatId: key.remoteJid,
+    timestamp: msg.messageTimestamp, // Usually seconds in Baileys
+    type: key.fromMe ? 'outgoing' : 'incoming',
+    fromMe: key.fromMe,
+    typeMessage,
+    textMessage: m.conversation || m.extendedTextMessage?.text || "",
+    extendedTextMessage: m.extendedTextMessage,
+    imageMessage: m.imageMessage,
+    videoMessage: m.videoMessage,
+    audioMessage: m.audioMessage,
+    documentMessage: m.documentMessage,
+    contactMessage: m.contactMessage,
+    stickerMessage: m.stickerMessage,
+    locationMessage: m.locationMessage,
+    // Pass raw just in case
+    _raw: msg
+  };
+};
+
 export async function syncMessagesToSupabase(
   chatId,
   instanceId,
@@ -265,7 +305,9 @@ export async function syncMessagesToSupabase(
     if (provider === 'evolution-api') {
       const evoRes = await EvolutionApiService.fetchMessages(instanceId, remoteJid, limit);
       if (evoRes.success) {
-        result = { success: true, data: evoRes.data };
+        // Normalize messages
+        const normalized = (evoRes.data || []).map(normalizeEvoMessage).filter(Boolean);
+        result = { success: true, data: normalized };
       } else {
         result = { success: false, error: evoRes.error };
       }
