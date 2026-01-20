@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Loader2, CheckCircle2, QrCode, Smartphone, ArrowLeft, Lock } from 'lucide-react';
 import { EvolutionApiService } from '../services/EvolutionApiService';
 import { supabase } from '../lib/supabaseClient';
@@ -359,7 +358,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
             return (
                 <form onSubmit={handleGreenSubmit} className="space-y-4 py-2">
                     <div className="space-y-2">
-                        <Label>{t('numbers_page.phone_number')}</Label>
+                        <label className="text-sm font-medium leading-none">{t('numbers_page.phone_number')}</label>
                         <Input
                             value={greenFormData.phone_number}
                             onChange={(e) => setGreenFormData({ ...greenFormData, phone_number: e.target.value })}
@@ -368,7 +367,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label>{t('common.instance_id')}</Label>
+                        <label className="text-sm font-medium leading-none">{t('common.instance_id')}</label>
                         <Input
                             value={greenFormData.instance_id}
                             onChange={(e) => setGreenFormData({ ...greenFormData, instance_id: e.target.value })}
@@ -377,7 +376,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label>API Token</Label>
+                        <label className="text-sm font-medium leading-none">API Token</label>
                         <Input
                             type="password"
                             value={greenFormData.api_token}
@@ -398,7 +397,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
                 return (
                     <form onSubmit={handleEvoCreate} className="space-y-4 py-2">
                         <div className="space-y-2">
-                            <Label>Instance Name</Label>
+                            <label className="text-sm font-medium leading-none">Instance Name</label>
                             <Input
                                 value={evoFormData.instanceName}
                                 onChange={(e) => setEvoFormData({ ...evoFormData, instanceName: e.target.value })}
@@ -419,7 +418,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
                     <div className="flex flex-col items-center space-y-4 py-2">
                         <div className="text-center">
                             <h3 className="font-semibold text-lg">Scan QR Code</h3>
-                            <p className="text-sm text-muted-foreground">Open WhatsApp on your phone > Linked Devices > Link a Device</p>
+                            <p className="text-sm text-muted-foreground">Open WhatsApp on your phone &gt; Linked Devices &gt; Link a Device</p>
                         </div>
 
                         {evoQrCode ? (
@@ -456,7 +455,7 @@ export function AddInstanceModal({ isOpen, onClose, isBetaTester, onSuccess, use
             </div>
 
             <div className="w-full max-w-xs space-y-2 text-left">
-                <Label>Instance Name</Label>
+                <label className="text-sm font-medium leading-none">Instance Name</label>
                 <Input
                     value={friendlyName}
                     onChange={(e) => setFriendlyName(e.target.value)}
