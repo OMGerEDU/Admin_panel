@@ -1068,9 +1068,9 @@ export default function Chats() {
         }
     };
 
-    // Helper function to load media URL from Green API
-    const loadMediaUrl = async (messageId, chatId) => {
-        if (!selectedNumber?.instance_id || !selectedNumber?.api_token || !messageId) {
+    // Helper function to load media URL from Green API or Evolution API
+    const loadMediaUrl = async (messageId, chatId, messageObject = null) => {
+        if (!selectedNumber?.instance_id || !messageId) {
             return null;
         }
 
@@ -1082,17 +1082,41 @@ export default function Chats() {
         setLoadingMedia(prev => ({ ...prev, [messageId]: true }));
 
         try {
-            const result = await downloadFile(
-                selectedNumber.instance_id,
-                selectedNumber.api_token,
-                chatId,
-                messageId
-            );
+            // Evolution API Handling
+            if (selectedNumber.provider === 'evolution-api') {
+                if (!messageObject) {
+                    console.warn('[MEDIA] Message object required for Evolution API media download');
+                    return null;
+                }
+                const result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, messageObject);
+                if (result.success && result.base64) {
+                    // Create a data URL from base64
+                    // Detect mimetype if possible, otherwise default to image/jpeg or similar
+                    let mimeType = 'image/jpeg';
+                    if (messageObject.messageType === 'imageMessage') mimeType = 'image/jpeg';
+                    else if (messageObject.messageType === 'videoMessage') mimeType = 'video/mp4';
+                    else if (messageObject.messageType === 'audioMessage') mimeType = 'audio/mp4'; // opus/mp3
+                    else if (messageObject.mimetype) mimeType = messageObject.mimetype;
 
-            if (result.success && result.data?.downloadUrl) {
-                const url = result.data.downloadUrl;
-                setMediaUrls(prev => ({ ...prev, [messageId]: url }));
-                return url;
+                    const url = `data:${mimeType};base64,${result.base64}`;
+                    setMediaUrls(prev => ({ ...prev, [messageId]: url }));
+                    return url;
+                }
+            }
+            // Green API Handling
+            else if (selectedNumber.api_token) {
+                const result = await downloadFile(
+                    selectedNumber.instance_id,
+                    selectedNumber.api_token,
+                    chatId,
+                    messageId
+                );
+
+                if (result.success && result.data?.downloadUrl) {
+                    const url = result.data.downloadUrl;
+                    setMediaUrls(prev => ({ ...prev, [messageId]: url }));
+                    return url;
+                }
             }
         } catch (error) {
             console.error('[MEDIA] Error loading media URL:', error);
@@ -1728,7 +1752,7 @@ export default function Chats() {
                                                                                     onClick={async () => {
                                                                                         let imageUrl = fullImageUrl;
                                                                                         if (!imageUrl && messageId && chatId) {
-                                                                                            imageUrl = await loadMediaUrl(messageId, chatId);
+                                                                                            imageUrl = await loadMediaUrl(messageId, chatId, item);
                                                                                         }
                                                                                         if (imageUrl) {
                                                                                             setLightboxImage({
@@ -1744,7 +1768,7 @@ export default function Chats() {
                                                                                     className="w-[200px] h-[150px] bg-muted dark:bg-[#182229] rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer border border-dashed border-muted-foreground/30"
                                                                                     onClick={async () => {
                                                                                         if (messageId && chatId) {
-                                                                                            const url = await loadMediaUrl(messageId, chatId);
+                                                                                            const url = await loadMediaUrl(messageId, chatId, item);
                                                                                             if (url) {
                                                                                                 setLightboxImage({ src: url, caption: item.caption || text });
                                                                                             }
@@ -1763,7 +1787,7 @@ export default function Chats() {
                                                                                     className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg cursor-pointer"
                                                                                     onClick={async () => {
                                                                                         if (messageId && chatId) {
-                                                                                            const url = await loadMediaUrl(messageId, chatId);
+                                                                                            const url = await loadMediaUrl(messageId, chatId, item);
                                                                                             if (url) {
                                                                                                 setLightboxImage({ src: url, caption: item.caption || text });
                                                                                             }
@@ -1860,7 +1884,7 @@ export default function Chats() {
                                                                                 <button
                                                                                     onClick={async () => {
                                                                                         if (messageId && chatId) {
-                                                                                            await loadMediaUrl(messageId, chatId);
+                                                                                            await loadMediaUrl(messageId, chatId, item);
                                                                                         }
                                                                                     }}
                                                                                     disabled={isLoading}
@@ -1908,7 +1932,7 @@ export default function Chats() {
 
                                                                     return (
                                                                         <button
-                                                                            onClick={() => messageId && chatId && loadMediaUrl(messageId, chatId)}
+                                                                            onClick={() => messageId && chatId && loadMediaUrl(messageId, chatId, item)}
                                                                             disabled={isLoading}
                                                                             className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded bg-primary/10 dark:bg-[#00a884]/10 text-xs font-medium text-primary dark:text-[#00a884] hover:bg-primary/20 transition-colors disabled:opacity-50"
                                                                         >
