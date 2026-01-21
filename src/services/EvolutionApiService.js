@@ -159,6 +159,160 @@ export const EvolutionApiService = {
     },
 
     /**
+     * Send sticker message
+     * @param {string} instanceName
+     * @param {string} number
+     * @param {string} stickerUrl
+     */
+    async sendSticker(instanceName, number, stickerUrl) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/messages/sticker`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    number,
+                    sticker: stickerUrl
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to send sticker' };
+            }
+
+            return { success: true, data: await response.json() };
+        } catch (error) {
+            console.error('EvolutionAPI Send Sticker Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Send audio/voice note
+     * @param {string} instanceName
+     * @param {string} number
+     * @param {string} audioUrl
+     * @param {boolean} ptt - If true, sends as Voice Note (blue mic)
+     */
+    async sendAudio(instanceName, number, audioUrl, ptt = true) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/messages/audio`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    number,
+                    audioUrl,
+                    ptt
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to send audio' };
+            }
+
+            return { success: true, data: await response.json() };
+        } catch (error) {
+            console.error('EvolutionAPI Send Audio Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Update/Edit a message
+     * @param {string} instanceName
+     * @param {string} messageKey - The ID of the message to edit
+     * @param {string} newMessage - New text content
+     */
+    async updateMessage(instanceName, messageKey, newMessage) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chats/update-message`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    messageKey,
+                    newMessage
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to update message' };
+            }
+
+            return { success: true, data: await response.json() };
+        } catch (error) {
+            console.error('EvolutionAPI Update Message Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Delete a message (for everyone)
+     * @param {string} instanceName
+     * @param {string} messageId - The message ID/Key
+     * @param {string} remoteJid - The chat JID
+     * @param {boolean} fromMe - Check if message is from me (usually required)
+     */
+    async deleteMessage(instanceName, messageId, remoteJid, fromMe = true) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chats/delete-message`, {
+                method: 'DELETE',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    messageKey: {
+                        id: messageId,
+                        remoteJid,
+                        fromMe
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to delete message' };
+            }
+
+            return { success: true, data: await response.json() };
+        } catch (error) {
+            console.error('EvolutionAPI Delete Message Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Mark chat as read
+     * @param {string} instanceName
+     * @param {string} remoteJid
+     */
+    async markRead(instanceName, remoteJid) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chats/mark-read`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    remoteJid
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to mark as read' };
+            }
+
+            return { success: true, data: await response.json() };
+        } catch (error) {
+            console.error('EvolutionAPI Mark Read Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
      * Fetch all chats
      * @param {string} instanceName
      * @returns {Promise<object>}
@@ -254,6 +408,67 @@ export const EvolutionApiService = {
             return { success: true, data: rawList };
         } catch (error) {
             console.error('EvolutionAPI Fetch Messages Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Send presence (composing, recording)
+     * @param {string} instanceName
+     * @param {string} remoteJid
+     * @param {string} presence - 'composing', 'recording', 'available'
+     */
+    async sendPresence(instanceName, remoteJid, presence) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chats/presence`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    remoteJid,
+                    presence
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to set presence' };
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error('EvolutionAPI Send Presence Error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Download media (Base64)
+     * @param {string} instanceName
+     * @param {object} message - The full message object containing media
+     * @returns {Promise<object>} { success: true, base64: "..." }
+     */
+    async downloadMedia(instanceName, message) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chats/download-media`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    message,
+                    convertToMp4: false
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to download media' };
+            }
+
+            const data = await response.json();
+            return { success: true, base64: data.base64 || data.data };
+        } catch (error) {
+            console.error('EvolutionAPI Download Media Error:', error);
             return { success: false, error: error.message };
         }
     },

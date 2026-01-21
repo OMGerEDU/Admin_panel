@@ -32,6 +32,10 @@ The `evolution.js` service handles all direct HTTP communication including retri
 | `fetchGroups(name)` | `POST /chat/findChats/:name` | Filters chats for `@g.us` JIDs. |
 | `sendText(name, number, text)` | `POST /message/sendText/:name` | |
 | `sendMedia(name, number, url)` | `POST /message/sendMedia/:name` | Supports images, video, documents. |
+| `updateMessage(name, key, txt)` | `PUT /chat/updateMessage/:name` | Edit sent text messages. |
+| `sendSticker(name, number, url)` | `POST /message/sendSticker/:name` | Send sticker from URL. |
+| `sendPresence(name, number, status)` | `POST /chat/sendPresence/:name` | Status: composing, recording, etc. |
+| `getBase64(name, messageObj)` | `POST /chat/getBase64FromMediaMessage/:name` | Returns base64 of media message. |
 
 ---
 
@@ -72,6 +76,14 @@ These are the endpoints available to the Admin Panel / Frontend.
 
 **Supported Types**: `text`, `media`, `audio`, `location`, `contact`, `reaction`, `poll`.
 
+**Send Sticker**
+- **Endpoint**: `POST /api/messages/sticker`
+- **Body**: `{ "instanceName": "name", "number": "...", "sticker": "http://..." }`
+
+**Send Voice Note (PTT)**
+- **Endpoint**: `POST /api/messages/audio`
+- **Body**: `{ "instanceName": "name", "number": "...", "audioUrl": "http://...", "ptt": true }`
+
 ### 3. Chats & Groups (`/api/chats`)
 
 **Fetch Chats**
@@ -82,6 +94,9 @@ These are the endpoints available to the Admin Panel / Frontend.
 - **Mark as Read**: `PUT /api/chats/mark-read`
 - **Delete Message**: `DELETE /api/chats/delete-message` (Delete for everyone)
 - **Find Messages**: `POST /api/chats/find-messages` (Search history)
+- **Edit Message**: `PUT /api/chats/update-message` (`{ "messageKey": "...", "newMessage": "..." }`)
+- **Set Presence**: `POST /api/chats/presence` (`{ "presence": "composing" }`)
+- **Download Media**: `POST /api/chats/download-media` (`{ "message": {...} }`)
 
 ---
 
