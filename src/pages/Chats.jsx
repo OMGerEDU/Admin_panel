@@ -1309,6 +1309,41 @@ export default function Chats() {
         return chatId.endsWith('@g.us');
     };
 
+    const handleMessageContact = (contact) => {
+        if (!contact.phone || !selectedNumber) return;
+
+        // Normalize phone: remove everything but digits
+        const cleanPhone = contact.phone.replace(/\D/g, '');
+        const jid = `${cleanPhone}@s.whatsapp.net`;
+
+        // Find if we already have this chat
+        const existingChat = chats.find(c => {
+            const cid = c.chatId || c.remote_jid || '';
+            return cid.includes(cleanPhone);
+        });
+
+        if (existingChat) {
+            setMessages([]);
+            setSelectedChat(existingChat);
+            const numberOnly = removeJidSuffix(existingChat.chatId || existingChat.remote_jid);
+            navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(numberOnly)}`, { replace: true });
+        } else {
+            // Create a temporary chat object if not found
+            const tempChat = {
+                chatId: jid,
+                remote_jid: jid,
+                name: contact.name || contact.phone,
+                phone: cleanPhone,
+                lastMessage: '',
+                timestamp: Date.now() / 1000
+            };
+            setMessages([]);
+            setSelectedChat(tempChat);
+            navigate(`/app/chats/${selectedNumber.id}/${encodeURIComponent(cleanPhone)}`, { replace: true });
+        }
+        setContactPopup(null);
+    };
+
     // Apply both search and filter
     // Debug log to check available data
     if (chats.length > 0) {
@@ -1945,12 +1980,11 @@ export default function Chats() {
                                                                             ) : (
                                                                                 <div
                                                                                     className="w-[200px] h-[150px] bg-muted dark:bg-[#182229] rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer border border-dashed border-muted-foreground/30"
-                                                                                    onClick={async () => {
+                                                                                    onClick={async (e) => {
+                                                                                        e.stopPropagation();
                                                                                         if (messageId && chatId) {
-                                                                                            const url = await loadMediaUrl(messageId, chatId, item);
-                                                                                            if (url) {
-                                                                                                setLightboxImage({ src: url, caption: item.caption || text });
-                                                                                            }
+                                                                                            // Download but don't open lightbox automatically
+                                                                                            await loadMediaUrl(messageId, chatId, item);
                                                                                         }
                                                                                     }}
                                                                                 >
@@ -1964,12 +1998,11 @@ export default function Chats() {
                                                                             {!fullImageUrl && thumbnailSrc && (
                                                                                 <div
                                                                                     className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg cursor-pointer"
-                                                                                    onClick={async () => {
+                                                                                    onClick={async (e) => {
+                                                                                        e.stopPropagation();
                                                                                         if (messageId && chatId) {
-                                                                                            const url = await loadMediaUrl(messageId, chatId, item);
-                                                                                            if (url) {
-                                                                                                setLightboxImage({ src: url, caption: item.caption || text });
-                                                                                            }
+                                                                                            // Download but don't open lightbox automatically
+                                                                                            await loadMediaUrl(messageId, chatId, item);
                                                                                         }
                                                                                     }}
                                                                                 >
@@ -2160,7 +2193,13 @@ export default function Chats() {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="p-2 text-center text-[13px] text-primary dark:text-[#00a884] font-medium hover:bg-black/5 transition-colors rounded-b-lg">
+                                                                <div
+                                                                    className="p-2 text-center text-[13px] text-primary dark:text-[#00a884] font-medium hover:bg-black/5 transition-colors rounded-b-lg"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        // Future: maybe start a new conversation with this contact
+                                                                    }}
+                                                                >
                                                                     {t('chats_page.message_contact') || 'Message Contact'}
                                                                 </div>
                                                             </div>
@@ -2395,10 +2434,7 @@ export default function Chats() {
                                 <div className="flex gap-3 pt-4">
                                     <Button
                                         className="flex-1 bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-white rounded-xl h-12 shadow-md transition-all active:scale-95"
-                                        onClick={() => {
-                                            // Optional: Create new chat with this number
-                                            setContactPopup(null);
-                                        }}
+                                        onClick={() => handleMessageContact(contactPopup)}
                                     >
                                         Message
                                     </Button>
