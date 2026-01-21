@@ -526,13 +526,15 @@ export default function Chats() {
         }
     }, [selectedChat, selectedNumber?.id]);
 
-    // Auto-scroll to bottom when messages change
+    // Auto-scroll to bottom only when new messages arrive (length changes or last message changes)
     const messagesEndRef = useRef(null);
     useEffect(() => {
         if (messagesEndRef.current) {
+            // Only scroll if the last message is new or list grew
+            // This prevents scrolling when just loading media or updating other state
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [messages]);
+    }, [messages.length, messages.length > 0 ? messages[messages.length - 1].id : null, messages.length > 0 ? messages[messages.length - 1].idMessage : null]);
 
     const fetchNumbers = async () => {
         if (!user) return;
