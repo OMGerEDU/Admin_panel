@@ -178,8 +178,22 @@ export const EvolutionApiService = {
             }
 
             const data = await response.json();
-            // Data is array of chat objects directly
-            return { success: true, data: Array.isArray(data) ? data : (data.data || []) };
+            const rawList = Array.isArray(data) ? data : (data.data || []);
+
+            // Normalize to match Green API structure expected by Chats.jsx
+            const normalized = rawList.map(chat => ({
+                id: chat.remoteJid, // CRITICAL: Use JID as ID, not the internal database ID
+                chatId: chat.remoteJid,
+                remoteJid: chat.remoteJid,
+                name: chat.pushName || chat.name || chat.remoteJid?.split('@')[0],
+                unreadCount: chat.unreadCount || 0,
+                timestamp: chat.updatedAt ? new Date(chat.updatedAt).getTime() / 1000 : Date.now() / 1000,
+                image: chat.profilePicUrl,
+                avatar: chat.profilePicUrl,
+                lastMessage: chat.lastMessage || {}
+            }));
+
+            return { success: true, data: normalized };
         } catch (error) {
             console.error('EvolutionAPI Fetch Chats Error:', error);
             return { success: false, error: error.message };
@@ -195,10 +209,14 @@ export const EvolutionApiService = {
      */
     async fetchMessages(instanceName, remoteJid, limit = 50) {
         try {
-            const response = await fetch(`${BASE_URL}/api/chat/findMessages/${instanceName}`, {
+            // Updated endpoint based on standard v2 paths: /chat/findMessages/{instance}
+            // Ensure BASE_URL doesn't have double /api
+            // Updated to use the Exposed API endpoint documented in workflow
+            const response = await fetch(`${BASE_URL}/api/chats/find-messages`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
+                    instanceName,
                     where: {
                         key: { remoteJid }
                     },
@@ -216,7 +234,11 @@ export const EvolutionApiService = {
             }
 
             const data = await response.json();
-            return { success: true, data: Array.isArray(data) ? data : (data.data || data.messages || []) };
+            const rawList = Array.isArray(data) ? data : (data.data || data.messages || []);
+
+            // Normalize messages if needed (or return usage-ready format)
+            // Chats.jsx and messageSync.js handle some mapping, but let's ensure consistency
+            return { success: true, data: rawList };
         } catch (error) {
             console.error('EvolutionAPI Fetch Messages Error:', error);
             return { success: false, error: error.message };
