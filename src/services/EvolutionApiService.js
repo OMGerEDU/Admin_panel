@@ -234,10 +234,23 @@ export const EvolutionApiService = {
             }
 
             const data = await response.json();
-            const rawList = Array.isArray(data) ? data : (data.data || data.messages || []);
 
-            // Normalize messages if needed (or return usage-ready format)
-            // Chats.jsx and messageSync.js handle some mapping, but let's ensure consistency
+            // Handle various likely response structures
+            // Target: data.data.messages.records (from user's JSON)
+            let rawList = [];
+
+            if (data?.data?.messages?.records && Array.isArray(data.data.messages.records)) {
+                rawList = data.data.messages.records;
+            } else if (data?.data?.messages && Array.isArray(data.data.messages)) {
+                rawList = data.data.messages;
+            } else if (Array.isArray(data?.data)) {
+                rawList = data.data;
+            } else if (Array.isArray(data)) {
+                rawList = data;
+            } else if (data?.messages && Array.isArray(data.messages)) {
+                rawList = data.messages;
+            }
+
             return { success: true, data: rawList };
         } catch (error) {
             console.error('EvolutionAPI Fetch Messages Error:', error);
