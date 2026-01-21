@@ -543,5 +543,32 @@ export const EvolutionApiService = {
             console.error('EvolutionAPI Fetch Profile Picture Error:', error);
             return { success: false, error: error.message };
         }
+    },
+
+    /**
+     * Fetch profile picture URL (alternate endpoint)
+     * @param {string} instanceName
+     * @param {string} number
+     * @returns {Promise<object>}
+     */
+    async fetchProfilePictureUrl(instanceName, number) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/profile/picture-url`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ instanceName, number })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to fetch profile picture url' };
+            }
+
+            const data = await response.json();
+            return { success: true, data };
+        } catch (error) {
+            console.error('EvolutionAPI Fetch Profile Picture URL Error:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
