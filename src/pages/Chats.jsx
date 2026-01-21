@@ -1138,7 +1138,18 @@ export default function Chats() {
 
                 // Use preserved raw message if available (from Supabase media_meta), otherwise use the object itself
                 // We prioritize: saved raw > current raw > object
-                let payload = messageObject.media_meta?.raw || messageObject._raw || messageObject;
+                let payload = { ...(messageObject.media_meta?.raw || messageObject._raw || messageObject) };
+
+                // CRITICAL FIX: Ensure chat_id is the real JID, not the UUID
+                // The API needs the WhatsApp JID (e.g. 123@g.us)
+                const realJid = selectedChat.chatId || selectedChat.remote_jid;
+                if (realJid) {
+                    payload.chat_id = realJid;
+                    // Also ensure key.remoteJid is correct if it exists
+                    if (payload.key) {
+                        payload.key.remoteJid = realJid;
+                    }
+                }
 
                 let result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, payload);
 
