@@ -1,6 +1,7 @@
 import { logger } from '../lib/logger';
 
-const BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.omger.cloud';
+const rawUrl = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.omger.cloud';
+const BASE_URL = rawUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
 const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || '54yWPufPt9y2Wp9QUap';
 
 const headers = {
