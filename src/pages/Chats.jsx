@@ -601,8 +601,14 @@ export default function Chats() {
                     .catch(() => { });
             }
 
-            // 1. Fetch live summary from Green API
-            const chatsResult = await getChats(acc.instance_id, acc.api_token);
+            // 1. Fetch live summary from Provider
+            let chatsResult = { success: false, data: [] };
+            if (acc.provider === 'evolution-api') {
+                chatsResult = await EvolutionApiService.fetchChats(acc.instance_id);
+            } else {
+                chatsResult = await getChats(acc.instance_id, acc.api_token);
+            }
+
             const liveChatMap = new Map();
 
             if (chatsResult.success && Array.isArray(chatsResult.data)) {
