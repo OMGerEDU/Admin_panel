@@ -1088,7 +1088,11 @@ export default function Chats() {
                     console.warn('[MEDIA] Message object required for Evolution API media download');
                     return null;
                 }
-                const result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, messageObject);
+
+                // Use preserved raw message if available (from Supabase media_meta), otherwise use the object itself
+                const payload = messageObject.media_meta?.raw || messageObject._raw || messageObject;
+
+                const result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, payload);
                 if (result.success && result.base64) {
                     // Create a data URL from base64
                     // Detect mimetype if possible, otherwise default to image/jpeg or similar

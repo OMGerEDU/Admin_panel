@@ -875,5 +875,11 @@ function extractMessageContentAndMeta(msg) {
     content = '[Media]';
   }
 
+  // Preserve raw Evolution data for media downloading if available
+  if (msg._raw) {
+    if (!mediaMeta) mediaMeta = {};
+    mediaMeta.raw = msg._raw;
+  }
+
   return { content, mediaMeta };
 }
