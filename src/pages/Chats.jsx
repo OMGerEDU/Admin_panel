@@ -100,6 +100,50 @@ export default function Chats() {
     const [showTagsManager, setShowTagsManager] = useState(false);
     const [currentChatTagsId, setCurrentChatTagsId] = useState(null); // chatId for selector dialog
 
+    // Helper to clear chat history
+    const clearHistory = async () => {
+        if (!selectedChat || !selectedNumber) return;
+
+        if (!window.confirm(t('chats_page.confirm_clear_history') || 'Are you sure you want to clear all messages in this chat? This cannot be undone.')) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const chatId = selectedChat.id;
+            const remoteJid = selectedChat.chatId || selectedChat.remote_jid;
+            console.log('[HISTORY] Clearing history for:', remoteJid);
+
+            // 1. Delete from Supabase
+            // We use chat_id (UUID) to delete messages linked to this chat
+            const { error } = await supabase
+                .from('messages')
+                .delete()
+                .eq('chat_id', chatId);
+
+            if (error) {
+                console.warn('[HISTORY] Supabase delete error (non-fatal if empty):', error);
+                throw error;
+            }
+
+            // 2. Clear local cache
+            clearLocalChatCache(selectedNumber.instance_id, remoteJid);
+
+            // 3. Clear local state
+            setMessages([]);
+
+            // 4. Force a UI refresh of the chat list to update "last message" snippet if needed
+            fetchChats(false);
+
+            console.log('[HISTORY] Cleared history successfully');
+        } catch (error) {
+            console.error('[HISTORY] Error clearing history:', error);
+            // alert('Failed to clear history: ' + error.message); // Optional
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Image Lightbox state
     const [lightboxImage, setLightboxImage] = useState(null);
 

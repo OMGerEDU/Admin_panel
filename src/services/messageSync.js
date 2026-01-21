@@ -99,7 +99,37 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
     if (!result.success) {
       return result;
     }
-    // ...
+    const chats = result.data;
+    if (!chats.length) {
+      return { success: true, data: [] };
+    }
+
+    // 2) Prepare for Supabase
+    // We map GreenAPI/Evolution fields to our DB schema
+    const toUpsert = chats.map(c => ({
+      number_id: numberId,
+      chat_id: c.id, // Green API uses 'id', we map to chat_id
+      remote_jid: c.id,
+      name: c.name || c.contactName || c.formattedName || c.id.split('@')[0],
+      image_url: c.image || c.avatar,
+      last_message: c.lastMessage || null,
+      last_message_at: c.timestamp ? new Date(c.timestamp * 1000).toISOString() : new Date().toISOString(),
+      unread_count: c.unreadCount || 0,
+      metadata: c // Store full raw object just in case
+    }));
+
+    // 3) Upsert to Supabase
+    const { data: upserted, error } = await supabase
+      .from('chats')
+      .upsert(toUpsert, {
+        onConflict: 'number_id,remote_jid',
+        ignoreDuplicates: false
+      })
+      .select();
+
+    if (error) throw error;
+
+    console.log(`[SYNC] Synced ${upserted?.length || 0} chats`);
     return { success: true, data: upserted || [] };
   } catch (error) {
     console.error('syncChatsToSupabase error:', error);
