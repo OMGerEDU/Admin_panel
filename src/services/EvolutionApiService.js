@@ -164,19 +164,20 @@ export const EvolutionApiService = {
      */
     async fetchChats(instanceName) {
         try {
-            const response = await fetch(`${BASE_URL}/api/chat/findChats/${instanceName}`, {
+            const response = await fetch(`${BASE_URL}/api/chats?instanceName=${instanceName}`, {
                 method: 'GET',
                 headers
             });
 
             if (!response.ok) {
-                // Fallback: Return empty if method not found, or throw
+                // Return empty if not found or err
                 const errorData = await response.json().catch(() => ({}));
                 console.warn('EvolutionAPI Fetch Chats Failed:', errorData);
                 return { success: false, data: [] };
             }
 
             const data = await response.json();
+            // Data is array of chat objects directly
             return { success: true, data: Array.isArray(data) ? data : (data.data || []) };
         } catch (error) {
             console.error('EvolutionAPI Fetch Chats Error:', error);

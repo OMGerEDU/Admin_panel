@@ -67,13 +67,15 @@ const isJid = (n) => n && (n.includes('@s.whatsapp.net') || n.includes('@g.us') 
 // Helper to normalize chats from Evolution
 const normalizeEvoChats = (evoChats) => {
   return (evoChats || []).map(c => ({
-    id: c.id,
-    chatId: c.id,
-    remoteJid: c.id,
-    name: c.name || c.pushName || c.id.split('@')[0],
+    id: c.remoteJid,              // Use actual JID as the ID (Green API compat)
+    chatId: c.remoteJid,
+    remoteJid: c.remoteJid,       // Ensure we have the real JID (123@g.us) not internal ID
+    name: c.pushName || c.name || c.remoteJid?.split('@')[0] || 'Unknown',
+    image: c.profilePicUrl,       // Map profile pic
+    avatar: c.profilePicUrl,
     unreadCount: c.unreadCount || 0,
-    lastMessage: c.lastMessage || {}, // Structure might differ, will need parsing adjustment later if critical
-    timestamp: c.messageTimestamp || Date.now() / 1000
+    lastMessage: c.lastMessage || {},
+    timestamp: c.updatedAt ? new Date(c.updatedAt).getTime() / 1000 : Date.now() / 1000 // Convert ISO to seconds
   }));
 };
 

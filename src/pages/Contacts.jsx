@@ -205,7 +205,7 @@ export default function Contacts() {
     const renderContactGrid = (contact, idx) => (
         <div
             key={contact.id || idx}
-            className="group relative overflow-hidden rounded-xl border border-border/40 bg-background/40 hover:bg-background/80 hover:border-primary/30 transition-all duration-300 p-4 flex items-center gap-4 shadow-sm hover:shadow-md cursor-pointer"
+            className="group relative overflow-hidden rounded-xl border border-border/40 bg-background/40 hover:bg-background/80 hover:border-primary/30 transition-all duration-300 p-3 sm:p-4 flex items-center gap-4 shadow-sm hover:shadow-md cursor-pointer"
             onClick={() => handleContactClick(contact)}
         >
             {/* Avatar */}
@@ -213,10 +213,10 @@ export default function Contacts() {
                 <img
                     src={contactAvatars.get(contact.id)}
                     alt={contact.displayName}
-                    className="h-10 w-10 rounded-full object-cover shrink-0"
+                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover shrink-0"
                 />
             ) : (
-                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
                     {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
                 </div>
             )}

@@ -88,7 +88,7 @@ export function ContactCard({ isOpen, onClose, contactPhone, contactName, contac
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+            <SheetContent className="w-full sm:w-[540px] overflow-y-auto">
                 <SheetHeader className="pb-4">
                     <div className="flex items-center gap-4">
                         {contactAvatar ? (

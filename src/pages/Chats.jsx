@@ -1259,7 +1259,7 @@ export default function Chats() {
                         <button
                             onClick={() => setChatFilter('all')}
                             className={cn(
-                                "px-3 py-1 text-xs rounded-full transition-colors",
+                                "px-2 py-1 text-[10px] sm:px-3 sm:text-xs rounded-full transition-colors",
                                 chatFilter === 'all'
                                     ? "bg-primary dark:bg-[#00a884] text-white"
                                     : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
@@ -1270,7 +1270,7 @@ export default function Chats() {
                         <button
                             onClick={() => setChatFilter('unread')}
                             className={cn(
-                                "px-3 py-1 text-xs rounded-full transition-colors",
+                                "px-2 py-1 text-[10px] sm:px-3 sm:text-xs rounded-full transition-colors",
                                 chatFilter === 'unread'
                                     ? "bg-primary dark:bg-[#00a884] text-white"
                                     : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
@@ -1281,7 +1281,7 @@ export default function Chats() {
                         <button
                             onClick={() => setChatFilter('groups')}
                             className={cn(
-                                "px-3 py-1 text-xs rounded-full transition-colors",
+                                "px-2 py-1 text-[10px] sm:px-3 sm:text-xs rounded-full transition-colors",
                                 chatFilter === 'groups'
                                     ? "bg-primary dark:bg-[#00a884] text-white"
                                     : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
@@ -1295,7 +1295,7 @@ export default function Chats() {
                             <PopoverTrigger asChild>
                                 <button
                                     className={cn(
-                                        "px-3 py-1 text-xs rounded-full transition-colors flex items-center gap-1",
+                                        "px-2 py-1 text-[10px] sm:px-3 sm:text-xs rounded-full transition-colors flex items-center gap-1",
                                         hasActiveFilters
                                             ? "bg-primary dark:bg-[#00a884] text-white"
                                             : "bg-muted dark:bg-[#202c33] text-foreground dark:text-[#8696a0] hover:bg-muted/80"
@@ -1433,7 +1433,7 @@ export default function Chats() {
                                         }
                                     }}
                                     className={cn(
-                                        "px-4 py-3 border-b border-border dark:border-[#202c33] cursor-pointer hover:bg-secondary dark:hover:bg-[#202c33] transition-colors",
+                                        "px-3 py-2 sm:px-4 sm:py-3 border-b border-border dark:border-[#202c33] cursor-pointer hover:bg-secondary dark:hover:bg-[#202c33] transition-colors",
                                         isSelected && "bg-secondary dark:bg-[#202c33]"
                                     )}
                                 >
@@ -1442,7 +1442,7 @@ export default function Chats() {
                                             <img
                                                 src={chatAvatars.get(chatId)}
                                                 alt={chat.name || chat.phone}
-                                                className="w-12 h-12 rounded-full object-cover"
+                                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
                                                 onError={(e) => {
                                                     // Fallback to initials if image fails
                                                     e.target.style.display = 'none';
@@ -1451,7 +1451,7 @@ export default function Chats() {
                                             />
                                         ) : null}
                                         <div
-                                            className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white ${chatAvatars.has(chatId) ? 'hidden' : ''}`}
+                                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-[#00a884] dark:to-[#005c4b] flex items-center justify-center text-sm font-semibold text-primary-foreground dark:text-white ${chatAvatars.has(chatId) ? 'hidden' : ''}`}
                                         >
                                             {getChatInitials(chat)}
                                         </div>

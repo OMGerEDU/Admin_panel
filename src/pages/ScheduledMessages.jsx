@@ -723,7 +723,7 @@ export default function ScheduledMessages() {
                                 className={`relative cursor-pointer transition-all hover:shadow-md ${!msg.is_active ? 'opacity-60' : ''}`}
                                 onClick={() => handleEdit(msg)}
                             >
-                                <CardContent className="p-4">
+                                <CardContent className="p-3 sm:p-4">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0 space-y-2">
                                             {/* Header row */}
