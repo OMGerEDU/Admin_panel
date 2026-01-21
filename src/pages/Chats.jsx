@@ -1137,9 +1137,41 @@ export default function Chats() {
                 }
 
                 // Use preserved raw message if available (from Supabase media_meta), otherwise use the object itself
-                const payload = messageObject.media_meta?.raw || messageObject._raw || messageObject;
+                // We prioritize: saved raw > current raw > object
+                let payload = messageObject.media_meta?.raw || messageObject._raw || messageObject;
 
-                const result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, payload);
+                let result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, payload);
+
+                // Auto-fixer: If failed (likely due to missing raw data), try to fetch fresh message
+                if (!result.success && result.error?.includes('400')) {
+                    console.warn('[MEDIA] Download failed, attempting lazy load recovery...', messageId);
+
+                    // fetchMessages returns normalized list but includes _raw
+                    const recovery = await EvolutionApiService.fetchMessages(
+                        selectedNumber.instance_id,
+                        chatId,
+                        50 // Get recent context
+                    );
+
+                    if (recovery.success && recovery.data) {
+                        // Find matching message - checking both green_id and id
+                        const freshMsg = recovery.data.find(m =>
+                            m.idMessage === messageId ||
+                            m.id === messageId ||
+                            m._raw?.key?.id === messageId
+                        );
+
+                        if (freshMsg && freshMsg._raw) {
+                            console.log('[MEDIA] Found fresh message data, retrying download...');
+                            // Retry with fresh raw data
+                            result = await EvolutionApiService.downloadMedia(selectedNumber.instance_id, freshMsg._raw);
+
+                            // Optional: Update local message state to prevent future refetches (would require setMessages update)
+                        } else {
+                            console.warn('[MEDIA] Recovery failed: Message not found in recent history');
+                        }
+                    }
+                }
                 if (result.success && result.base64) {
                     // Create a data URL from base64
                     // Detect mimetype if possible, otherwise default to image/jpeg or similar
