@@ -466,7 +466,16 @@ export const EvolutionApiService = {
             }
 
             const data = await response.json();
-            return { success: true, base64: data.base64 || data.data };
+            let base64 = data.base64;
+            // Handle nested data object (e.g. { data: { base64: "..." } })
+            if (!base64 && data.data) {
+                if (typeof data.data === 'string') {
+                    base64 = data.data;
+                } else if (data.data.base64) {
+                    base64 = data.data.base64;
+                }
+            }
+            return { success: true, base64 };
         } catch (error) {
             console.error('EvolutionAPI Download Media Error:', error);
             return { success: false, error: error.message };
