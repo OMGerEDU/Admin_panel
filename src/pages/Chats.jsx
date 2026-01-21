@@ -19,7 +19,8 @@ import {
     X,
     RefreshCw,
     Mic,
-    ArrowLeft
+    ArrowLeft,
+    Trash2
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { useUserOrganization } from '../hooks/use-queries/useOrganization';
@@ -1634,6 +1635,16 @@ export default function Chats() {
                                 >
                                     <Tag className="h-4 w-4" />
                                     <span className="hidden sm:inline">{t('tags.labels') || 'Labels'}</span>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={clearHistory}
+                                    title={t('chats_page.clear_history') || 'Clear History'}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="hidden sm:inline">{t('chats_page.clear_history') || 'Reset'}</span>
                                 </Button>
                             </div>
                         </div>
