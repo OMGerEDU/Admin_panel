@@ -141,8 +141,18 @@ export async function syncChatsToSupabase(numberId, instanceId, token, enrichNam
 const normalizeEvoMessage = (msg) => {
   if (!msg || !msg.key) return null;
 
-  const m = msg.message || {};
+  let m = msg.message || {};
   const key = msg.key || {};
+
+  // 1. Unwrap common Baileys nested wrappers
+  // Logic from Baileys source: find the inner message if it's wrapped
+  if (m.viewOnceMessage) m = m.viewOnceMessage.message || {};
+  if (m.viewOnceMessageV2) m = m.viewOnceMessageV2.message || {};
+  if (m.viewOnceMessageV2Extension) m = m.viewOnceMessageV2Extension.message || {};
+  if (m.ephemeralMessage) m = m.ephemeralMessage.message || {};
+  if (m.encryptedRecipientMessage) m = m.encryptedRecipientMessage.message || {};
+  if (m.documentWithCaptionMessage) m = m.documentWithCaptionMessage.message || {};
+  if (m.groupMentionedMessage) m = m.groupMentionedMessage.message || {};
 
   // Determine type
   let typeMessage = 'textMessage';
@@ -151,10 +161,21 @@ const normalizeEvoMessage = (msg) => {
   else if (m.audioMessage) typeMessage = 'audioMessage';
   else if (m.documentMessage) typeMessage = 'documentMessage';
   else if (m.stickerMessage) typeMessage = 'stickerMessage';
-  else if (m.contactMessage) typeMessage = 'contactMessage';
+  else if (m.contactMessage || m.contactsArrayMessage) typeMessage = 'contactMessage';
   else if (m.locationMessage) typeMessage = 'locationMessage';
   else if (m.extendedTextMessage) typeMessage = 'textMessage';
   else if (m.conversation) typeMessage = 'textMessage';
+  else if (m.protocolMessage) typeMessage = 'protocolMessage';
+  else if (m.reactionMessage) typeMessage = 'reactionMessage';
+  else if (m.pollCreationMessage || m.pollCreationMessageV2 || m.pollCreationMessageV3) typeMessage = 'pollCreationMessage';
+
+  // Extract text message content
+  const textContent = m.conversation ||
+    m.extendedTextMessage?.text ||
+    m.imageMessage?.caption ||
+    m.videoMessage?.caption ||
+    m.documentMessage?.caption ||
+    "";
 
   return {
     idMessage: key.id,
@@ -163,15 +184,17 @@ const normalizeEvoMessage = (msg) => {
     type: key.fromMe ? 'outgoing' : 'incoming',
     fromMe: key.fromMe,
     typeMessage,
-    textMessage: m.conversation || m.extendedTextMessage?.text || "",
+    textMessage: textContent,
     extendedTextMessage: m.extendedTextMessage,
     imageMessage: m.imageMessage,
     videoMessage: m.videoMessage,
     audioMessage: m.audioMessage,
     documentMessage: m.documentMessage,
-    contactMessage: m.contactMessage,
+    contactMessage: m.contactMessage || m.contactsArrayMessage,
     stickerMessage: m.stickerMessage,
     locationMessage: m.locationMessage,
+    reactionMessage: m.reactionMessage,
+    pollCreationMessage: m.pollCreationMessage || m.pollCreationMessageV2 || m.pollCreationMessageV3,
     // Pass raw just in case
     _raw: msg
   };
@@ -809,40 +832,45 @@ export async function resetChatNames(numberId) {
  */
 function extractMessageContentAndMeta(msg) {
   const type = msg.typeMessage || msg.type || '';
+
+  // Robust text extraction
   let content =
     msg.textMessage ||
-    msg.extendedTextMessage?.text ||
-    msg.extendedTextMessageData?.text ||
+    msg.text ||
+    msg.content ||
     msg.message ||
     msg.conversation ||
+    msg.extendedTextMessage?.text ||
+    msg.extendedTextMessageData?.text ||
     msg.caption ||
-    msg.text ||
     '';
 
   let mediaMeta = null;
 
   if (type === 'imageMessage' || type === 'image') {
     const imageMsg = msg.imageMessage || msg;
+    const caption = imageMsg.caption || msg.caption || content || null;
     mediaMeta = {
       type: 'image',
       typeMessage: 'imageMessage',
       urlFile: imageMsg.urlFile || msg.urlFile || imageMsg.downloadUrl || msg.downloadUrl || imageMsg.mediaUrl || msg.mediaUrl || null,
       downloadUrl: imageMsg.downloadUrl || msg.downloadUrl || imageMsg.urlFile || msg.urlFile || imageMsg.mediaUrl || msg.mediaUrl || null,
       jpegThumbnail: imageMsg.jpegThumbnail || msg.jpegThumbnail || null,
-      caption: imageMsg.caption || msg.caption || content || null,
+      caption: caption,
     };
-    if (!content) content = '📷 Image';
+    content = caption || '📷 Image';
   } else if (type === 'videoMessage' || type === 'video') {
     const videoMsg = msg.videoMessage || msg;
+    const caption = videoMsg.caption || msg.caption || content || null;
     mediaMeta = {
       type: 'video',
       typeMessage: 'videoMessage',
       urlFile: videoMsg.urlFile || msg.urlFile || videoMsg.downloadUrl || msg.downloadUrl || videoMsg.mediaUrl || msg.mediaUrl || null,
       downloadUrl: videoMsg.downloadUrl || msg.downloadUrl || videoMsg.urlFile || msg.urlFile || videoMsg.mediaUrl || msg.mediaUrl || null,
       jpegThumbnail: videoMsg.jpegThumbnail || msg.jpegThumbnail || null,
-      caption: videoMsg.caption || msg.caption || content || null,
+      caption: caption,
     };
-    if (!content) content = '🎥 Video';
+    content = caption || '🎥 Video';
   } else if (type === 'audioMessage' || type === 'audio' || type === 'ptt') {
     const audioMsg = msg.audioMessage || msg;
     const audioUrl = audioMsg.downloadUrl || msg.downloadUrl || audioMsg.url || msg.url || audioMsg.mediaUrl || msg.mediaUrl || null;
@@ -856,26 +884,26 @@ function extractMessageContentAndMeta(msg) {
       duration: duration,
       mimeType: audioMsg.mimeType || msg.mimeType || 'audio/ogg; codecs=opus',
     };
-    if (!content) content = '🎵 Audio';
+    content = '🎵 Audio';
   } else if (type === 'documentMessage' || type === 'document') {
     const docMsg = msg.documentMessage || msg;
+    const caption = docMsg.caption || msg.caption || content || null;
     mediaMeta = {
       type: 'document',
       typeMessage: 'documentMessage',
       fileName: docMsg.fileName || msg.fileName || null,
       downloadUrl: docMsg.downloadUrl || msg.downloadUrl || docMsg.url || msg.url || docMsg.urlFile || msg.urlFile || null,
-      caption: docMsg.caption || msg.caption || content || null,
+      caption: caption,
     };
-    if (!content) content = '📄 Document';
-  } else if (type === 'stickerMessage') {
+    content = caption || docMsg.fileName || '📄 Document';
+  } else if (type === 'stickerMessage' || type === 'sticker') {
     mediaMeta = {
       type: 'sticker',
       typeMessage: 'stickerMessage',
       downloadUrl: msg.downloadUrl || msg.urlFile || null,
     };
-    if (!content) content = '🩹 Sticker';
-    if (!content) content = '📍 Location';
-  } else if (type === 'contactMessage' || type === 'contactsArrayMessage') {
+    content = '🩹 Sticker';
+  } else if (type === 'contactMessage' || type === 'contactsArrayMessage' || type === 'contacts') {
     const contactMsg = msg.contactMessage || msg.contactsArrayMessage || msg;
     const displayName = contactMsg.displayName || contactMsg.contacts?.[0]?.displayName || 'Contact';
     mediaMeta = {
@@ -884,8 +912,8 @@ function extractMessageContentAndMeta(msg) {
       displayName: displayName,
       vcard: contactMsg.vcard || contactMsg.contacts?.[0]?.vcard || null,
     };
-    if (!content) content = `👤 Contact: ${displayName}`;
-  } else if (type === 'pollCreationMessage') {
+    content = `👤 Contact: ${displayName}`;
+  } else if (type === 'pollCreationMessage' || type === 'poll') {
     const pollMsg = msg.pollCreationMessage || msg;
     content = `📊 Poll: ${pollMsg.name || 'Untitled Poll'}`;
     mediaMeta = {
@@ -894,13 +922,14 @@ function extractMessageContentAndMeta(msg) {
       pollName: pollMsg.name,
       options: pollMsg.options || [],
     };
-  } else if (type === 'revokedMessage') {
+  } else if (type === 'revokedMessage' || type === 'deletedMessage') {
     content = '🚫 This message was deleted';
   } else if (type === 'reactionMessage') {
     const react = msg.reactionMessage || msg;
-    content = `[Reaction] ${react.text || ''}`;
+    content = `[Reaction] ${react.text || react.emoji || ''}`;
   }
 
+  // Final fallback if absolutely nothing found
   if (!content && !mediaMeta) {
     content = '[Media]';
   }

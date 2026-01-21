@@ -335,17 +335,28 @@ export const EvolutionApiService = {
             const rawList = Array.isArray(data) ? data : (data.data || []);
 
             // Normalize to match Green API structure expected by Chats.jsx
-            const normalized = rawList.map(chat => ({
-                id: chat.remoteJid, // CRITICAL: Use JID as ID, not the internal database ID
-                chatId: chat.remoteJid,
-                remoteJid: chat.remoteJid,
-                name: chat.pushName || chat.name || chat.remoteJid?.split('@')[0],
-                unreadCount: chat.unreadCount || 0,
-                timestamp: chat.updatedAt ? new Date(chat.updatedAt).getTime() / 1000 : Date.now() / 1000,
-                image: chat.profilePicUrl,
-                avatar: chat.profilePicUrl,
-                lastMessage: chat.lastMessage || {}
-            }));
+            const normalized = rawList.map(chat => {
+                const lm = chat.lastMessage || {};
+                // Improved text extraction for last message
+                const lastMessageText = lm.textMessage ||
+                    lm.conversation ||
+                    lm.extendedTextMessage?.text ||
+                    lm.message ||
+                    lm.caption ||
+                    (lm.id ? '' : null); // If it has an ID but no text, it's likely media
+
+                return {
+                    id: chat.remoteJid, // CRITICAL: Use JID as ID, not the internal database ID
+                    chatId: chat.remoteJid,
+                    remoteJid: chat.remoteJid,
+                    name: chat.pushName || chat.name || chat.remoteJid?.split('@')[0],
+                    unreadCount: chat.unreadCount || 0,
+                    timestamp: chat.updatedAt ? new Date(chat.updatedAt).getTime() / 1000 : Date.now() / 1000,
+                    image: chat.profilePicUrl,
+                    avatar: chat.profilePicUrl,
+                    lastMessage: lastMessageText // Store the text string directly for easy UI use
+                };
+            });
 
             return { success: true, data: normalized };
         } catch (error) {
@@ -502,6 +513,35 @@ export const EvolutionApiService = {
         } catch (error) {
             console.error('EvolutionAPI Delete Instance Error:', error);
             throw error;
+        }
+    },
+
+    /**
+     * Fetch profile picture (avatar) for a contact or group
+     * @param {string} instanceName
+     * @param {string} number - remoteJid
+     * @returns {Promise<object>} { success: true, data: { profilePictureUrl: "..." } }
+     */
+    async fetchProfilePicture(instanceName, number) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat/fetchProfilePicture/${instanceName}`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ number })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to fetch profile picture' };
+            }
+
+            const data = await response.json();
+            // Standard Evolution v2 response has the URL in data.profilePictureUrl
+            const profilePictureUrl = data.profilePictureUrl || data.data?.profilePictureUrl || null;
+            return { success: true, data: { urlAvatar: profilePictureUrl } };
+        } catch (error) {
+            console.error('EvolutionAPI Fetch Profile Picture Error:', error);
+            return { success: false, error: error.message };
         }
     }
 };

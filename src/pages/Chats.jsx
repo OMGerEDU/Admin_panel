@@ -29,7 +29,41 @@ import { ChatTagsSelector } from '../components/ChatTagsSelector';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { ContactCard } from '../components/ContactCard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { cn, removeJidSuffix } from '../lib/utils';
+
+/**
+ * Robust vCard Parser for WhatsApp Contact Messages
+ */
+const parseVCard = (vcardString) => {
+    const result = {
+        name: 'Contact',
+        phone: '',
+        photo: null
+    };
+
+    if (!vcardString) return result;
+
+    try {
+        // Extract Full Name (FN)
+        const fnMatch = vcardString.match(/FN:(.+)/);
+        if (fnMatch) result.name = fnMatch[1].trim();
+
+        // Extract Version
+        const telMatch = vcardString.match(/TEL;[^:]+:(.+)/) || vcardString.match(/TEL:(.+)/);
+        if (telMatch) result.phone = telMatch[1].replace(/[^\d+]/g, '').trim();
+
+        // Extract Photo (Base64 if available)
+        const photoMatch = vcardString.match(/PHOTO;ENCODING=b;TYPE=JPEG:([\s\S]+?)(?=\r?\n[A-Z\d;]+=|$)/);
+        if (photoMatch) {
+            result.photo = `data:image/jpeg;base64,${photoMatch[1].replace(/\s/g, '')}`;
+        }
+    } catch (e) {
+        console.warn('[VCARD] Error parsing vCard:', e);
+    }
+
+    return result;
+};
 import {
     sendMessage as sendGreenMessage,
     getLastIncomingMessages,
@@ -153,6 +187,7 @@ export default function Chats() {
     const [syncStatus, setSyncStatus] = useState({}); // numberId -> status object
     const [showPanelMaster, setShowPanelMaster] = useState(false);
     const [showContactCard, setShowContactCard] = useState(false); // Controls the dynamic customer card
+    const [contactPopup, setContactPopup] = useState(null); // { name, phone, photo }
     const pendingChatIdFromUrlRef = useRef(null);
     const isGatheringAvatarsRef = useRef(false);
     const activeChatIdRef = useRef(null);
@@ -496,7 +531,13 @@ export default function Chats() {
         if (!selectedNumber || !chatId || chatAvatars.has(chatId)) return;
 
         try {
-            const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+            let result;
+            if (selectedNumber.provider === 'evolution-api') {
+                result = await EvolutionApiService.fetchProfilePicture(selectedNumber.instance_id, chatId);
+            } else {
+                result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+            }
+
             if (result.success && result.data?.urlAvatar) {
                 setChatAvatars(prev => new Map(prev).set(chatId, result.data.urlAvatar));
                 console.log(`[AVATAR] Loaded avatar for ${chatId}`);
@@ -533,7 +574,13 @@ export default function Chats() {
                     const chatId = chat.chatId || chat.remote_jid;
 
                     try {
-                        const result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+                        let result;
+                        if (selectedNumber.provider === 'evolution-api') {
+                            result = await EvolutionApiService.fetchProfilePicture(selectedNumber.instance_id, chatId);
+                        } else {
+                            result = await getAvatar(selectedNumber.instance_id, selectedNumber.api_token, chatId);
+                        }
+
                         if (result.success && result.data?.urlAvatar) {
                             freshAvatars.set(chatId, result.data.urlAvatar);
                             newAvatarsLoaded = true;
@@ -688,18 +735,33 @@ export default function Chats() {
                     unreadCount = liveChat.unreadCount ?? liveChat.unread ?? 0;
                     if (liveChat.lastMessage) {
                         const lm = liveChat.lastMessage;
-                        lastMessageText = lm.textMessage || lm.extendedTextMessage?.text || lm.message || '[Media]';
+                        // Robust extraction for live message (handles both Green API object and Evolution API string)
+                        if (typeof lm === 'string') {
+                            lastMessageText = lm;
+                        } else {
+                            lastMessageText = lm.textMessage ||
+                                lm.conversation ||
+                                lm.extendedTextMessage?.text ||
+                                lm.message ||
+                                lm.caption ||
+                                '[Media]';
+                        }
                         lastMessageId = lm.idMessage || lm.id || lastMessageId;
                         timestamp = liveChat.timestamp || lm.timestamp || timestamp;
                     }
                 }
 
-                // Priority 3: If STILL empty, check local message cache (PanelMaster special optimization)
-                if (!lastMessageText) {
+                // Priority 3: If STILL empty, check local message cache
+                if (!lastMessageText || lastMessageText === '[Media]') {
                     const cachedMsgs = loadMessagesFromCache(acc.instance_id, chatId);
                     if (cachedMsgs && cachedMsgs.length > 0) {
                         const lastMsg = cachedMsgs[cachedMsgs.length - 1];
-                        lastMessageText = lastMsg.textMessage || lastMsg.content || '[Media]';
+                        lastMessageText = lastMsg.textMessage ||
+                            lastMsg.conversation ||
+                            lastMsg.content ||
+                            lastMsg.message ||
+                            lastMsg.caption ||
+                            '[Media]';
                         timestamp = lastMsg.timestamp || timestamp;
                     }
                 }
@@ -726,12 +788,26 @@ export default function Chats() {
             liveChatMap.forEach((liveChat, cid) => {
                 if (!freshChats.some(c => c.chatId === cid)) {
                     const lm = liveChat.lastMessage;
+                    let lmText = '';
+                    if (lm) {
+                        if (typeof lm === 'string') {
+                            lmText = lm;
+                        } else {
+                            lmText = lm.textMessage ||
+                                lm.conversation ||
+                                lm.extendedTextMessage?.text ||
+                                lm.message ||
+                                lm.caption ||
+                                '[Media]';
+                        }
+                    }
+
                     freshChats.push({
                         chatId: cid,
                         phone: removeJidSuffix(cid),
                         name: liveChat.name || liveChat.chatName || removeJidSuffix(cid),
                         avatar: liveChat.avatar || liveChat.urlAvatar || '',
-                        lastMessage: lm ? (lm.textMessage || lm.extendedTextMessage?.text || '[Media]') : '',
+                        lastMessage: lmText,
                         lastMessageId: lm?.idMessage || lm?.id || '',
                         lastMessageTime: liveChat.timestamp || lm?.timestamp || 0,
                         timestamp: liveChat.timestamp || lm?.timestamp || 0,
@@ -1312,8 +1388,8 @@ export default function Chats() {
         <div className="flex h-[calc(100vh-8rem)] bg-background dark:bg-[#0a1014] text-sm">
             {/* Left Sidebar - Numbers & Chats (WhatsApp-style) */}
             <div className={cn(
-                "w-full md:w-96 border-r border-border dark:border-[#202c33] flex-col bg-card dark:bg-[#111b21] text-foreground dark:text-white",
-                selectedChat ? "hidden md:flex" : "flex"
+                "w-full sm:w-80 md:w-96 border-r border-border dark:border-[#202c33] flex-col bg-card dark:bg-[#111b21] text-foreground dark:text-white",
+                selectedChat ? "hidden sm:flex" : "flex"
             )}>
                 {/* Number Selector / Top bar */}
                 <div className="p-3 border-b border-border dark:border-[#202c33] bg-secondary dark:bg-[#202c33]">
@@ -1632,7 +1708,7 @@ export default function Chats() {
             {/* Right Side - Chat Messages */}
             <div className={cn(
                 "flex-1 flex-col bg-background dark:bg-[#0a1014]",
-                selectedChat ? "flex" : "hidden md:flex"
+                selectedChat ? "flex" : "hidden sm:flex"
             )}>
                 {selectedChat ? (
                     <>
@@ -1642,7 +1718,7 @@ export default function Chats() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="md:hidden -ml-2 text-muted-foreground"
+                                className="sm:hidden -ml-2 text-muted-foreground"
                                 onClick={() => setSelectedChat(null)}
                             >
                                 <ArrowLeft className="h-5 w-5" />
@@ -1854,15 +1930,14 @@ export default function Chats() {
                                                                                     alt="image"
                                                                                     className="max-w-[280px] max-h-[280px] rounded-lg block mb-1 cursor-pointer hover:opacity-90 transition-opacity"
                                                                                     onClick={async () => {
-                                                                                        let imageUrl = fullImageUrl;
-                                                                                        if (!imageUrl && messageId && chatId) {
-                                                                                            imageUrl = await loadMediaUrl(messageId, chatId, item);
-                                                                                        }
-                                                                                        if (imageUrl) {
+                                                                                        if (fullImageUrl) {
                                                                                             setLightboxImage({
-                                                                                                src: imageUrl,
+                                                                                                src: fullImageUrl,
                                                                                                 caption: item.caption || text
                                                                                             });
+                                                                                        } else if (messageId && chatId) {
+                                                                                            // Download but don't open lightbox automatically
+                                                                                            await loadMediaUrl(messageId, chatId, item);
                                                                                         }
                                                                                     }}
                                                                                     onError={(e) => { e.target.style.display = 'none'; }}
@@ -2056,25 +2131,38 @@ export default function Chats() {
 
                                                         {/* Contact Message */}
                                                         {(typeMessage === 'contactMessage' || typeMessage === 'contactsArrayMessage' || item.media_meta?.type === 'contact') && (
-                                                            <div className="space-y-2 py-1 min-w-[200px]">
-                                                                <div className="flex items-center gap-3 p-2 bg-white/5 rounded-md border border-white/10">
-                                                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl">
-                                                                        👤
+                                                            <div className="w-[260px] cursor-pointer group" onClick={() => {
+                                                                const vcard = item.media_meta?.vcard || item.contactMessage?.vcard || item.vcard;
+                                                                const parsed = parseVCard(vcard);
+                                                                if (!parsed.phone && (item.contactMessage?.displayName || item.media_meta?.displayName)) {
+                                                                    parsed.name = item.contactMessage?.displayName || item.media_meta?.displayName;
+                                                                }
+                                                                setContactPopup(parsed);
+                                                            }}>
+                                                                <div className="bg-[#f0f2f5] dark:bg-[#111b21] rounded-t-lg p-3 flex items-center gap-4 border-b border-white/10">
+                                                                    <div className="relative">
+                                                                        {(() => {
+                                                                            const vcard = item.media_meta?.vcard || item.contactMessage?.vcard || item.vcard;
+                                                                            const parsed = parseVCard(vcard);
+                                                                            return parsed.photo ? (
+                                                                                <img src={parsed.photo} alt="avatar" className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                                                                            ) : (
+                                                                                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-2xl shadow-sm">👤</div>
+                                                                            );
+                                                                        })()}
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
-                                                                        <div className="font-semibold truncate">
+                                                                        <div className="font-semibold text-foreground dark:text-[#e9edef] truncate">
                                                                             {item.media_meta?.displayName || item.contactMessage?.displayName || item.displayName || 'Contact'}
                                                                         </div>
-                                                                        <div className="text-[10px] text-muted-foreground uppercase">
-                                                                            {t('chats_page.contact_card') || 'Contact Card'}
+                                                                        <div className="text-[11px] text-muted-foreground uppercase tracking-tight">
+                                                                            {t('chats_page.view_contact') || 'View Contact'}
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                {item.media_meta?.vcard && (
-                                                                    <div className="text-[11px] opacity-70 italic truncate px-1">
-                                                                        VCF Data available
-                                                                    </div>
-                                                                )}
+                                                                <div className="p-2 text-center text-[13px] text-primary dark:text-[#00a884] font-medium hover:bg-black/5 transition-colors rounded-b-lg">
+                                                                    {t('chats_page.message_contact') || 'Message Contact'}
+                                                                </div>
                                                             </div>
                                                         )}
 
@@ -2260,6 +2348,73 @@ export default function Chats() {
                     />
                 )
             }
+
+            {/* Contact Detail Modal (For vCard messages) */}
+            <Dialog open={!!contactPopup} onOpenChange={(open) => !open && setContactPopup(null)}>
+                <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden rounded-2xl border-none shadow-2xl bg-white dark:bg-[#222e35]">
+                    {contactPopup && (
+                        <div className="flex flex-col items-center">
+                            {/* Profile Header */}
+                            <div className="w-full bg-[#f0f2f5] dark:bg-[#111b21] p-10 flex flex-col items-center gap-4">
+                                <div className="relative group">
+                                    {contactPopup.photo ? (
+                                        <img
+                                            src={contactPopup.photo}
+                                            alt={contactPopup.name}
+                                            className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-[#222e35] shadow-lg"
+                                        />
+                                    ) : (
+                                        <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center text-4xl border-4 border-white dark:border-[#222e35] shadow-lg">
+                                            👤
+                                        </div>
+                                    )}
+                                </div>
+                                <h2 className="text-xl font-bold text-foreground dark:text-[#e9edef]">{contactPopup.name}</h2>
+                            </div>
+
+                            {/* Details List */}
+                            <div className="w-full p-6 space-y-6 bg-white dark:bg-[#222e35]">
+                                <div className="flex items-center gap-4 text-muted-foreground hover:text-foreground transition-colors">
+                                    <div className="w-10 h-10 rounded-full bg-secondary dark:bg-[#111b21] flex items-center justify-center">
+                                        <Phone className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-xs uppercase tracking-wider font-semibold opacity-50">Phone Number</div>
+                                        <div className="text-lg font-medium text-foreground dark:text-[#e9edef]">{contactPopup.phone}</div>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => window.open(`tel:${contactPopup.phone}`)}
+                                        className="rounded-full hover:bg-secondary"
+                                    >
+                                        <ExternalLink className="h-5 w-5" />
+                                    </Button>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <Button
+                                        className="flex-1 bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-white rounded-xl h-12 shadow-md transition-all active:scale-95"
+                                        onClick={() => {
+                                            // Optional: Create new chat with this number
+                                            setContactPopup(null);
+                                        }}
+                                    >
+                                        Message
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 rounded-xl h-12 border-border dark:border-[#3b4a54] dark:hover:bg-[#3b4a54]"
+                                        onClick={() => setContactPopup(null)}
+                                    >
+                                        Close
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div >
     );
 }
