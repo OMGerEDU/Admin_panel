@@ -524,35 +524,6 @@ export const EvolutionApiService = {
      */
     async fetchProfilePicture(instanceName, number) {
         try {
-            const response = await fetch(`${BASE_URL}/api/chat/fetchProfilePicture/${instanceName}`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ number })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                return { success: false, error: errorData.message || 'Failed to fetch profile picture' };
-            }
-
-            const data = await response.json();
-            // Standard Evolution v2 response has the URL in data.profilePictureUrl
-            const profilePictureUrl = data.profilePictureUrl || data.data?.profilePictureUrl || null;
-            return { success: true, data: { urlAvatar: profilePictureUrl } };
-        } catch (error) {
-            console.error('EvolutionAPI Fetch Profile Picture Error:', error);
-            return { success: false, error: error.message };
-        }
-    },
-
-    /**
-     * Fetch profile picture URL (alternate endpoint)
-     * @param {string} instanceName
-     * @param {string} number
-     * @returns {Promise<object>}
-     */
-    async fetchProfilePictureUrl(instanceName, number) {
-        try {
             const response = await fetch(`${BASE_URL}/api/profile/picture-url`, {
                 method: 'POST',
                 headers,
@@ -561,13 +532,15 @@ export const EvolutionApiService = {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                return { success: false, error: errorData.message || 'Failed to fetch profile picture url' };
+                return { success: false, error: errorData.message || 'Failed to fetch profile picture' };
             }
 
             const data = await response.json();
-            return { success: true, data };
+            // The response for /api/profile/picture-url is expected to have the URL
+            const profilePictureUrl = data.profilePictureUrl || data.data?.profilePictureUrl || data.url || data.picture || null;
+            return { success: true, data: { urlAvatar: profilePictureUrl } };
         } catch (error) {
-            console.error('EvolutionAPI Fetch Profile Picture URL Error:', error);
+            console.error('EvolutionAPI Fetch Profile Picture Error:', error);
             return { success: false, error: error.message };
         }
     }
