@@ -349,7 +349,7 @@ export const EvolutionApiService = {
                     id: chat.remoteJid, // CRITICAL: Use JID as ID, not the internal database ID
                     chatId: chat.remoteJid,
                     remoteJid: chat.remoteJid,
-                    name: chat.pushName || chat.name || chat.remoteJid?.split('@')[0],
+                    name: chat.name || chat.pushName || chat.remoteJid?.split('@')[0],
                     unreadCount: chat.unreadCount || 0,
                     timestamp: chat.updatedAt ? new Date(chat.updatedAt).getTime() / 1000 : Date.now() / 1000,
                     image: chat.profilePicUrl,

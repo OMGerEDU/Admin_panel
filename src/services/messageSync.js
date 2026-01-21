@@ -70,7 +70,7 @@ const normalizeEvoChats = (evoChats) => {
     id: c.remoteJid,              // Use actual JID as the ID (Green API compat)
     chatId: c.remoteJid,
     remoteJid: c.remoteJid,       // Ensure we have the real JID (123@g.us) not internal ID
-    name: c.pushName || c.name || c.remoteJid?.split('@')[0] || 'Unknown',
+    name: c.name || c.pushName || c.remoteJid?.split('@')[0] || 'Unknown',
     image: c.profilePicUrl,       // Map profile pic
     avatar: c.profilePicUrl,
     unreadCount: c.unreadCount || 0,

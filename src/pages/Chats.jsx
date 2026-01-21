@@ -1224,6 +1224,7 @@ export default function Chats() {
                     if (messageObject.messageType === 'imageMessage') mimeType = 'image/jpeg';
                     else if (messageObject.messageType === 'videoMessage') mimeType = 'video/mp4';
                     else if (messageObject.messageType === 'audioMessage') mimeType = 'audio/mp4'; // opus/mp3
+                    else if (messageObject.messageType === 'stickerMessage') mimeType = 'image/webp';
                     else if (messageObject.mimetype) mimeType = messageObject.mimetype;
 
                     const url = `data:${mimeType};base64,${result.base64}`;
@@ -2157,8 +2158,31 @@ export default function Chats() {
                                                         {/* Sticker Message */}
                                                         {typeMessage === 'stickerMessage' && (
                                                             <div className="space-y-2">
-                                                                <div>🩹 {t('chats_page.sticker_message') || 'Sticker'}</div>
-                                                                {item.downloadUrl && (
+                                                                {(() => {
+                                                                    const messageId = item.green_id || item.idMessage || item.id;
+                                                                    const chatId = selectedChat?.chatId || selectedChat?.remote_jid;
+                                                                    const stickerUrl = mediaUrls[messageId] || item.downloadUrl;
+                                                                    const isLoading = loadingMedia[messageId];
+
+                                                                    // Auto-load sticker if not present
+                                                                    if (!stickerUrl && !isLoading && messageId && chatId) {
+                                                                        loadMediaUrl(messageId, chatId, item);
+                                                                    }
+
+                                                                    return stickerUrl ? (
+                                                                        <img
+                                                                            src={stickerUrl}
+                                                                            alt="sticker"
+                                                                            className="w-32 h-32 object-contain"
+                                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-32 h-32 bg-muted rounded flex items-center justify-center">
+                                                                            <span className="text-2xl animate-pulse">🩹</span>
+                                                                        </div>
+                                                                    );
+                                                                })()}
+                                                                {!mediaUrls[item.green_id || item.idMessage || item.id] && item.downloadUrl && (
                                                                     <a
                                                                         href={item.downloadUrl}
                                                                         target="_blank"
