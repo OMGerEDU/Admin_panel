@@ -1226,6 +1226,10 @@ export default function Chats() {
                     else if (messageObject.messageType === 'videoMessage') mimeType = 'video/mp4';
                     else if (messageObject.messageType === 'audioMessage') mimeType = 'audio/mp4'; // opus/mp3
                     else if (messageObject.messageType === 'stickerMessage') mimeType = 'image/webp';
+                    // Better detection for documents
+                    else if (messageObject.messageType === 'documentMessage') {
+                        mimeType = messageObject.documentMessage?.mimetype || messageObject.mimetype || 'application/octet-stream';
+                    }
                     else if (messageObject.mimetype) mimeType = messageObject.mimetype;
 
                     const url = `data:${mimeType};base64,${result.base64}`;
@@ -2086,6 +2090,7 @@ export default function Chats() {
                                                                                 href={docUrl}
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
+                                                                                download={item.fileName || 'document'}
                                                                                 className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded bg-primary/10 dark:bg-[#53bdeb]/10 text-xs font-medium text-primary dark:text-[#53bdeb] hover:bg-primary/20 transition-colors"
                                                                             >
                                                                                 📄 {t('chats_page.download_document') || 'Download Document'}

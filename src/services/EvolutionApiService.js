@@ -106,13 +106,14 @@ export const EvolutionApiService = {
     async sendText(instanceName, number, text, apiKeyOverride) {
         try {
             const body = {
+                instanceName,
                 number,
                 text,
                 delay: 1200,
                 linkPreview: true
             };
 
-            const response = await fetch(`${BASE_URL}/api/message/sendText/${instanceName}`, {
+            const response = await fetch(`${BASE_URL}/api/messages/text`, {
                 method: 'POST',
                 headers: buildHeaders(apiKeyOverride),
                 body: JSON.stringify(body)
@@ -141,6 +142,7 @@ export const EvolutionApiService = {
     async sendMedia(instanceName, number, options, apiKeyOverride) {
         try {
             const body = {
+                instanceName,
                 number,
                 mediatype: options.mediatype || 'image',
                 mimetype: options.mimetype,
@@ -149,7 +151,7 @@ export const EvolutionApiService = {
                 fileName: options.fileName
             };
 
-            const response = await fetch(`${BASE_URL}/api/message/sendMedia/${instanceName}`, {
+            const response = await fetch(`${BASE_URL}/api/messages/media`, {
                 method: 'POST',
                 headers: buildHeaders(apiKeyOverride),
                 body: JSON.stringify(body)
