@@ -334,18 +334,48 @@ export const EvolutionApiService = {
             const data = await response.json();
             const rawList = Array.isArray(data) ? data : (data.data || []);
 
+            const extractLastMessageText = (lm) => {
+                if (!lm) return null;
+                // Sometimes API returns the last message already as a string
+                if (typeof lm === 'string') return lm;
+
+                // Common flat fields
+                if (typeof lm.textMessage === 'string' && lm.textMessage) return lm.textMessage;
+                if (typeof lm.conversation === 'string' && lm.conversation) return lm.conversation;
+                if (typeof lm.caption === 'string' && lm.caption) return lm.caption;
+
+                // Common nested structures (Baileys-like)
+                const msg = lm.message && typeof lm.message === 'object' ? lm.message : null;
+                if (msg) {
+                    if (typeof msg.conversation === 'string' && msg.conversation) return msg.conversation;
+                    const extText = msg.extendedTextMessage?.text;
+                    if (typeof extText === 'string' && extText) return extText;
+                    const imgCaption = msg.imageMessage?.caption;
+                    if (typeof imgCaption === 'string' && imgCaption) return imgCaption;
+                    const vidCaption = msg.videoMessage?.caption;
+                    if (typeof vidCaption === 'string' && vidCaption) return vidCaption;
+                    const docCaption = msg.documentMessage?.caption;
+                    if (typeof docCaption === 'string' && docCaption) return docCaption;
+                }
+
+                // Some payloads put extendedTextMessage at top-level
+                const extTop = lm.extendedTextMessage?.text;
+                if (typeof extTop === 'string' && extTop) return extTop;
+
+                // Media with no caption/text
+                if (lm.id || lm.key?.id || msg?.imageMessage || msg?.videoMessage || msg?.documentMessage || msg?.audioMessage) {
+                    return '[Media]';
+                }
+
+                return null;
+            };
+
             // Normalize to match Green API structure expected by Chats.jsx
             const normalized = rawList.map(chat => {
                 const remoteJid = chat.remoteJid;
                 const isGroup = typeof remoteJid === 'string' && remoteJid.includes('@g.us');
                 const lm = chat.lastMessage || {};
-                // Improved text extraction for last message
-                const lastMessageText = lm.textMessage ||
-                    lm.conversation ||
-                    lm.extendedTextMessage?.text ||
-                    lm.message ||
-                    lm.caption ||
-                    (lm.id ? '' : null); // If it has an ID but no text, it's likely media
+                const lastMessageText = extractLastMessageText(lm);
 
                 // IMPORTANT:
                 // For Evolution group chats, `pushName` can reflect a participant (often the last sender),
