@@ -82,7 +82,7 @@ export const DropdownMenuContent = ({ children, className, align = 'end', ...pro
     );
 };
 
-export const DropdownMenuItem = ({ children, className, inset, ...props }) => {
+export const DropdownMenuItem = ({ children, className, inset, onClick, ...props }) => {
     const { setIsOpen } = React.useContext(DropdownMenuContext);
     return (
         <div
@@ -91,7 +91,10 @@ export const DropdownMenuItem = ({ children, className, inset, ...props }) => {
                 inset && "pl-8",
                 className
             )}
-            onClick={() => setIsOpen(false)}
+            onClick={(e) => {
+                setIsOpen(false);
+                onClick?.(e);
+            }}
             {...props}
         >
             {children}

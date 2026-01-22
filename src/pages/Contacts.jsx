@@ -171,7 +171,7 @@ export default function Contacts() {
             const id = c.id || c.chatId;
             return {
                 ...c,
-                source: c.source || 'whatsapp',
+                source: 'whatsapp',
                 id: id,
                 displayName: c.name || c.contactName || id?.split('@')[0],
                 displayPhone: id?.split('@')[0]
