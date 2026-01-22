@@ -527,7 +527,7 @@ export default function Contacts() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
                 <CardHeader className="pb-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex gap-2 items-center flex-1 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                        <div className="flex gap-2 items-center flex-1 w-full sm:w-auto flex-wrap pb-2 sm:pb-0">
                             <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shrink-0">
                                 <Plus className="h-4 w-4" /> <span className="hidden sm:inline">{t('contacts.create_contact', 'Create')}</span>
                             </Button>

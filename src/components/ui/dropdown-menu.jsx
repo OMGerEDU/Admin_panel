@@ -65,7 +65,10 @@ export const DropdownMenuContent = ({ children, className, align = 'end', ...pro
 
     if (!isOpen) return null;
 
-    const alignmentClass = align === 'start' ? 'left-0' : 'right-0';
+    const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+    const alignmentClass = align === 'start'
+        ? (isRtl ? 'right-0' : 'left-0')
+        : (isRtl ? 'left-0' : 'right-0');
 
     return (
         <div
