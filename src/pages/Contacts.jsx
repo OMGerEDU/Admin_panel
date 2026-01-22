@@ -466,6 +466,10 @@ export default function Contacts() {
         );
     };
 
+    const viewButtonClass = (type) =>
+        `p-2 rounded-md transition-colors ${viewType === type ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted text-muted-foreground'}`;
+
+
     return (
         <div className="p-6 space-y-6 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
