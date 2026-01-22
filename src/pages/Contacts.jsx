@@ -537,13 +537,13 @@ export default function Contacts() {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant={filterSource !== 'all' ? "secondary" : "outline"} size="sm" className="gap-2 shrink-0 border-dashed">
                                         <Filter className="h-4 w-4" />
-                                        {filterSource === 'all' ? 'All Sources' : filterSource === 'whatsapp' ? 'WhatsApp' : 'Storage'}
+                                        {filterSource === 'all' ? t('contacts.all_sources') : filterSource === 'whatsapp' ? t('contacts.source_whatsapp') : t('contacts.source_storage')}
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="start">
-                                    <DropdownMenuItem onClick={() => setFilterSource('all')}>All Sources</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setFilterSource('whatsapp')}>WhatsApp</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setFilterSource('storage')}>Storage (Manual/Import)</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setFilterSource('all')}>{t('contacts.all_sources')}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setFilterSource('whatsapp')}>{t('contacts.source_whatsapp')}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setFilterSource('storage')}>{t('contacts.source_storage')}</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
@@ -552,11 +552,11 @@ export default function Contacts() {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant={filterTag !== 'all' ? "secondary" : "outline"} size="sm" className="gap-2 shrink-0 border-dashed">
                                         <Tag className="h-4 w-4" />
-                                        {filterTag === 'all' ? 'All Tags' : tags.find(t => t.id === filterTag)?.name || 'Unknown Tag'}
+                                        {filterTag === 'all' ? t('contacts.all_tags') : tags.find(t => t.id === filterTag)?.name || t('contacts.unknown_tag')}
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="start">
-                                    <DropdownMenuItem onClick={() => setFilterTag('all')}>All Tags</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setFilterTag('all')}>{t('contacts.all_tags')}</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     {tags.map(tag => (
                                         <DropdownMenuItem key={tag.id} onClick={() => setFilterTag(tag.id)}>
@@ -570,7 +570,7 @@ export default function Contacts() {
                             {/* Selection Status */}
                             {selectedContacts.size > 0 && (
                                 <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full text-xs font-medium text-primary shrink-0 animate-in fade-in zoom-in">
-                                    {selectedContacts.size} Selected
+                                    {t('contacts.selected_count', { count: selectedContacts.size })}
                                     <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => setSelectedContacts(new Set())} />
                                 </div>
                             )}
@@ -643,7 +643,7 @@ export default function Contacts() {
                                         ) : (
                                             <Square className="h-5 w-5" />
                                         )}
-                                        {selectedContacts.size === filteredContacts.length ? 'Deselect All' : 'Select All'}
+                                        {selectedContacts.size === filteredContacts.length ? t('contacts.deselect_all') : t('contacts.select_all')}
                                     </div>
                                 </div>
                             )}
@@ -667,10 +667,10 @@ export default function Contacts() {
                                             )}
                                         </div>
                                         <div className="w-10" />
-                                        <div className="min-w-[180px] flex-1">{t('common.name', 'Name')}</div>
-                                        <div className="min-w-[140px]">{t('common.phone', 'Phone')}</div>
-                                        <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address', 'Email')}</div>
-                                        <div className="min-w-[80px] text-right">{t('common.source', 'Source')}</div>
+                                        <div className="min-w-[180px] flex-1">{t('common.name')}</div>
+                                        <div className="min-w-[140px]">{t('common.phone')}</div>
+                                        <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address')}</div>
+                                        <div className="min-w-[80px] text-right">{t('common.source')}</div>
                                     </div>
                                     {/* List Items */}
                                     {filteredContacts.map((contact, idx) => renderContactList(contact, idx))}
@@ -685,7 +685,7 @@ export default function Contacts() {
             {selectedContacts.size > 0 && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-foreground text-background dark:bg-card dark:text-foreground dark:border dark:border-border p-3 rounded-full shadow-2xl z-50 flex items-center justify-between px-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
                     <div className="flex items-center gap-4">
-                        <span className="font-semibold">{selectedContacts.size} Selected</span>
+                        <span className="font-semibold">{t('contacts.selected_count', { count: selectedContacts.size })}</span>
                         <div className="h-4 w-[1px] bg-background/20 dark:bg-border" />
                         <Button
                             variant="ghost"
@@ -693,7 +693,7 @@ export default function Contacts() {
                             className="text-white dark:text-foreground hover:bg-white/10"
                             onClick={() => setSelectedContacts(new Set())}
                         >
-                            Cancel
+                            {t('contacts.cancel')}
                         </Button>
                     </div>
                     <div className="flex items-center gap-2">
@@ -706,7 +706,7 @@ export default function Contacts() {
                                 setIsBulkTagOpen(true);
                             }}
                         >
-                            <Tag className="h-3.5 w-3.5" /> Tag
+                            <Tag className="h-3.5 w-3.5" /> {t('contacts.bulk_tag')}
                         </Button>
                         <Button
                             variant="secondary"
@@ -714,7 +714,7 @@ export default function Contacts() {
                             className="gap-2 rounded-full"
                             onClick={handleBulkExport}
                         >
-                            <Download className="h-3.5 w-3.5" /> Export
+                            <Download className="h-3.5 w-3.5" /> {t('contacts.bulk_export')}
                         </Button>
                         <Button
                             variant="destructive"
@@ -759,7 +759,7 @@ export default function Contacts() {
             <Dialog open={isBulkTagOpen} onOpenChange={setIsBulkTagOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{bulkTagMode === 'add' ? 'Add Tags to Selected' : 'Remove Tags from Selected'}</DialogTitle>
+                        <DialogTitle>{bulkTagMode === 'add' ? t('contacts.add_tags_selected') : t('contacts.remove_tags_selected')}</DialogTitle>
                     </DialogHeader>
                     <div className="py-4 grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
                         {tags.map(tag => (
@@ -774,7 +774,7 @@ export default function Contacts() {
                         ))}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsBulkTagOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => setIsBulkTagOpen(false)}>{t('contacts.cancel')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
