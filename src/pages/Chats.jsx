@@ -1020,8 +1020,7 @@ export default function Chats() {
                 result = await EvolutionApiService.sendText(
                     selectedNumber.instance_id, // Name for Evolution
                     chatId,
-                    newMessage,
-                    selectedNumber.api_token // pass instance-level key if available
+                    newMessage
                 );
             } else {
                 result = await sendGreenMessage(
