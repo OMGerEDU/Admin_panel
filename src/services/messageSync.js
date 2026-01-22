@@ -70,7 +70,11 @@ const normalizeEvoChats = (evoChats) => {
     id: c.remoteJid,              // Use actual JID as the ID (Green API compat)
     chatId: c.remoteJid,
     remoteJid: c.remoteJid,       // Ensure we have the real JID (123@g.us) not internal ID
-    name: c.name || c.pushName || c.remoteJid?.split('@')[0] || 'Unknown',
+    // IMPORTANT: For Evolution group chats, `pushName` may be a participant name (often last sender).
+    // Never use it as the group display name; prefer subject-like fields or fallback to JID number.
+    name: (typeof c.remoteJid === 'string' && c.remoteJid.includes('@g.us'))
+      ? (c.subject || c.groupSubject || c.groupName || c.name || c.remoteJid?.split('@')[0] || 'Unknown')
+      : (c.name || c.pushName || c.remoteJid?.split('@')[0] || 'Unknown'),
     image: c.profilePicUrl,       // Map profile pic
     avatar: c.profilePicUrl,
     unreadCount: c.unreadCount || 0,

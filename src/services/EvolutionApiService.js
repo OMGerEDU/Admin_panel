@@ -336,6 +336,8 @@ export const EvolutionApiService = {
 
             // Normalize to match Green API structure expected by Chats.jsx
             const normalized = rawList.map(chat => {
+                const remoteJid = chat.remoteJid;
+                const isGroup = typeof remoteJid === 'string' && remoteJid.includes('@g.us');
                 const lm = chat.lastMessage || {};
                 // Improved text extraction for last message
                 const lastMessageText = lm.textMessage ||
@@ -345,11 +347,24 @@ export const EvolutionApiService = {
                     lm.caption ||
                     (lm.id ? '' : null); // If it has an ID but no text, it's likely media
 
+                // IMPORTANT:
+                // For Evolution group chats, `pushName` can reflect a participant (often the last sender),
+                // which causes groups to show the last responder name instead of the group subject.
+                const groupTitle =
+                    chat.subject ||
+                    chat.groupSubject ||
+                    chat.groupName ||
+                    chat.name;
+
+                const chatName = isGroup
+                    ? (groupTitle || remoteJid?.split('@')[0])
+                    : (chat.name || chat.pushName || remoteJid?.split('@')[0]);
+
                 return {
-                    id: chat.remoteJid, // CRITICAL: Use JID as ID, not the internal database ID
-                    chatId: chat.remoteJid,
-                    remoteJid: chat.remoteJid,
-                    name: chat.name || chat.pushName || chat.remoteJid?.split('@')[0],
+                    id: remoteJid, // CRITICAL: Use JID as ID, not the internal database ID
+                    chatId: remoteJid,
+                    remoteJid,
+                    name: chatName,
                     unreadCount: chat.unreadCount || 0,
                     timestamp: chat.updatedAt ? new Date(chat.updatedAt).getTime() / 1000 : Date.now() / 1000,
                     image: chat.profilePicUrl,
