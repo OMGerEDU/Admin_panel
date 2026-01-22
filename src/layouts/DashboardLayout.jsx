@@ -9,6 +9,7 @@ import { FeedbackModal } from '../components/FeedbackModal';
 export default function DashboardLayout() {
     const { user } = useAuth();
     const [showAutoFeedback, setShowAutoFeedback] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -48,7 +49,11 @@ export default function DashboardLayout() {
     return (
         <div className="flex min-h-screen bg-background text-foreground relative">
             {/* Desktop Sidebar */}
-            <Sidebar className="hidden md:block" />
+            <Sidebar
+                className="hidden md:block transition-all duration-300"
+                isCollapsed={isCollapsed}
+                onToggle={() => setIsCollapsed(!isCollapsed)}
+            />
 
             {/* Mobile Sidebar */}
             <Sidebar
