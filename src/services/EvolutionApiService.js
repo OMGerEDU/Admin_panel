@@ -2,7 +2,7 @@ import { logger } from '../lib/logger';
 
 const rawUrl = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.omger.cloud';
 const BASE_URL = rawUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
-const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || '54yWPufPt9y2Wp9QUap';
+const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || import.meta.env.VITE_EVOLUTION_API_TOKEN || '54yWPufPt9y2Wp9QUap';
 
 const baseHeaders = {
     'Content-Type': 'application/json',

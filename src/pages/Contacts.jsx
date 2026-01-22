@@ -12,8 +12,20 @@ import { Button } from '../components/ui/button';
 import { ContactCard } from '../components/ContactCard';
 import { CreateContactDialog } from '../components/CreateContactDialog';
 import { ImportContactsDialog } from '../components/ImportContactsDialog';
-import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown, LayoutGrid, List, Plus, Upload } from 'lucide-react';
+import { Loader2, Search, Database, Smartphone, User, Phone, RefreshCw, ChevronDown, LayoutGrid, List, Plus, Upload, Filter, Tag, Trash2, Download, X, CheckSquare, Square, MoreHorizontal } from 'lucide-react';
 import { toast } from '../components/ui/use-toast';
+import { useTags } from '../hooks/useTags';
+import { Checkbox } from '../components/ui/checkbox';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+    DropdownMenuLabel
+} from '../components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
+import { Badge } from '../components/ui/badge';
 
 export default function Contacts() {
     const { t } = useTranslation();
@@ -42,6 +54,16 @@ export default function Contacts() {
 
     // Avatars
     const [contactAvatars, setContactAvatars] = useState(new Map());
+
+    // Filters & Selection
+    const [filterSource, setFilterSource] = useState('all'); // 'all', 'whatsapp', 'storage'
+    const [filterTag, setFilterTag] = useState('all'); // 'all', tagId
+    const [selectedContacts, setSelectedContacts] = useState(new Set());
+    const [isBulkTagOpen, setIsBulkTagOpen] = useState(false);
+    const [bulkTagMode, setBulkTagMode] = useState('add'); // 'add', 'remove'
+
+    // Tags Hook
+    const { tags, chatTags, assignTagToChat, removeTagFromChat } = useTags(organization?.id, selectedNumber?.instance_id, user?.id);
 
     // Fetch numbers on mount
     useEffect(() => {
@@ -154,11 +176,24 @@ export default function Contacts() {
             };
         });
 
-        if (activeTab === 'storage') return dbItems;
-        if (activeTab === 'whatsapp') return greenItems;
+        let result = activeTab === 'storage' ? dbItems : activeTab === 'whatsapp' ? greenItems : [...dbItems, ...greenItems];
 
-        return [...dbItems, ...greenItems];
-    }, [dbContacts, greenContacts, searchTerm, activeTab, selectedNumber?.instance_id]);
+        // Apply Filters
+        if (filterSource !== 'all') {
+            result = result.filter(c => c.source === filterSource);
+        }
+
+        if (filterTag !== 'all') {
+            result = result.filter(c => {
+                const id = c.id || c.chatId || c.remote_jid;
+                // Check if any tag of this chat matches filterTag
+                const tagsForChat = chatTags[id] || [];
+                return tagsForChat.includes(filterTag);
+            });
+        }
+
+        return result;
+    }, [dbContacts, greenContacts, searchTerm, activeTab, selectedNumber?.instance_id, filterSource, filterTag, chatTags]);
 
     const handleContactClick = (contact) => {
         setSelectedContact(contact);
@@ -195,101 +230,241 @@ export default function Contacts() {
         // Let's assume it does or user didn't ask for live update, but I added it to destructuring.
     };
 
-    const viewButtonClass = (view) =>
-        `p-2 rounded-lg transition-all ${viewType === view
-            ? 'bg-primary text-primary-foreground shadow-sm'
-            : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-        }`;
+    const toggleSelection = (id, e) => {
+        e.stopPropagation();
+        const newSet = new Set(selectedContacts);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setSelectedContacts(newSet);
+    };
+
+    const selectAll = () => {
+        if (selectedContacts.size === filteredContacts.length) {
+            setSelectedContacts(new Set());
+        } else {
+            setSelectedContacts(new Set(filteredContacts.map(c => c.id)));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!confirm(t('contacts.confirm_bulk_delete', `Delete ${selectedContacts.size} contacts? (Only storage contacts will be deleted)`))) return;
+
+        const ids = Array.from(selectedContacts);
+        // We can only delete storage contacts reliably via ID
+        const storageIds = filteredContacts.filter(c => selectedContacts.has(c.id) && c.source === 'storage').map(c => c.id);
+
+        if (storageIds.length > 0) {
+            const { error } = await supabase.from('contacts').delete().in('id', storageIds);
+            if (error) {
+                toast({ variant: 'destructive', title: t('common.error'), description: error.message });
+            } else {
+                toast({ title: t('common.success'), description: t('contacts.deleted_count', { count: storageIds.length }) });
+                refetchDbContacts();
+                setSelectedContacts(new Set());
+            }
+        } else {
+            toast({ description: t('contacts.no_storage_contacts_selected', 'No storage contacts selected to delete.') });
+            setSelectedContacts(new Set());
+        }
+    };
+
+    const handleBulkExport = () => {
+        const contactsToExport = filteredContacts.filter(c => selectedContacts.has(c.id));
+        if (contactsToExport.length === 0) return;
+
+        const csvContent = [
+            ['Name', 'Phone', 'Email', 'Source'].join(','),
+            ...contactsToExport.map(c => [
+                `"${c.displayName || ''}"`,
+                `"${c.displayPhone || ''}"`,
+                `"${c.email || ''}"`,
+                c.source
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `contacts_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleBulkTag = async (tagId) => {
+        if (!selectedNumber?.instance_id) return;
+
+        let count = 0;
+        const contactsToTag = filteredContacts.filter(c => selectedContacts.has(c.id));
+
+        for (const contact of contactsToTag) {
+            const chatId = contact.id || contact.remote_jid;
+            if (!chatId) continue;
+
+            try {
+                if (bulkTagMode === 'add') {
+                    await assignTagToChat(chatId, tagId);
+                } else {
+                    await removeTagFromChat(chatId, tagId);
+                }
+                count++;
+            } catch (e) {
+                console.error('Failed to update tag for', chatId, e);
+            }
+        }
+
+        toast({ title: t('common.success'), description: t('contacts.updated_tags_count', { count }) });
+        setIsBulkTagOpen(false);
+        setSelectedContacts(new Set());
+    };
 
     // Render contact item based on view type (Grid)
-    const renderContactGrid = (contact, idx) => (
-        <div
-            key={contact.id || idx}
-            className="group relative overflow-hidden rounded-xl border border-border/40 bg-background/40 hover:bg-background/80 hover:border-primary/30 transition-all duration-300 p-3 sm:p-4 flex items-center gap-4 shadow-sm hover:shadow-md cursor-pointer"
-            onClick={() => handleContactClick(contact)}
-        >
-            {/* Avatar */}
-            {contactAvatars.get(contact.id) ? (
-                <img
-                    src={contactAvatars.get(contact.id)}
-                    alt={contact.displayName}
-                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover shrink-0"
-                />
-            ) : (
-                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-                    {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
+    const renderContactGrid = (contact, idx) => {
+        const isSelected = selectedContacts.has(contact.id);
+        const contactTags = chatTags[contact.id] || [];
+
+        return (
+            <div
+                key={contact.id || idx}
+                className={cn(
+                    "group relative overflow-hidden rounded-xl border bg-background/40 transition-all duration-300 p-3 sm:p-4 flex items-center gap-4 shadow-sm hover:shadow-md cursor-pointer",
+                    isSelected ? "border-primary bg-primary/5" : "border-border/40 hover:bg-background/80 hover:border-primary/30"
+                )}
+                onClick={() => handleContactClick(contact)}
+            >
+                {/* Selection Checkbox (Visible on hover or selected) */}
+                <div
+                    className={cn("absolute top-2 right-2 z-10", isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100")}
+                    onClick={(e) => toggleSelection(contact.id, e)}
+                >
+                    {isSelected ? <CheckSquare className="h-5 w-5 text-primary fill-primary/10" /> : <Square className="h-5 w-5 text-muted-foreground/50 hover:text-primary" />}
                 </div>
-            )}
-            <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between mb-0.5">
-                    <h4 className="font-medium truncate text-foreground text-sm group-hover:text-primary transition-colors">
-                        {contact.displayName}
-                    </h4>
+
+                {/* Avatar */}
+                {contactAvatars.get(contact.id) ? (
+                    <img
+                        src={contactAvatars.get(contact.id)}
+                        alt={contact.displayName}
+                        className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover shrink-0"
+                    />
+                ) : (
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
+                        {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
+                    </div>
+                )}
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between mb-0.5">
+                        <h4 className="font-medium truncate text-foreground text-sm group-hover:text-primary transition-colors pr-6">
+                            {contact.displayName}
+                        </h4>
+                    </div>
+                    <div className="flex items-center text-xs text-muted-foreground mb-1">
+                        <Phone className="h-3 w-3 mr-1" />
+                        <span className="truncate">{contact.displayPhone}</span>
+                    </div>
+                    {/* Tags in Grid */}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                        {contactTags.slice(0, 3).map(tagId => {
+                            const tag = tags.find(t => t.id === tagId);
+                            if (!tag) return null;
+                            return (
+                                <span key={tagId} className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} title={tag.name} />
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="absolute bottom-2 right-2">
                     {contact.source === 'storage' ? (
                         <Database className="h-3.5 w-3.5 text-blue-400 opacity-70" title="Saved in Storage" />
                     ) : (
                         <Smartphone className="h-3.5 w-3.5 text-green-500 opacity-70" title="From WhatsApp" />
                     )}
                 </div>
-                <div className="flex items-center text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3 mr-1" />
-                    <span className="truncate">{contact.displayPhone}</span>
-                </div>
+
             </div>
-            <div className="absolute inset-0 border-2 border-primary/0 group-hover:border-primary/10 rounded-xl transition-all pointer-events-none" />
-        </div>
-    );
+        );
+    };
 
     // Render contact item based on view type (List)
-    const renderContactList = (contact, idx) => (
-        <div
-            key={contact.id || idx}
-            className="group flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/30 last:border-b-0"
-            onClick={() => handleContactClick(contact)}
-        >
-            <div className="w-5 h-5 rounded border border-border/50 bg-background/50 shrink-0" />
+    const renderContactList = (contact, idx) => {
+        const isSelected = selectedContacts.has(contact.id);
+        const contactTags = chatTags[contact.id] || [];
 
-            {contactAvatars.get(contact.id) ? (
-                <img
-                    src={contactAvatars.get(contact.id)}
-                    alt={contact.displayName}
-                    className="h-10 w-10 rounded-full object-cover shrink-0"
-                />
-            ) : (
-                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-                    {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
-                </div>
-            )}
-
-            <div className="min-w-[180px] flex-1">
-                <h4 className="font-medium text-base text-foreground group-hover:text-primary transition-colors truncate">
-                    {contact.displayName}
-                </h4>
-            </div>
-
-            <div className="min-w-[140px] text-base text-muted-foreground font-mono">
-                {contact.displayPhone}
-            </div>
-
-            <div className="min-w-[180px] text-base text-muted-foreground hidden lg:block">
-                {contact.email || '-'}
-            </div>
-
-            <div className="min-w-[80px] flex justify-end">
-                {contact.source === 'storage' ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm bg-blue-500/10 text-blue-500">
-                        <Database className="h-3.5 w-3.5" />
-                        {t('data_sources.storage', 'Storage')}
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm bg-green-500/10 text-green-500">
-                        <Smartphone className="h-3.5 w-3.5" />
-                        WA
-                    </span>
+        return (
+            <div
+                key={contact.id || idx}
+                className={cn(
+                    "group flex items-center gap-4 px-4 py-3 transition-colors cursor-pointer border-b border-border/30 last:border-b-0",
+                    isSelected ? "bg-primary/5" : "hover:bg-muted/50"
                 )}
+                onClick={() => handleContactClick(contact)}
+            >
+                <div
+                    className="shrink-0 cursor-pointer"
+                    onClick={(e) => toggleSelection(contact.id, e)}
+                >
+                    {isSelected ? <CheckSquare className="h-5 w-5 text-primary" /> : <Square className="h-5 w-5 text-muted-foreground/30 hover:text-primary" />}
+                </div>
+
+                {contactAvatars.get(contact.id) ? (
+                    <img
+                        src={contactAvatars.get(contact.id)}
+                        alt={contact.displayName}
+                        className="h-10 w-10 rounded-full object-cover shrink-0"
+                    />
+                ) : (
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
+                        {contact.displayName?.substring(0, 2).toUpperCase() || '??'}
+                    </div>
+                )}
+
+                <div className="min-w-[180px] flex-1">
+                    <h4 className="font-medium text-base text-foreground group-hover:text-primary transition-colors truncate">
+                        {contact.displayName}
+                    </h4>
+                    {/* Tags in List */}
+                    <div className="flex gap-1 mt-1">
+                        {contactTags.map(tagId => {
+                            const tag = tags.find(t => t.id === tagId);
+                            if (!tag) return null;
+                            return (
+                                <Badge key={tagId} variant="outline" className="text-[10px] h-4 px-1" style={{ borderColor: tag.color, color: tag.color }}>
+                                    {tag.name}
+                                </Badge>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="min-w-[140px] text-base text-muted-foreground font-mono">
+                    {contact.displayPhone}
+                </div>
+
+                <div className="min-w-[180px] text-base text-muted-foreground hidden lg:block">
+                    {contact.email || '-'}
+                </div>
+
+                <div className="min-w-[80px] flex justify-end">
+                    {contact.source === 'storage' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm bg-blue-500/10 text-blue-500">
+                            <Database className="h-3.5 w-3.5" />
+                            {t('data_sources.storage', 'Storage')}
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm bg-green-500/10 text-green-500">
+                            <Smartphone className="h-3.5 w-3.5" />
+                            WA
+                        </span>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -346,16 +521,56 @@ export default function Contacts() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
                 <CardHeader className="pb-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex gap-2 items-center flex-1">
-                            <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                                <Plus className="h-4 w-4" /> {t('contacts.create_contact', 'Create contact')}
-                            </Button>
-                            <Button variant="outline" onClick={() => setIsImportOpen(true)} className="gap-2">
-                                <Upload className="h-4 w-4" /> {t('contacts.import', 'Import')}
+                        <div className="flex gap-2 items-center flex-1 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                            <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shrink-0">
+                                <Plus className="h-4 w-4" /> <span className="hidden sm:inline">{t('contacts.create_contact', 'Create')}</span>
                             </Button>
 
+                            {/* Source Filter */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant={filterSource !== 'all' ? "secondary" : "outline"} size="sm" className="gap-2 shrink-0 border-dashed">
+                                        <Filter className="h-4 w-4" />
+                                        {filterSource === 'all' ? 'All Sources' : filterSource === 'whatsapp' ? 'WhatsApp' : 'Storage'}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                    <DropdownMenuItem onClick={() => setFilterSource('all')}>All Sources</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setFilterSource('whatsapp')}>WhatsApp</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setFilterSource('storage')}>Storage (Manual/Import)</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {/* Tag Filter */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant={filterTag !== 'all' ? "secondary" : "outline"} size="sm" className="gap-2 shrink-0 border-dashed">
+                                        <Tag className="h-4 w-4" />
+                                        {filterTag === 'all' ? 'All Tags' : tags.find(t => t.id === filterTag)?.name || 'Unknown Tag'}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                    <DropdownMenuItem onClick={() => setFilterTag('all')}>All Tags</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {tags.map(tag => (
+                                        <DropdownMenuItem key={tag.id} onClick={() => setFilterTag(tag.id)}>
+                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: tag.color }} />
+                                            {tag.name}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {/* Selection Status */}
+                            {selectedContacts.size > 0 && (
+                                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full text-xs font-medium text-primary shrink-0 animate-in fade-in zoom-in">
+                                    {selectedContacts.size} Selected
+                                    <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => setSelectedContacts(new Set())} />
+                                </div>
+                            )}
+
                             {/* View Toggle */}
-                            <div className="flex gap-1 ml-auto">
+                            <div className="flex gap-1 ml-auto shrink-0">
                                 <button
                                     className={viewButtonClass('grid')}
                                     onClick={() => setViewType('grid')}
@@ -372,7 +587,7 @@ export default function Contacts() {
                                 </button>
                             </div>
                         </div>
-                        <div className="relative w-full sm:w-72">
+                        <div className="relative w-full sm:w-64 shrink-0">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder={t('common.search', 'Search...')}
@@ -408,27 +623,104 @@ export default function Contacts() {
                                 {t('contacts.empty_state', 'Try adjusting your search or refresh to find contacts.')}
                             </p>
                         </div>
-                    ) : viewType === 'grid' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {filteredContacts.map((contact, idx) => renderContactGrid(contact, idx))}
-                        </div>
                     ) : (
-                        <div className="border border-border/30 rounded-lg overflow-hidden">
-                            {/* List Header */}
-                            <div className="flex items-center gap-4 px-4 py-3 bg-muted/30 border-b border-border/30 text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                                <div className="w-5" />
-                                <div className="w-10" />
-                                <div className="min-w-[180px] flex-1">{t('common.name', 'Name')}</div>
-                                <div className="min-w-[140px]">{t('common.phone', 'Phone')}</div>
-                                <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address', 'Email')}</div>
-                                <div className="min-w-[80px] text-right">{t('common.source', 'Source')}</div>
-                            </div>
-                            {/* List Items */}
-                            {filteredContacts.map((contact, idx) => renderContactList(contact, idx))}
+                        <div>
+                            {/* Select All Bar (Visible in Grid) */}
+                            {viewType === 'grid' && (
+                                <div className="mb-4 flex items-center gap-2 pl-1">
+                                    <div
+                                        className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-primary transition-colors"
+                                        onClick={selectAll}
+                                    >
+                                        {selectedContacts.size === filteredContacts.length && filteredContacts.length > 0 ? (
+                                            <CheckSquare className="h-5 w-5 text-primary" />
+                                        ) : (
+                                            <Square className="h-5 w-5" />
+                                        )}
+                                        {selectedContacts.size === filteredContacts.length ? 'Deselect All' : 'Select All'}
+                                    </div>
+                                </div>
+                            )}
+
+                            {viewType === 'grid' ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {filteredContacts.map((contact, idx) => renderContactGrid(contact, idx))}
+                                </div>
+                            ) : (
+                                <div className="border border-border/30 rounded-lg overflow-hidden">
+                                    {/* List Header */}
+                                    <div className="flex items-center gap-4 px-4 py-3 bg-muted/30 border-b border-border/30 text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                                        <div
+                                            className="w-5 cursor-pointer"
+                                            onClick={selectAll}
+                                        >
+                                            {selectedContacts.size === filteredContacts.length && filteredContacts.length > 0 ? (
+                                                <CheckSquare className="h-5 w-5 text-primary" />
+                                            ) : (
+                                                <Square className="h-5 w-5" />
+                                            )}
+                                        </div>
+                                        <div className="w-10" />
+                                        <div className="min-w-[180px] flex-1">{t('common.name', 'Name')}</div>
+                                        <div className="min-w-[140px]">{t('common.phone', 'Phone')}</div>
+                                        <div className="min-w-[180px] hidden lg:block">{t('contact_card.email_address', 'Email')}</div>
+                                        <div className="min-w-[80px] text-right">{t('common.source', 'Source')}</div>
+                                    </div>
+                                    {/* List Items */}
+                                    {filteredContacts.map((contact, idx) => renderContactList(contact, idx))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </CardContent>
             </Card>
+
+            {/* Bulk Action Bar - Floating */}
+            {selectedContacts.size > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-foreground text-background dark:bg-card dark:text-foreground dark:border dark:border-border p-3 rounded-full shadow-2xl z-50 flex items-center justify-between px-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
+                    <div className="flex items-center gap-4">
+                        <span className="font-semibold">{selectedContacts.size} Selected</span>
+                        <div className="h-4 w-[1px] bg-background/20 dark:bg-border" />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white dark:text-foreground hover:bg-white/10"
+                            onClick={() => setSelectedContacts(new Set())}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="gap-2 rounded-full"
+                            onClick={() => {
+                                setBulkTagMode('add');
+                                setIsBulkTagOpen(true);
+                            }}
+                        >
+                            <Tag className="h-3.5 w-3.5" /> Tag
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="gap-2 rounded-full"
+                            onClick={handleBulkExport}
+                        >
+                            <Download className="h-3.5 w-3.5" /> Export
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-2 rounded-full px-4"
+                            onClick={handleBulkDelete}
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Contact Card Popup */}
             <ContactCard
@@ -456,6 +748,30 @@ export default function Contacts() {
                 organizationId={organization?.id || selectedNumber?.organization_id}
                 onImportSuccess={handleContactCreated}
             />
+
+            {/* Bulk Tag Dialog */}
+            <Dialog open={isBulkTagOpen} onOpenChange={setIsBulkTagOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{bulkTagMode === 'add' ? 'Add Tags to Selected' : 'Remove Tags from Selected'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+                        {tags.map(tag => (
+                            <div
+                                key={tag.id}
+                                className="flex items-center gap-2 p-2 rounded-lg border cursor-pointer hover:bg-muted"
+                                onClick={() => handleBulkTag(tag.id)}
+                            >
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                                <span className="font-medium">{tag.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsBulkTagOpen(false)}>Cancel</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
