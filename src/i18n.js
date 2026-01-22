@@ -706,7 +706,13 @@ const resources = {
                 "instructions": "Installation Instructions",
                 "step1": "Click the button above to open the Chrome Web Store.",
                 "step2": "Click 'Add to Chrome' and confirm the installation.",
-                "step3": "Open the extension, log in with your credentials, and enjoy!"
+                "step3": "Open the extension, log in with your credentials, and enjoy!",
+                "features_title": "Main Features",
+                "features_list": {
+                    "quick_send": "Quick Send Messages",
+                    "view_history": "View Message History",
+                    "manage_numbers": "Manage Multiple Numbers"
+                }
             },
             "accounts_management": {
                 "title": "Connected Accounts",
@@ -1514,7 +1520,13 @@ const resources = {
                 "instructions": "הוראות התקנה",
                 "step1": "לחץ על הכפתור למעלה לפתיחת חנות התוספים של כרום.",
                 "step2": "לחץ על 'הוסף לכרום' (Add to Chrome) ואשר את ההתקנה.",
-                "step3": "פתח את התוסף, התחבר עם הפרטים שלך ותהנה!"
+                "step3": "פתח את התוסף, התחבר עם הפרטים שלך ותהנה!",
+                "features_title": "פיצ'רים מרכזיים",
+                "features_list": {
+                    "quick_send": "שליחה מהירה של הודעות",
+                    "view_history": "צפייה בהיסטוריית הודעות",
+                    "manage_numbers": "ניהול מספרים מרובים"
+                }
             },
             "accounts_management": {
                 "title": "חשבונות מחוברים",
