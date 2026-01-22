@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { cn } from '../lib/utils';
+
 import { useContacts } from '../hooks/use-queries/useContacts';
 import { getContacts } from '../services/greenApi';
 import { loadChatsFromCache, loadAvatarsFromCache } from '../lib/messageLocalCache';
