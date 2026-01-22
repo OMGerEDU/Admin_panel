@@ -4,10 +4,18 @@ const rawUrl = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.omge
 const BASE_URL = rawUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
 const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || '54yWPufPt9y2Wp9QUap';
 
-const headers = {
+const baseHeaders = {
     'Content-Type': 'application/json',
     'apikey': API_KEY
 };
+
+// Backward-compatible alias for existing calls that rely on `headers`
+const headers = baseHeaders;
+
+const buildHeaders = (apiKeyOverride) => ({
+    ...baseHeaders,
+    ...(apiKeyOverride ? { apikey: apiKeyOverride } : {})
+});
 
 export const EvolutionApiService = {
     /**
@@ -92,9 +100,10 @@ export const EvolutionApiService = {
      * @param {string} instanceName
      * @param {string} number - Phone number match (normalized)
      * @param {string} text - Message content
+     * @param {string} apiKeyOverride - Optional per-instance API key
      * @returns {Promise<object>}
      */
-    async sendText(instanceName, number, text) {
+    async sendText(instanceName, number, text, apiKeyOverride) {
         try {
             const body = {
                 number,
@@ -105,7 +114,7 @@ export const EvolutionApiService = {
 
             const response = await fetch(`${BASE_URL}/api/message/sendText/${instanceName}`, {
                 method: 'POST',
-                headers,
+                headers: buildHeaders(apiKeyOverride),
                 body: JSON.stringify(body)
             });
 
@@ -127,8 +136,9 @@ export const EvolutionApiService = {
      * @param {string} instanceName
      * @param {string} number
      * @param {object} options - { mediatype, mimetype, caption, media, fileName }
+     * @param {string} apiKeyOverride - Optional per-instance API key
      */
-    async sendMedia(instanceName, number, options) {
+    async sendMedia(instanceName, number, options, apiKeyOverride) {
         try {
             const body = {
                 number,
@@ -141,7 +151,7 @@ export const EvolutionApiService = {
 
             const response = await fetch(`${BASE_URL}/api/message/sendMedia/${instanceName}`, {
                 method: 'POST',
-                headers,
+                headers: buildHeaders(apiKeyOverride),
                 body: JSON.stringify(body)
             });
 
@@ -163,12 +173,13 @@ export const EvolutionApiService = {
      * @param {string} instanceName
      * @param {string} number
      * @param {string} stickerUrl
+     * @param {string} apiKeyOverride - Optional per-instance API key
      */
-    async sendSticker(instanceName, number, stickerUrl) {
+    async sendSticker(instanceName, number, stickerUrl, apiKeyOverride) {
         try {
             const response = await fetch(`${BASE_URL}/api/messages/sticker`, {
                 method: 'POST',
-                headers,
+                headers: buildHeaders(apiKeyOverride),
                 body: JSON.stringify({
                     instanceName,
                     number,
@@ -194,12 +205,13 @@ export const EvolutionApiService = {
      * @param {string} number
      * @param {string} audioUrl
      * @param {boolean} ptt - If true, sends as Voice Note (blue mic)
+     * @param {string} apiKeyOverride - Optional per-instance API key
      */
-    async sendAudio(instanceName, number, audioUrl, ptt = true) {
+    async sendAudio(instanceName, number, audioUrl, ptt = true, apiKeyOverride) {
         try {
             const response = await fetch(`${BASE_URL}/api/messages/audio`, {
                 method: 'POST',
-                headers,
+                headers: buildHeaders(apiKeyOverride),
                 body: JSON.stringify({
                     instanceName,
                     number,
