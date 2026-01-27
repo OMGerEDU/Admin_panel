@@ -83,6 +83,7 @@ import {
     normalizePhoneForAPI,
     getAvatar,
     downloadFile,
+    getContacts as getGreenContacts,
     sendContact as sendGreenContact,
     sendFileByUrl as sendGreenFileByUrl,
 } from '../services/greenApi';
@@ -141,9 +142,74 @@ export default function Chats() {
     const [filterTags, setFilterTags] = useState([]); // array of tag IDs
     const [contactSearchTerm, setContactSearchTerm] = useState('');
     const [isCreatingNewContact, setIsCreatingNewContact] = useState(false);
-
-    // Database Contacts
+    // Contacts Integration
     const { contacts: dbContacts } = useContacts(selectedNumber?.organization_id || organization?.id);
+    const [greenContacts, setGreenContacts] = useState([]);
+    const [isLoadingGreen, setIsLoadingGreen] = useState(false);
+
+    const fetchGreenContacts = async (instance, token) => {
+        if (!instance || !token) return;
+        setIsLoadingGreen(true);
+        try {
+            const result = await getGreenContacts(instance, token);
+            if (result.success && Array.isArray(result.data)) {
+                setGreenContacts(result.data);
+            }
+        } catch (error) {
+            console.error('[CONTACTS] Error:', error);
+        } finally {
+            setIsLoadingGreen(false);
+        }
+    };
+
+    const combinedContacts = useMemo(() => {
+        const seenPhones = new Set();
+        const results = [];
+
+        // 1. Storage Contacts
+        (dbContacts || []).forEach(c => {
+            const phone = c.phone_number || c.phone;
+            if (!phone || seenPhones.has(phone)) return;
+            seenPhones.add(phone);
+            results.push({
+                id: c.id,
+                name: c.name || phone,
+                phone: phone,
+                source: 'storage'
+            });
+        });
+
+        // 2. WhatsApp Profile Contacts
+        (greenContacts || []).forEach(c => {
+            const id = c.id || c.chatId;
+            const phone = id?.split('@')[0];
+            if (!phone || seenPhones.has(phone)) return;
+            seenPhones.add(phone);
+            results.push({
+                id: id,
+                name: c.name || c.contactName || phone,
+                phone: phone,
+                source: 'whatsapp'
+            });
+        });
+
+        // 3. Current Active Chats (Discovery)
+        (chats || []).forEach(c => {
+            const jid = c.chatId || c.remote_jid;
+            if (!jid || jid.includes('@g.us')) return; // No groups
+            const phone = jid.split('@')[0];
+            if (!phone || seenPhones.has(phone)) return;
+            seenPhones.add(phone);
+            results.push({
+                id: jid,
+                name: c.name || phone,
+                phone: phone,
+                source: 'whatsapp'
+            });
+        });
+
+        return results;
+    }, [dbContacts, greenContacts, chats]);
 
 
     // Tags Integration
@@ -245,6 +311,7 @@ export default function Chats() {
 
             // 2. Load basic chat list (Local Cache / DB)
             fetchChats();
+            fetchGreenContacts(selectedNumber.instance_id, selectedNumber.api_token);
 
             // 3. Perform a "Warm-up" sync to populate latest history immediately (Global History)
             setIsWarmUpSyncing(true);
@@ -2840,7 +2907,7 @@ export default function Chats() {
                             </div>
 
                             <div className="max-h-[350px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                                {dbContacts?.filter(c =>
+                                {combinedContacts?.filter(c =>
                                     c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
                                     c.phone?.includes(contactSearchTerm)
                                 ).map((contact) => (
@@ -2863,12 +2930,12 @@ export default function Chats() {
                                         </div>
                                     </button>
                                 ))}
-                                {(!dbContacts || dbContacts.filter(c =>
+                                {(!combinedContacts || combinedContacts.filter(c =>
                                     c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
                                     c.phone?.includes(contactSearchTerm)
                                 ).length === 0) && (
                                         <div className="text-center py-8 text-muted-foreground text-sm">
-                                            {t('chats_page.no_contacts_found')}
+                                            {isLoadingGreen ? t('common.loading') : t('chats_page.no_contacts_found')}
                                         </div>
                                     )}
                             </div>
