@@ -1123,6 +1123,7 @@ export default function Chats() {
                 setMessages(updatedMessages);
                 historyCacheRef.current.set(chatId, { messages: updatedMessages, timestamp: Date.now() });
                 saveMessagesToCache(selectedNumber.instance_id, chatId, updatedMessages);
+                chatsCacheRef.current.data = null;
                 await fetchChats(true);
             } else {
                 console.error('[SEND MEDIA] Failed:', result.error);
@@ -1137,9 +1138,15 @@ export default function Chats() {
         const file = e.target.files[0];
         if (!file) return;
 
-        const uploadData = await handleFileUploadToSupabase(file, type);
+        let actualType = type;
+        if (type === 'media') {
+            if (file.type.startsWith('image/')) actualType = 'image';
+            else if (file.type.startsWith('video/')) actualType = 'video';
+        }
+
+        const uploadData = await handleFileUploadToSupabase(file, actualType);
         if (uploadData) {
-            await sendMediaMessage(uploadData.url, uploadData.fileName, uploadData.mimeType, type);
+            await sendMediaMessage(uploadData.url, uploadData.fileName, uploadData.mimeType, actualType);
         }
         // Reset input
         e.target.value = '';
@@ -1149,7 +1156,10 @@ export default function Chats() {
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recorder = new MediaRecorder(stream);
+            const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')
+                ? 'audio/ogg; codecs=opus'
+                : 'audio/webm';
+            const recorder = new MediaRecorder(stream, { mimeType });
             const chunks = [];
 
             recorder.ondataavailable = (e) => {
@@ -1157,7 +1167,7 @@ export default function Chats() {
             };
 
             recorder.onstop = async () => {
-                const blob = new Blob(chunks, { type: 'audio/webm' });
+                const blob = new Blob(chunks, { type: recorder.mimeType });
                 setAudioChunks(chunks);
                 // We'll handle sending in a separate step or right here if needed
             };
@@ -1218,11 +1228,12 @@ export default function Chats() {
         // Custom promise to wait for stop event and get blob
         const blob = await new Promise((resolve) => {
             const chunks = [];
+            const mimeType = mediaRecorder.mimeType;
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data.size > 0) chunks.push(e.data);
             };
             mediaRecorder.onstop = () => {
-                resolve(new Blob(chunks, { type: 'audio/webm' }));
+                resolve(new Blob(chunks, { type: mimeType }));
             };
             mediaRecorder.stop();
         });
@@ -1236,7 +1247,8 @@ export default function Chats() {
         setMediaRecorder(null);
 
         if (blob) {
-            const file = new File([blob], 'voice_message.webm', { type: 'audio/webm' });
+            const extension = blob.type.includes('ogg') ? 'ogg' : 'webm';
+            const file = new File([blob], `voice_message.${extension}`, { type: blob.type });
             const uploadData = await handleFileUploadToSupabase(file, 'audio');
             if (uploadData) {
                 await sendMediaMessage(uploadData.url, uploadData.fileName, uploadData.mimeType, 'audio');
@@ -1284,6 +1296,9 @@ export default function Chats() {
                 };
                 const updatedMessages = [...messages, tempMsg];
                 setMessages(updatedMessages);
+                historyCacheRef.current.set(chatId, { messages: updatedMessages, timestamp: Date.now() });
+                saveMessagesToCache(selectedNumber.instance_id, chatId, updatedMessages);
+                chatsCacheRef.current.data = null;
                 setSendContactDialogOpen(false);
                 setContactToSend({ name: '', phone: '' });
                 await fetchChats(true);
@@ -2513,7 +2528,7 @@ export default function Chats() {
                                                             <div className="space-y-2">
                                                                 {item.quotedMessage && (
                                                                     <div className="text-xs opacity-75 border-l-2 pl-2 mb-2">
-                                                                        {item.quotedMessage.textMessage || item.quotedMessage.text || '💬 הודעה מצוטטת'}
+                                                                        {item.quotedMessage.textMessage || item.quotedMessage.text || `💬 ${t('chats_page.quoted_message')}`}
                                                                     </div>
                                                                 )}
                                                                 {text && (
@@ -2539,14 +2554,14 @@ export default function Chats() {
                                                         {/* Fallback - if no text found but message exists - show what we can */}
                                                         {!text && !['imageMessage', 'videoMessage', 'audioMessage', 'ptt', 'documentMessage', 'stickerMessage', 'locationMessage', 'quotedMessage', 'deletedMessage'].includes(typeMessage) && typeMessage && (
                                                             <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
-                                                                📎 {typeMessage} {t('chats_page.message_not_supported') || '(not fully supported)'}
+                                                                📎 {typeMessage} {t('chats_page.message_not_supported')}
                                                             </p>
                                                         )}
 
                                                         {/* Fallback - if no typeMessage and no text, show empty message indicator */}
                                                         {!typeMessage && !text && (
                                                             <p className="text-sm text-muted-foreground dark:text-[#8696a0]">
-                                                                {t('chats_page.empty_message') || 'Empty message'}
+                                                                {t('chats_page.empty_message')}
                                                             </p>
                                                         )}
 
@@ -2612,6 +2627,7 @@ export default function Chats() {
                                         </PopoverTrigger>
                                         <PopoverContent
                                             side="top"
+                                            sideOffset={15}
                                             align="start"
                                             className="w-56 p-2 rounded-2xl shadow-xl border-none bg-white dark:bg-[#233138] mb-2"
                                         >
@@ -2825,7 +2841,7 @@ export default function Chats() {
                                         <Phone className="h-5 w-5" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-xs uppercase tracking-wider font-semibold opacity-50">Phone Number</div>
+                                        <div className="text-xs uppercase tracking-wider font-semibold opacity-50">{t('chats_page.phone_number')}</div>
                                         <div className="text-lg font-medium text-foreground dark:text-[#e9edef]">{contactPopup.phone}</div>
                                     </div>
                                     <Button
@@ -2843,14 +2859,14 @@ export default function Chats() {
                                         className="flex-1 bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-white rounded-xl h-12 shadow-md transition-all active:scale-95"
                                         onClick={() => handleMessageContact(contactPopup)}
                                     >
-                                        Message
+                                        {t('chats_page.send_message')}
                                     </Button>
                                     <Button
                                         variant="outline"
                                         className="flex-1 rounded-xl h-12 border-border dark:border-[#3b4a54] dark:hover:bg-[#3b4a54]"
                                         onClick={() => setContactPopup(null)}
                                     >
-                                        Close
+                                        {t('common.close')}
                                     </Button>
                                 </div>
                             </div>

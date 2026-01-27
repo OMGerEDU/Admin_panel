@@ -351,7 +351,12 @@ const resources = {
                 "attach_document": "Document",
                 "attach_media": "Photos & Videos",
                 "attach_audio": "Audio",
-                "attach_contact": "Contact"
+                "attach_contact": "Contact",
+                "quoted_message": "Quoted Message",
+                "message_not_supported": "(not fully supported)",
+                "empty_message": "Empty message",
+                "phone_number": "Phone Number",
+                "send_message": "Message"
             },
             "login": {
                 "title": "Welcome Back",
@@ -1186,7 +1191,12 @@ const resources = {
                 "attach_document": "מסמך",
                 "attach_media": "תמונות וסרטונים",
                 "attach_audio": "שמע",
-                "attach_contact": "איש קשר"
+                "attach_contact": "איש קשר",
+                "quoted_message": "הודעה מצוטטת",
+                "message_not_supported": "(לא נתמך במלואו)",
+                "empty_message": "הודעה ריקה",
+                "phone_number": "מספר טלפון",
+                "send_message": "שלח הודעה"
             },
             "login": {
                 "title": "ברוכים הבאים",
