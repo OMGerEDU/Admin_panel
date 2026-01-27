@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { useUserOrganization } from '../hooks/use-queries/useOrganization';
+import { useContacts } from '../hooks/use-queries/useContacts';
 import { TagsManager } from '../components/TagsManager';
 import { ChatTagsSelector } from '../components/ChatTagsSelector';
 import { ImageLightbox } from '../components/ImageLightbox';
@@ -138,6 +139,10 @@ export default function Chats() {
     const [filterDateFrom, setFilterDateFrom] = useState('');
     const [filterDateTo, setFilterDateTo] = useState(new Date().toLocaleDateString('en-CA'));
     const [filterTags, setFilterTags] = useState([]); // array of tag IDs
+    const [contactSearchTerm, setContactSearchTerm] = useState('');
+
+    // Database Contacts
+    const { contacts: dbContacts } = useContacts(selectedNumber?.organization_id || organization?.id);
 
 
     // Tags Integration
@@ -1154,11 +1159,29 @@ export default function Chats() {
     };
 
     const startRecording = async () => {
+        if (!window.isSecureContext) {
+            alert('Recording requires a secure context (HTTPS or localhost).');
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert(t('chats_page.recorder_error_access') || 'Could not access microphone');
+            return;
+        }
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')
-                ? 'audio/ogg; codecs=opus'
-                : 'audio/webm';
+
+            // Determine best supported MIME type
+            let mimeType = 'audio/webm'; // Default fallback
+            if (MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')) {
+                mimeType = 'audio/ogg; codecs=opus';
+            } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                mimeType = 'audio/webm';
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                mimeType = 'audio/mp4';
+            }
+
             const recorder = new MediaRecorder(stream, { mimeType });
             const chunks = [];
 
@@ -1169,7 +1192,6 @@ export default function Chats() {
             recorder.onstop = async () => {
                 const blob = new Blob(chunks, { type: recorder.mimeType });
                 setAudioChunks(chunks);
-                // We'll handle sending in a separate step or right here if needed
             };
 
             setRecordingStream(stream);
@@ -1184,29 +1206,15 @@ export default function Chats() {
             }, 1000);
         } catch (error) {
             console.error('[RECORD] Error:', error);
-            alert(t('recorder.error_access') || 'Could not access microphone');
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                alert(t('chats_page.recorder_error_access'));
+            } else {
+                alert(`${t('chats_page.recorder_error_generic')}: ${error.message || error.name}`);
+            }
         }
     };
 
-    const stopRecordingAndGetBlob = () => {
-        return new Promise((resolve) => {
-            if (!mediaRecorder) return resolve(null);
 
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                resolve(blob);
-            };
-
-            mediaRecorder.stop();
-            if (recordingStream) {
-                recordingStream.getTracks().forEach(track => track.stop());
-            }
-            clearInterval(timerRef.current);
-            setIsRecording(false);
-            setRecordingStream(null);
-            setMediaRecorder(null);
-        });
-    };
 
     const cancelRecording = () => {
         if (mediaRecorder) {
@@ -2780,24 +2788,49 @@ export default function Chats() {
                     <DialogHeader>
                         <DialogTitle className="text-foreground dark:text-[#e9edef]">{t('chats_page.attach_contact')}</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground dark:text-[#e9edef]">{t('common.name')}</label>
+                    <div className="space-y-4 py-2">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                value={contactToSend.name}
-                                onChange={(e) => setContactToSend(prev => ({ ...prev, name: e.target.value }))}
-                                placeholder="e.g. John Doe"
-                                className="border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef]"
+                                placeholder={t('chats_page.search_contacts')}
+                                value={contactSearchTerm}
+                                onChange={(e) => setContactSearchTerm(e.target.value)}
+                                className="pl-10 border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942]"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground dark:text-[#e9edef]">{t('common.phone')}</label>
-                            <Input
-                                value={contactToSend.phone}
-                                onChange={(e) => setContactToSend(prev => ({ ...prev, phone: e.target.value }))}
-                                placeholder="e.g. 972501234567"
-                                className="border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef]"
-                            />
+
+                        <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                            {dbContacts?.filter(c =>
+                                c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                                c.phone?.includes(contactSearchTerm)
+                            ).map((contact) => (
+                                <button
+                                    key={contact.id}
+                                    onClick={() => {
+                                        setContactToSend({ name: contact.name, phone: contact.phone });
+                                    }}
+                                    className={cn(
+                                        "w-full flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-secondary dark:hover:bg-[#2a3942] group",
+                                        contactToSend.phone === contact.phone ? "bg-primary/10 border-primary/20" : "transparent"
+                                    )}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                        {contact.name?.charAt(0) || <User className="h-5 w-5" />}
+                                    </div>
+                                    <div className="flex-1 text-left rtl:text-right overflow-hidden">
+                                        <div className="font-medium text-foreground dark:text-[#e9edef] truncate">{contact.name}</div>
+                                        <div className="text-xs text-muted-foreground truncate">{contact.phone}</div>
+                                    </div>
+                                </button>
+                            ))}
+                            {(!dbContacts || dbContacts.filter(c =>
+                                c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                                c.phone?.includes(contactSearchTerm)
+                            ).length === 0) && (
+                                    <div className="text-center py-8 text-muted-foreground text-sm">
+                                        {t('chats_page.no_contacts_found')}
+                                    </div>
+                                )}
                         </div>
                     </div>
                     <div className="flex justify-end gap-3">

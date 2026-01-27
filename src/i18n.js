@@ -356,7 +356,12 @@ const resources = {
                 "message_not_supported": "(not fully supported)",
                 "empty_message": "Empty message",
                 "phone_number": "Phone Number",
-                "send_message": "Message"
+                "send_message": "Message",
+                "search_contacts": "Search contacts...",
+                "select_contact": "Select Contact",
+                "no_contacts_found": "No contacts found",
+                "recorder_error_access": "Could not access microphone. Please check permissions.",
+                "recorder_error_generic": "Error while recording"
             },
             "login": {
                 "title": "Welcome Back",
@@ -1196,7 +1201,12 @@ const resources = {
                 "message_not_supported": "(לא נתמך במלואו)",
                 "empty_message": "הודעה ריקה",
                 "phone_number": "מספר טלפון",
-                "send_message": "שלח הודעה"
+                "send_message": "שלח הודעה",
+                "search_contacts": "חפש אנשי קשר...",
+                "select_contact": "בחר איש קשר",
+                "no_contacts_found": "לא נמצאו אנשי קשר",
+                "recorder_error_access": "לא ניתן לגשת למיקרופון. אנא בדוק הרשאות.",
+                "recorder_error_generic": "שגיאה במהלך ההקלטה"
             },
             "login": {
                 "title": "ברוכים הבאים",
