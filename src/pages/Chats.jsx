@@ -2629,7 +2629,7 @@ export default function Chats() {
                                             side="top"
                                             sideOffset={15}
                                             align="start"
-                                            className="w-56 p-2 rounded-2xl shadow-xl border-none bg-white dark:bg-[#233138] mb-2"
+                                            className="w-56 p-2 rounded-2xl shadow-xl border-none bg-white dark:bg-[#233138]"
                                         >
                                             <div className="grid grid-cols-1 gap-1">
                                                 <Button

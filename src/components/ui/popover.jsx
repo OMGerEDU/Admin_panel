@@ -65,7 +65,7 @@ export function PopoverTrigger({ asChild, children, ...props }) {
     );
 }
 
-export function PopoverContent({ children, className, align = 'end', ...props }) {
+export function PopoverContent({ children, className, align = 'end', side = 'bottom', sideOffset = 4, ...props }) {
     const { isOpen, contentRef } = React.useContext(PopoverContext);
 
     if (!isOpen) return null;
@@ -73,15 +73,26 @@ export function PopoverContent({ children, className, align = 'end', ...props })
     // Determine RTL based on document direction
     const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
 
-    // Position based on alignment and RTL
+    // Horizontal Alignment
     const alignmentClass = align === 'start'
         ? (isRtl ? 'right-0' : 'left-0')
         : (isRtl ? 'left-0' : 'right-0');
 
+    // Vertical Positioning
+    const sideClass = side === 'top'
+        ? 'bottom-full'
+        : 'top-full';
+
+    // Manual offset using style because tailwind mb-[offset] is harder with variables
+    const offsetStyle = side === 'top'
+        ? { marginBottom: `${sideOffset}px` }
+        : { marginTop: `${sideOffset}px` };
+
     return (
         <div
             ref={contentRef}
-            className={`absolute z-50 mt-2 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95 ${alignmentClass} ${className || ''}`}
+            style={offsetStyle}
+            className={`absolute z-50 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95 ${alignmentClass} ${sideClass} ${className || ''}`}
             {...props}
         >
             {children}
