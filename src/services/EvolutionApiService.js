@@ -607,21 +607,40 @@ export const EvolutionApiService = {
     /**
      * Send contact card
      * @param {string} instanceName
-     * @param {string} number
+     * @param {string} number - Can be JID (with @s.whatsapp.net, @lid, @c.us) or pure phone number
      * @param {object} contact - { fullName, phoneNumber }
      */
     async sendContact(instanceName, number, contact) {
         try {
+            // Normalize the recipient number - strip all suffixes and keep only digits
+            let normalizedNumber = number;
+            if (typeof number === 'string') {
+                // Remove any JID suffix (@s.whatsapp.net, @lid, @c.us, @g.us)
+                normalizedNumber = number.split('@')[0].replace(/\D/g, '');
+            }
+
+            // Normalize the contact phone number too
+            let contactPhone = contact.phoneNumber || contact.phone || '';
+            if (typeof contactPhone === 'string') {
+                contactPhone = contactPhone.replace(/\D/g, '');
+            }
+
+            console.log('[EVOLUTION] sendContact payload:', {
+                instanceName,
+                number: normalizedNumber,
+                contact: { fullName: contact.fullName || contact.name, phoneNumber: contactPhone }
+            });
+
             const response = await fetch(`${BASE_URL}/api/messages/contact`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
                     instanceName,
-                    number,
+                    number: normalizedNumber,
                     contact: [
                         {
                             fullName: contact.fullName || contact.name,
-                            phoneNumber: contact.phoneNumber || contact.phone
+                            phoneNumber: contactPhone
                         }
                     ]
                 })
@@ -629,6 +648,7 @@ export const EvolutionApiService = {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
+                console.error('[EVOLUTION] sendContact error response:', errorData);
                 return { success: false, error: errorData.message || 'Failed to send contact' };
             }
 
