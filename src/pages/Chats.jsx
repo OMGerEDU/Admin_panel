@@ -20,7 +20,16 @@ import {
     RefreshCw,
     Mic,
     ArrowLeft,
-    Trash2
+    Trash2,
+    FileText,
+    Headphones,
+    User,
+    Image as ImageIcon,
+    Square,
+    Check,
+    Timer,
+    PlusCircle,
+    Paperclip
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { useUserOrganization } from '../hooks/use-queries/useOrganization';
@@ -73,6 +82,7 @@ import {
     normalizePhoneForAPI,
     getAvatar,
     downloadFile,
+    sendContact,
 } from '../services/greenApi';
 import { EvolutionApiService } from '../services/EvolutionApiService';
 import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncMessagesToSupabase, syncFullChatHistory, resetChatNames, warmUpSync, triggerStateSnapshot } from '../services/messageSync';
@@ -146,6 +156,19 @@ export default function Chats() {
     const [showPanelMaster, setShowPanelMaster] = useState(false);
     const [showContactCard, setShowContactCard] = useState(false); // Controls the dynamic customer card
     const [contactPopup, setContactPopup] = useState(null); // { name, phone, photo }
+    const [showAttachMenu, setShowAttachMenu] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+    const [recordingStream, setRecordingStream] = useState(null);
+    const [mediaRecorder, setMediaRecorder] = useState(null);
+    const [audioChunks, setAudioChunks] = useState([]);
+    const timerRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const photoInputRef = useRef(null);
+    const audioInputRef = useRef(null);
+    const [sendContactDialogOpen, setSendContactDialogOpen] = useState(false);
+    const [contactToSend, setContactToSend] = useState({ name: '', phone: '' });
     const pendingChatIdFromUrlRef = useRef(null);
     const isGatheringAvatarsRef = useRef(false);
     const activeChatIdRef = useRef(null);
@@ -1001,6 +1024,273 @@ export default function Chats() {
             setHasMoreMessages(false);
         } finally {
             setLoadingMoreMessages(false);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+            if (recordingStream) {
+                recordingStream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, [recordingStream]);
+
+    const handleFileUploadToSupabase = async (file, type) => {
+        try {
+            setIsUploading(true);
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const bucketName = import.meta.env.VITE_STORAGE_BUCKET || 'GreenBuilders';
+
+            const { error: uploadError } = await supabase.storage
+                .from(bucketName)
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false,
+                    contentType: file.type
+                });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(fileName);
+
+            return {
+                url: urlData.publicUrl,
+                fileName: file.name,
+                mimeType: file.type
+            };
+        } catch (error) {
+            console.error('[UPLOAD] Error:', error);
+            alert(t('common.error_uploading') || 'Error uploading file');
+            return null;
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const sendMediaMessage = async (url, fileName, mimeType, mediaType) => {
+        if (!selectedChat || !selectedNumber) return;
+        const chatId = selectedChat.chatId || selectedChat.remote_jid;
+
+        try {
+            let result;
+            if (selectedNumber.provider === 'evolution-api') {
+                if (mediaType === 'audio') {
+                    result = await EvolutionApiService.sendAudio(selectedNumber.instance_id, chatId, url, true);
+                } else {
+                    // For Evolution, we might need base64 for media/image/video/document
+                    // but let's try sending URL first if the API supports it, 
+                    // or convert to base64 if needed. Most v2 support URL.
+                    // The current EvolutionApiService.js sendMedia takes options.media (base64)
+                    // Let's use a workaround or update the service.
+                    // For now, let's assume it might work or we can improve the service.
+                    result = await EvolutionApiService.sendMedia(selectedNumber.instance_id, chatId, {
+                        mediatype: mediaType,
+                        mimetype: mimeType,
+                        media: url, // Some implementations allow URL here
+                        fileName: fileName
+                    });
+                }
+            } else {
+                // Green API
+                result = await sendGreenFileByUrl(
+                    selectedNumber.instance_id,
+                    selectedNumber.api_token,
+                    chatId,
+                    url,
+                    fileName
+                );
+            }
+
+            if (result.success) {
+                const tempMsg = {
+                    type: 'outgoing',
+                    fromMe: true,
+                    typeMessage: mediaType === 'image' ? 'imageMessage' : mediaType === 'video' ? 'videoMessage' : mediaType === 'audio' ? 'audioMessage' : 'documentMessage',
+                    timestamp: Math.floor(Date.now() / 1000),
+                    chatId: chatId,
+                    idMessage: result.data?.idMessage || `temp_${Date.now()}`,
+                    is_from_me: true,
+                    content: `[${mediaType}]`,
+                    caption: '',
+                    fileName: fileName
+                };
+                const updatedMessages = [...messages, tempMsg];
+                setMessages(updatedMessages);
+                historyCacheRef.current.set(chatId, { messages: updatedMessages, timestamp: Date.now() });
+                saveMessagesToCache(selectedNumber.instance_id, chatId, updatedMessages);
+                await fetchChats(true);
+            } else {
+                console.error('[SEND MEDIA] Failed:', result.error);
+                alert(t('common.error_sending') || 'Error sending message');
+            }
+        } catch (error) {
+            console.error('[SEND MEDIA] Error:', error);
+        }
+    };
+
+    const handleFileSelect = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadData = await handleFileUploadToSupabase(file, type);
+        if (uploadData) {
+            await sendMediaMessage(uploadData.url, uploadData.fileName, uploadData.mimeType, type);
+        }
+        // Reset input
+        e.target.value = '';
+        setShowAttachMenu(false);
+    };
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            const chunks = [];
+
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                setAudioChunks(chunks);
+                // We'll handle sending in a separate step or right here if needed
+            };
+
+            setRecordingStream(stream);
+            setMediaRecorder(recorder);
+            setAudioChunks([]);
+            setIsRecording(true);
+            setRecordingTime(0);
+
+            recorder.start();
+            timerRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+        } catch (error) {
+            console.error('[RECORD] Error:', error);
+            alert(t('recorder.error_access') || 'Could not access microphone');
+        }
+    };
+
+    const stopRecordingAndGetBlob = () => {
+        return new Promise((resolve) => {
+            if (!mediaRecorder) return resolve(null);
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                resolve(blob);
+            };
+
+            mediaRecorder.stop();
+            if (recordingStream) {
+                recordingStream.getTracks().forEach(track => track.stop());
+            }
+            clearInterval(timerRef.current);
+            setIsRecording(false);
+            setRecordingStream(null);
+            setMediaRecorder(null);
+        });
+    };
+
+    const cancelRecording = () => {
+        if (mediaRecorder) {
+            mediaRecorder.stop();
+        }
+        if (recordingStream) {
+            recordingStream.getTracks().forEach(track => track.stop());
+        }
+        clearInterval(timerRef.current);
+        setIsRecording(false);
+        setRecordingStream(null);
+        setMediaRecorder(null);
+        setAudioChunks([]);
+    };
+
+    const handleSendRecording = async () => {
+        if (!mediaRecorder) return;
+
+        // Custom promise to wait for stop event and get blob
+        const blob = await new Promise((resolve) => {
+            const chunks = [];
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+                resolve(new Blob(chunks, { type: 'audio/webm' }));
+            };
+            mediaRecorder.stop();
+        });
+
+        if (recordingStream) {
+            recordingStream.getTracks().forEach(track => track.stop());
+        }
+        clearInterval(timerRef.current);
+        setIsRecording(false);
+        setRecordingStream(null);
+        setMediaRecorder(null);
+
+        if (blob) {
+            const file = new File([blob], 'voice_message.webm', { type: 'audio/webm' });
+            const uploadData = await handleFileUploadToSupabase(file, 'audio');
+            if (uploadData) {
+                await sendMediaMessage(uploadData.url, uploadData.fileName, uploadData.mimeType, 'audio');
+            }
+        }
+        setAudioChunks([]);
+    };
+
+    const handleSendContact = async () => {
+        if (!selectedChat || !selectedNumber || !contactToSend.name || !contactToSend.phone) return;
+        const chatId = selectedChat.chatId || selectedChat.remote_jid;
+
+        try {
+            let result;
+            const contactData = {
+                fullName: contactToSend.name,
+                phoneNumber: contactToSend.phone
+            };
+
+            if (selectedNumber.provider === 'evolution-api') {
+                result = await EvolutionApiService.sendContact(selectedNumber.instance_id, chatId, contactData);
+            } else {
+                result = await sendGreenContact(
+                    selectedNumber.instance_id,
+                    selectedNumber.api_token,
+                    chatId,
+                    {
+                        name: contactToSend.name,
+                        phone: contactToSend.phone
+                    }
+                );
+            }
+
+            if (result.success) {
+                const tempMsg = {
+                    type: 'outgoing',
+                    fromMe: true,
+                    typeMessage: 'contactMessage',
+                    timestamp: Math.floor(Date.now() / 1000),
+                    chatId: chatId,
+                    idMessage: result.data?.idMessage || `temp_${Date.now()}`,
+                    is_from_me: true,
+                    content: `[Contact: ${contactToSend.name}]`,
+                    contact: contactToSend
+                };
+                const updatedMessages = [...messages, tempMsg];
+                setMessages(updatedMessages);
+                setSendContactDialogOpen(false);
+                setContactToSend({ name: '', phone: '' });
+                await fetchChats(true);
+            } else {
+                alert(t('common.error_sending') || 'Error sending contact');
+            }
+        } catch (error) {
+            console.error('[SEND CONTACT] Error:', error);
         }
     };
 
@@ -2283,27 +2573,128 @@ export default function Chats() {
 
                         {/* Message Input */}
                         <div className="px-4 py-3 border-t border-border dark:border-[#202c33] bg-secondary dark:bg-[#202c33]">
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder={t('chats_page.type_message')}
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    onKeyPress={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            sendMessage();
-                                        }
-                                    }}
-                                    className="flex-1 border-0 bg-secondary dark:bg-[#202c33] text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-[#8696a0] focus-visible:ring-2 focus-visible:ring-primary"
-                                />
-                                <Button
-                                    onClick={sendMessage}
-                                    disabled={!newMessage.trim()}
-                                    className="bg-primary hover:bg-primary/90 dark:bg-[#00a884] dark:hover:bg-[#00a884]/90 text-primary-foreground dark:text-white border-0"
-                                >
-                                    <Send className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            {isRecording ? (
+                                <div className="flex items-center gap-4 bg-white dark:bg-[#2a3942] p-2 rounded-lg shadow-inner">
+                                    <div className="flex items-center gap-2 flex-1 pl-2">
+                                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                                        <span className="text-sm font-mono text-foreground dark:text-[#e9edef]">
+                                            {Math.floor(recordingTime / 60)}:{Math.floor(recordingTime % 60).toString().padStart(2, '0')}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={cancelRecording}
+                                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                    <Button
+                                        onClick={handleSendRecording}
+                                        disabled={isUploading}
+                                        className="bg-[#00a884] hover:bg-[#008f6f] text-white rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                                    >
+                                        <Send className="h-5 w-5" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <Popover open={showAttachMenu} onOpenChange={setShowAttachMenu}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-[#8696a0] hover:bg-secondary dark:hover:bg-[#3b4a54] rounded-full"
+                                            >
+                                                <Plus className={cn("h-6 w-6 transition-transform", showAttachMenu && "rotate-45")} />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            side="top"
+                                            align="start"
+                                            className="w-56 p-2 rounded-2xl shadow-xl border-none bg-white dark:bg-[#233138] mb-2"
+                                        >
+                                            <div className="grid grid-cols-1 gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    className="justify-start gap-4 px-3 py-6 hover:bg-secondary dark:hover:bg-[#111b21] rounded-xl text-foreground dark:text-[#e9edef]"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-[#7f66ff] flex items-center justify-center text-white">
+                                                        <FileText className="h-5 w-5" />
+                                                    </div>
+                                                    <span className="font-medium">{t('chats_page.attach_document')}</span>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="justify-start gap-4 px-3 py-6 hover:bg-secondary dark:hover:bg-[#111b21] rounded-xl text-foreground dark:text-[#e9edef]"
+                                                    onClick={() => photoInputRef.current?.click()}
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-[#007bfc] flex items-center justify-center text-white">
+                                                        <ImageIcon className="h-5 w-5" />
+                                                    </div>
+                                                    <span className="font-medium">{t('chats_page.attach_media')}</span>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="justify-start gap-4 px-3 py-6 hover:bg-secondary dark:hover:bg-[#111b21] rounded-xl text-foreground dark:text-[#e9edef]"
+                                                    onClick={() => audioInputRef.current?.click()}
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-[#ff7b6b] flex items-center justify-center text-white">
+                                                        <Headphones className="h-5 w-5" />
+                                                    </div>
+                                                    <span className="font-medium">{t('chats_page.attach_audio')}</span>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="justify-start gap-4 px-3 py-6 hover:bg-secondary dark:hover:bg-[#111b21] rounded-xl text-foreground dark:text-[#e9edef]"
+                                                    onClick={() => {
+                                                        setShowAttachMenu(false);
+                                                        setSendContactDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-[#00a884] flex items-center justify-center text-white">
+                                                        <User className="h-5 w-5" />
+                                                    </div>
+                                                    <span className="font-medium">{t('chats_page.attach_contact')}</span>
+                                                </Button>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    <div className="flex-1 relative">
+                                        <Input
+                                            placeholder={t('chats_page.type_message')}
+                                            value={newMessage}
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    sendMessage();
+                                                }
+                                            }}
+                                            className="w-full border-none bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef] placeholder:text-[#8696a0] rounded-lg h-10 focus-visible:ring-0 focus-visible:ring-offset-0 px-4"
+                                        />
+                                    </div>
+
+                                    {newMessage.trim() || isUploading ? (
+                                        <Button
+                                            onClick={sendMessage}
+                                            disabled={!newMessage.trim() || isUploading}
+                                            className="bg-transparent hover:bg-secondary dark:hover:bg-[#3b4a54] text-[#8696a0] dark:text-[#8696a0] rounded-full w-10 h-10 p-0 flex items-center justify-center border-none shadow-none"
+                                        >
+                                            <Send className="h-6 w-6" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={startRecording}
+                                            className="bg-transparent hover:bg-secondary dark:hover:bg-[#3b4a54] text-[#8696a0] dark:text-[#8696a0] rounded-full w-10 h-10 p-0 flex items-center justify-center border-none shadow-none"
+                                        >
+                                            <Mic className="h-6 w-6" />
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </>
                 ) : (
@@ -2365,6 +2756,43 @@ export default function Chats() {
                     />
                 )
             }
+
+            {/* Send Contact Dialog */}
+            <Dialog open={sendContactDialogOpen} onOpenChange={setSendContactDialogOpen}>
+                <DialogContent className="sm:max-w-[400px] border-none shadow-2xl bg-white dark:bg-[#222e35]">
+                    <DialogHeader>
+                        <DialogTitle className="text-foreground dark:text-[#e9edef]">{t('chats_page.attach_contact')}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground dark:text-[#e9edef]">{t('common.name')}</label>
+                            <Input
+                                value={contactToSend.name}
+                                onChange={(e) => setContactToSend(prev => ({ ...prev, name: e.target.value }))}
+                                placeholder="e.g. John Doe"
+                                className="border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef]"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground dark:text-[#e9edef]">{t('common.phone')}</label>
+                            <Input
+                                value={contactToSend.phone}
+                                onChange={(e) => setContactToSend(prev => ({ ...prev, phone: e.target.value }))}
+                                placeholder="e.g. 972501234567"
+                                className="border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef]"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setSendContactDialogOpen(false)} className="border-border dark:border-[#3b4a54] dark:hover:bg-[#3b4a54]">
+                            {t('common.cancel')}
+                        </Button>
+                        <Button onClick={handleSendContact} disabled={!contactToSend.name || !contactToSend.phone} className="bg-[#00a884] hover:bg-[#008f6f] text-white">
+                            {t('chats_page.send')}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Contact Detail Modal (For vCard messages) */}
             <Dialog open={!!contactPopup} onOpenChange={(open) => !open && setContactPopup(null)}>
@@ -2429,7 +2857,31 @@ export default function Chats() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div >
+            {/* Hidden File Inputs */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={(e) => handleFileSelect(e, 'document')}
+                key="doc-input"
+            />
+            <input
+                type="file"
+                accept="image/*,video/*"
+                ref={photoInputRef}
+                style={{ display: 'none' }}
+                onChange={(e) => handleFileSelect(e, 'media')}
+                key="media-input"
+            />
+            <input
+                type="file"
+                accept="audio/*"
+                ref={audioInputRef}
+                style={{ display: 'none' }}
+                onChange={(e) => handleFileSelect(e, 'audio')}
+                key="audio-input"
+            />
+        </div>
     );
 }
 

@@ -167,6 +167,22 @@ export async function sendFileByUrl(
   });
 }
 
+// 6b. Send contact card
+export async function sendContact(
+  instanceId,
+  token,
+  chatId,
+  contact = {},
+) {
+  return greenApiCall(instanceId, token, 'sendContact', {
+    method: 'POST',
+    body: {
+      chatId,
+      contact,
+    },
+  });
+}
+
 // 7. Contact info
 export async function getContactInfo(instanceId, token, chatId) {
   return greenApiCall(instanceId, token, 'getContactInfo', {

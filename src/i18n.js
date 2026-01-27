@@ -342,7 +342,11 @@ const resources = {
                 "click_to_view_doc": "Click to view document",
                 "refresh_names": "Refresh Names",
                 "confirm_reset_names": "Are you sure you want to reset all names? This will clear stored names and re-fetch them from WhatsApp.",
-                "no_messages": "No messages"
+                "no_messages": "No messages",
+                "attach_document": "Document",
+                "attach_media": "Photos & Videos",
+                "attach_audio": "Audio",
+                "attach_contact": "Contact"
             },
             "login": {
                 "title": "Welcome Back",
@@ -1168,7 +1172,11 @@ const resources = {
                 "click_to_view_doc": "לחץ להצגת מסמך",
                 "refresh_names": "רענן שמות",
                 "confirm_reset_names": "האם אתה בטוח שברצונך לרענן את כל השמות? פעולה זו תנקה את השמות השמורים ותטען אותם מחדש מ-WhatsApp.",
-                "no_messages": "אין הודעות"
+                "no_messages": "אין הודעות",
+                "attach_document": "מסמך",
+                "attach_media": "תמונות וסרטונים",
+                "attach_audio": "שמע",
+                "attach_contact": "איש קשר"
             },
             "login": {
                 "title": "ברוכים הבאים",

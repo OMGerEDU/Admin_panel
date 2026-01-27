@@ -602,5 +602,40 @@ export const EvolutionApiService = {
             console.error('EvolutionAPI Fetch Profile Picture Error:', error);
             return { success: false, error: error.message };
         }
+    },
+
+    /**
+     * Send contact card
+     * @param {string} instanceName
+     * @param {string} number
+     * @param {object} contact - { fullName, phoneNumber }
+     */
+    async sendContact(instanceName, number, contact) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/messages/contact`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    instanceName,
+                    number,
+                    contact: [
+                        {
+                            fullName: contact.fullName || contact.name,
+                            phoneNumber: contact.phoneNumber || contact.phone
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { success: false, error: errorData.message || 'Failed to send contact' };
+            }
+
+            return { success: true, data: await response.json() };
+        } catch (error) {
+            console.error('EvolutionAPI Send Contact Error:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
