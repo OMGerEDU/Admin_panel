@@ -287,7 +287,12 @@ const resources = {
                     "thursday": "Thursday",
                     "friday": "Friday",
                     "saturday": "Saturday"
-                }
+                },
+                "error_sending": "Error sending message",
+                "error_uploading": "Error uploading file"
+            },
+            "recorder": {
+                "error_access": "Could not access microphone"
             },
             "numbers_page": {
                 "title": "Numbers",
@@ -1117,7 +1122,12 @@ const resources = {
                     "thursday": "חמישי",
                     "friday": "שישי",
                     "saturday": "שבת"
-                }
+                },
+                "error_sending": "שגיאה בשליחת ההודעה",
+                "error_uploading": "שגיאה בהעלאת הקובץ"
+            },
+            "recorder": {
+                "error_access": "לא ניתן לגשת למיקרופון"
             },
             "numbers_page": {
                 "title": "מספרים",

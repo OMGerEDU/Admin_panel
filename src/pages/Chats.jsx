@@ -82,7 +82,8 @@ import {
     normalizePhoneForAPI,
     getAvatar,
     downloadFile,
-    sendContact,
+    sendContact as sendGreenContact,
+    sendFileByUrl as sendGreenFileByUrl,
 } from '../services/greenApi';
 import { EvolutionApiService } from '../services/EvolutionApiService';
 import { pollNewMessages, startBackgroundSync, getSyncStatus, syncChatsToSupabase, syncMessagesToSupabase, syncFullChatHistory, resetChatNames, warmUpSync, triggerStateSnapshot } from '../services/messageSync';
