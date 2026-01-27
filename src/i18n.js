@@ -361,7 +361,9 @@ const resources = {
                 "select_contact": "Select Contact",
                 "no_contacts_found": "No contacts found",
                 "recorder_error_access": "Could not access microphone. Please check permissions.",
-                "recorder_error_generic": "Error while recording"
+                "recorder_error_generic": "Error while recording",
+                "create_new_contact": "Create New",
+                "back_to_list": "Back to List"
             },
             "login": {
                 "title": "Welcome Back",
@@ -1206,7 +1208,9 @@ const resources = {
                 "select_contact": "בחר איש קשר",
                 "no_contacts_found": "לא נמצאו אנשי קשר",
                 "recorder_error_access": "לא ניתן לגשת למיקרופון. אנא בדוק הרשאות.",
-                "recorder_error_generic": "שגיאה במהלך ההקלטה"
+                "recorder_error_generic": "שגיאה במהלך ההקלטה",
+                "create_new_contact": "צור חדש",
+                "back_to_list": "חזרה לרשימה"
             },
             "login": {
                 "title": "ברוכים הבאים",

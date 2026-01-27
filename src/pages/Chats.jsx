@@ -140,6 +140,7 @@ export default function Chats() {
     const [filterDateTo, setFilterDateTo] = useState(new Date().toLocaleDateString('en-CA'));
     const [filterTags, setFilterTags] = useState([]); // array of tag IDs
     const [contactSearchTerm, setContactSearchTerm] = useState('');
+    const [isCreatingNewContact, setIsCreatingNewContact] = useState(false);
 
     // Database Contacts
     const { contacts: dbContacts } = useContacts(selectedNumber?.organization_id || organization?.id);
@@ -2783,56 +2784,107 @@ export default function Chats() {
             }
 
             {/* Send Contact Dialog */}
-            <Dialog open={sendContactDialogOpen} onOpenChange={setSendContactDialogOpen}>
+            <Dialog
+                open={sendContactDialogOpen}
+                onOpenChange={(open) => {
+                    setSendContactDialogOpen(open);
+                    if (!open) {
+                        setIsCreatingNewContact(false);
+                        setContactSearchTerm('');
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-[400px] border-none shadow-2xl bg-white dark:bg-[#222e35]">
                     <DialogHeader>
                         <DialogTitle className="text-foreground dark:text-[#e9edef]">{t('chats_page.attach_contact')}</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder={t('chats_page.search_contacts')}
-                                value={contactSearchTerm}
-                                onChange={(e) => setContactSearchTerm(e.target.value)}
-                                className="pl-10 border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942]"
-                            />
+                    {isCreatingNewContact ? (
+                        <div className="space-y-4 py-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-foreground dark:text-[#e9edef]">{t('common.name')}</label>
+                                <Input
+                                    value={contactToSend.name}
+                                    onChange={(e) => setContactToSend(prev => ({ ...prev, name: e.target.value }))}
+                                    placeholder="e.g. John Doe"
+                                    className="border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef]"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-foreground dark:text-[#e9edef]">{t('common.phone')}</label>
+                                <Input
+                                    value={contactToSend.phone}
+                                    onChange={(e) => setContactToSend(prev => ({ ...prev, phone: e.target.value }))}
+                                    placeholder="e.g. 972501234567"
+                                    className="border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942] text-foreground dark:text-[#e9edef]"
+                                />
+                            </div>
+                            <Button
+                                variant="link"
+                                onClick={() => setIsCreatingNewContact(false)}
+                                className="px-0 text-primary h-auto font-normal"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                                {t('chats_page.back_to_list')}
+                            </Button>
                         </div>
+                    ) : (
+                        <div className="space-y-4 py-2 animate-in fade-in slide-in-from-left-2 duration-200">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder={t('chats_page.search_contacts')}
+                                    value={contactSearchTerm}
+                                    onChange={(e) => setContactSearchTerm(e.target.value)}
+                                    className="pl-10 border-border dark:border-[#3b4a54] bg-white dark:bg-[#2a3942]"
+                                />
+                            </div>
 
-                        <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                            {dbContacts?.filter(c =>
-                                c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
-                                c.phone?.includes(contactSearchTerm)
-                            ).map((contact) => (
-                                <button
-                                    key={contact.id}
-                                    onClick={() => {
-                                        setContactToSend({ name: contact.name, phone: contact.phone });
-                                    }}
-                                    className={cn(
-                                        "w-full flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-secondary dark:hover:bg-[#2a3942] group",
-                                        contactToSend.phone === contact.phone ? "bg-primary/10 border-primary/20" : "transparent"
+                            <div className="max-h-[350px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                {dbContacts?.filter(c =>
+                                    c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                                    c.phone?.includes(contactSearchTerm)
+                                ).map((contact) => (
+                                    <button
+                                        key={contact.id}
+                                        onClick={() => {
+                                            setContactToSend({ name: contact.name, phone: contact.phone });
+                                        }}
+                                        className={cn(
+                                            "w-full flex items-center gap-3 p-2 rounded-xl transition-all hover:bg-secondary dark:hover:bg-[#2a3942] group",
+                                            contactToSend.phone === contact.phone ? "bg-primary/10 border-primary/20" : "transparent"
+                                        )}
+                                    >
+                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                                            {contact.name?.charAt(0) || <User className="h-4 w-4" />}
+                                        </div>
+                                        <div className="flex-1 text-left rtl:text-right overflow-hidden">
+                                            <div className="font-medium text-sm text-foreground dark:text-[#e9edef] truncate">{contact.name}</div>
+                                            <div className="text-[11px] text-muted-foreground truncate">{contact.phone}</div>
+                                        </div>
+                                    </button>
+                                ))}
+                                {(!dbContacts || dbContacts.filter(c =>
+                                    c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                                    c.phone?.includes(contactSearchTerm)
+                                ).length === 0) && (
+                                        <div className="text-center py-8 text-muted-foreground text-sm">
+                                            {t('chats_page.no_contacts_found')}
+                                        </div>
                                     )}
-                                >
-                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                        {contact.name?.charAt(0) || <User className="h-5 w-5" />}
-                                    </div>
-                                    <div className="flex-1 text-left rtl:text-right overflow-hidden">
-                                        <div className="font-medium text-foreground dark:text-[#e9edef] truncate">{contact.name}</div>
-                                        <div className="text-xs text-muted-foreground truncate">{contact.phone}</div>
-                                    </div>
-                                </button>
-                            ))}
-                            {(!dbContacts || dbContacts.filter(c =>
-                                c.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
-                                c.phone?.includes(contactSearchTerm)
-                            ).length === 0) && (
-                                    <div className="text-center py-8 text-muted-foreground text-sm">
-                                        {t('chats_page.no_contacts_found')}
-                                    </div>
-                                )}
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setContactToSend({ name: '', phone: '' });
+                                    setIsCreatingNewContact(true);
+                                }}
+                                className="w-full justify-start gap-3 border-dashed border-2 hover:border-primary hover:text-primary rounded-xl py-6"
+                            >
+                                <PlusCircle className="h-5 w-5" />
+                                <span className="font-medium">{t('chats_page.create_new_contact')}</span>
+                            </Button>
                         </div>
-                    </div>
+                    )}
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" onClick={() => setSendContactDialogOpen(false)} className="border-border dark:border-[#3b4a54] dark:hover:bg-[#3b4a54]">
                             {t('common.cancel')}
